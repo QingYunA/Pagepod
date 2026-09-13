@@ -83,6 +83,15 @@ export async function moderateProjectContent(
   const screenshotBase64 = screenshotBuffer ? screenshotBuffer.toString("base64") : undefined;
   const aiFinding = await checkOpenAIModeration(visibleText, screenshotBase64);
   if (aiFinding) {
+    if (aiFinding.severity === "warning_remedial") {
+      return {
+        action: "flagged_controversy",
+        reviewStatus: "flagged",
+        category: aiFinding.category,
+        reason: aiFinding.reason,
+        matchedKeywords: aiFinding.matchedKeywords,
+      };
+    }
     return {
       action: "critical_block",
       reviewStatus: "rejected",

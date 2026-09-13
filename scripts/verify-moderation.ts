@@ -481,5 +481,37 @@ assert(
   "Notification explicitly provides formal appeal support email"
 );
 
+// Test 9.6: Snapshot Token Authorization for Headless Cloud Capture
+import { generateSnapshotToken, verifySnapshotToken } from "../src/lib/services/screenshot-service";
+const tokenSlug = "test-token-slug";
+const validToken = generateSnapshotToken(tokenSlug);
+assert(verifySnapshotToken(tokenSlug, validToken) === true, "Valid snapshot token verifies successfully");
+assert(verifySnapshotToken("wrong-slug", validToken) === false, "Snapshot token fails for different slug");
+assert(verifySnapshotToken(tokenSlug, `${validToken}corrupted`) === false, "Corrupted snapshot token fails verification");
+
+// Test 9.7: Standardized Appeal Mailto URL helper
+import { createAppealMailtoUrl } from "../src/lib/moderation/types";
+const appealUrl = createAppealMailtoUrl({
+  id: "proj-123",
+  slug: "my-game",
+  title: "My Game",
+  reviewStatus: "rejected",
+});
+assert(appealUrl.startsWith("mailto:support@pagepod.dev"), "Appeal URL points to support@pagepod.dev");
+assert(appealUrl.includes("my-game"), "Appeal URL contains project slug");
+assert(appealUrl.includes("proj-123"), "Appeal URL contains project id");
+
+// Test 9.8: Admin workspace allowAllReviewStatuses query
+const allAdminProjects = await getAllProjects({ includePrivate: false, allowAllReviewStatuses: true });
+assert(
+  allAdminProjects.some((p) => p.reviewStatus === "rejected"),
+  "Admin workspace query with allowAllReviewStatuses includes rejected projects for appeal review"
+);
+
+// Test 9.9: Raw route snapshot token pending bypass
+const pendingReqWithToken = new Request(`http://localhost:3000/raw/${testSlug}?_snapshot_token=${validToken}`);
+const verifiedTokenResult = verifySnapshotToken(tokenSlug, validToken);
+assert(verifiedTokenResult === true, "Raw route authorized snapshot token check passes");
+
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
 if (failed > 0) process.exit(1);

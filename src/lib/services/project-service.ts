@@ -12,6 +12,7 @@ import {
   renderProjectScreenshot,
   captureProjectScreenshot,
   captureProjectScreenshotWithBuffer,
+  generateSnapshotToken,
 } from "@/lib/services/screenshot-service";
 import { assertCanCreateProject } from "@/lib/services/billing-service";
 import { assertCanManageProject, isExactProjectCreator, type CurrentUser } from "@/lib/auth";
@@ -449,7 +450,11 @@ export async function updateProject(
     try {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
       const targetVisibility = input.visibility !== undefined ? input.visibility : project.visibility;
-      const publicUrl = targetVisibility === "public" ? `${siteUrl}/raw/${project.slug}` : undefined;
+      let publicUrl: string | undefined;
+      if (targetVisibility === "public") {
+        const snapshotToken = generateSnapshotToken(project.slug);
+        publicUrl = `${siteUrl}/raw/${project.slug}?_snapshot_token=${encodeURIComponent(snapshotToken)}`;
+      }
       imgBuffer = await renderProjectScreenshot(input.htmlCode, publicUrl);
       if (imgBuffer) {
         await projectStorage.writeAsset("screenshot.png", imgBuffer, "image/png");
@@ -491,6 +496,34 @@ export async function updateProject(
       screenshotBuffer: imgBuffer,
       creatorUserId: project.userId,
     });
+
+    // Fallback: If screenshot wasn't captured synchronously (e.g. cloud headless missing),
+    // trigger background capture and feed back into visual moderation.
+    const finalVisibility = patch.visibility || project.visibility;
+    if (!imgBuffer && finalVisibility === "public") {
+      const runCapture = async () => {
+        try {
+          const captured = await captureProjectScreenshotWithBuffer(project.slug);
+          if (captured && input.htmlCode) {
+            scheduleAsyncModeration({
+              projectId: project.id,
+              slug: project.slug,
+              title: patch.title || project.title,
+              html: input.htmlCode,
+              screenshotBuffer: captured.imageBuffer,
+              creatorUserId: project.userId,
+            });
+          }
+        } catch (err) {
+          console.warn(`[ProjectService] Post-update cloud screenshot capture skipped for ${project.slug}:`, err);
+        }
+      };
+      try {
+        after(runCapture);
+      } catch {
+        runCapture();
+      }
+    }
   }
 
   return result;

@@ -308,6 +308,7 @@ async function withTableFallback<T>(fn: () => Promise<T>): Promise<T> {
 export async function getAllProjects(options?: {
   userId?: string;
   includePrivate?: boolean;
+  allowAllReviewStatuses?: boolean;
   reviewStatus?: string;
   category?: string;
   tag?: string;
@@ -326,7 +327,7 @@ export async function getAllProjects(options?: {
           conditions.push(eq(schema.projects.userId, options.userId));
         } else if (!options?.includePrivate) {
           conditions.push(eq(schema.projects.visibility, "public"));
-          if (!options?.reviewStatus) {
+          if (!options?.reviewStatus && !options?.allowAllReviewStatuses) {
             conditions.push(eq(schema.projects.reviewStatus, "approved"));
           }
         }
@@ -371,6 +372,7 @@ export async function getAllProjects(options?: {
         const isPublic = p.visibility === "public";
         if (!isPublic) return false;
         if (options?.reviewStatus) return p.reviewStatus === options.reviewStatus;
+        if (options?.allowAllReviewStatuses) return true;
         return p.reviewStatus === "approved" || !p.reviewStatus;
       });
     }

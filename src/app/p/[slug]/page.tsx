@@ -7,6 +7,7 @@ import { getStorage } from "@/lib/storage";
 import { getCurrentUser, isExactProjectCreator } from "@/lib/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { createAppealMailtoUrl } from "@/lib/moderation/types";
 import RunnerClient from "./runner-client";
 
 interface PageProps {
@@ -121,13 +122,7 @@ export default async function ProjectRunnerPage({ params }: PageProps) {
             <Link href="/">Back to Showcase / 返回画廊</Link>
           </Button>
           <Button variant="default" size="sm" asChild>
-            <a
-              href={`mailto:support@pagepod.dev?subject=${encodeURIComponent(
-                `[Appeal] Review request for project ${project.slug}`
-              )}&body=${encodeURIComponent(
-                `Hello Pagepod Admin,\n\nI would like to appeal the takedown decision for project:\n- Project ID: ${project.id}\n- Slug: ${project.slug}\n- Title: ${project.title}\n\nNotes:\n`
-              )}`}
-            >
+            <a href={createAppealMailtoUrl(project)}>
               Appeal / 申诉复核
             </a>
           </Button>

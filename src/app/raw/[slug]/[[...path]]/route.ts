@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getProjectBySlug, incrementViewCount } from "@/db";
 import { getProjectStorage } from "@/lib/storage";
 import { getCurrentUser, isExactProjectCreator } from "@/lib/auth";
+import { verifySnapshotToken } from "@/lib/services/screenshot-service";
 
 interface RouteParams {
   params: Promise<{
@@ -44,8 +45,12 @@ export async function GET(request: Request, context: RouteParams) {
   }
 
   // 3. Pending Moderation Gate:
-  // While undergoing asynchronous review, only authenticated creators can preview/test
-  if (isPending && !isExactCreator) {
+  // While undergoing asynchronous review, authenticated creators OR authorized snapshot tokens can render the preview
+  const url = new URL(request.url);
+  const snapshotToken = url.searchParams.get("_snapshot_token");
+  const isAuthorizedSnapshot = Boolean(snapshotToken && verifySnapshotToken(slug, snapshotToken));
+
+  if (isPending && !isExactCreator && !isAuthorizedSnapshot) {
     return new NextResponse(
       "403 Forbidden: Content is currently undergoing safety and compliance review.",
       {

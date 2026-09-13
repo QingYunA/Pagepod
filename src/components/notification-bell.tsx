@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import type { Notification } from "@/db/schema";
+import type { NotificationType } from "@/lib/moderation/types";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/context";
 import { Badge } from "@/components/ui/badge";
@@ -133,8 +134,9 @@ export function NotificationBell() {
             </div>
           ) : (
             notifications.map((notif) => {
-              const isDowngrade = notif.type === "moderation_downgrade";
-              const isRejected = notif.type === "moderation_rejected";
+              const notifType = notif.type as NotificationType;
+              const isDowngrade = notifType === "moderation_downgrade";
+              const isRejected = notifType === "moderation_rejected";
 
               return (
                 <DropdownMenuItem

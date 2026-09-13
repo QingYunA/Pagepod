@@ -55,6 +55,7 @@ interface AdminTableProps {
 }
 
 import { translations } from "@/lib/i18n/translations";
+import { createAppealMailtoUrl } from "@/lib/moderation/types";
 
 const CATEGORY_ICONS = {
   all: Layers,
@@ -68,15 +69,13 @@ const CATEGORY_ICONS = {
 
 function ReviewStatusBadge({
   status,
-  t,
   isOverlay = false,
+  t,
 }: {
   status?: string | null;
-  t: (typeof translations)["zh"];
   isOverlay?: boolean;
+  t: (typeof translations)["en"];
 }) {
-  if (!status || status === "approved") return null;
-
   if (status === "rejected") {
     return (
       <Badge
@@ -88,7 +87,7 @@ function ReviewStatusBadge({
         }
       >
         <ShieldAlert className="w-2.5 h-2.5 mr-0.5" />
-        {t.moderation?.statusRejected || "违规封禁"}
+        {t.moderation?.statusRejected || "Rejected"}
       </Badge>
     );
   }
@@ -103,7 +102,7 @@ function ReviewStatusBadge({
             : "text-[10px] px-1 py-0 bg-amber-500/10 border-amber-500/30 text-amber-500 font-normal"
         }
       >
-        {t.moderation?.statusPending || "审核中"}
+        {t.moderation?.statusPending || "Pending"}
       </Badge>
     );
   }
@@ -119,7 +118,7 @@ function ReviewStatusBadge({
         }
       >
         <AlertTriangle className="w-2.5 h-2.5 mr-0.5" />
-        {t.moderation?.statusFlagged || "争议受限"}
+        {t.moderation?.statusFlagged || "Restricted"}
       </Badge>
     );
   }
@@ -499,13 +498,7 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                               className="h-7 w-7 text-amber-500 hover:text-amber-600"
                               title="Appeal Review / 申诉复核"
                             >
-                              <a
-                                href={`mailto:support@pagepod.dev?subject=${encodeURIComponent(
-                                  `[Appeal] Review request for project ${item.slug}`
-                                )}&body=${encodeURIComponent(
-                                  `Hello Pagepod Admin,\n\nI would like to request an appeal review for my project:\n- Project ID: ${item.id}\n- Slug: ${item.slug}\n- Title: ${item.title}\n- Current Status: ${item.reviewStatus}\n- Reason/Notes:\n`
-                                )}`}
-                              >
+                              <a href={createAppealMailtoUrl(item)}>
                                 <HelpCircle className="w-3.5 h-3.5" />
                               </a>
                             </Button>
@@ -725,13 +718,7 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                               className="h-7 w-7 text-amber-500 hover:text-amber-600"
                               title="Appeal Review / 申诉复核"
                             >
-                              <a
-                                href={`mailto:support@pagepod.dev?subject=${encodeURIComponent(
-                                  `[Appeal] Review request for project ${item.slug}`
-                                )}&body=${encodeURIComponent(
-                                  `Hello Pagepod Admin,\n\nI would like to request an appeal review for my project:\n- Project ID: ${item.id}\n- Slug: ${item.slug}\n- Title: ${item.title}\n- Current Status: ${item.reviewStatus}\n- Reason/Notes:\n`
-                                )}`}
-                              >
+                              <a href={createAppealMailtoUrl(item)}>
                                 <HelpCircle className="w-3.5 h-3.5" />
                               </a>
                             </Button>

@@ -2,11 +2,13 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
+import crypto from "node:crypto";
 import { execSync, execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { revalidatePath } from "next/cache";
 import { getProjectBySlug, updateProject } from "@/db";
 import { getStorage } from "@/lib/storage";
+import { getJwtSecret } from "@/lib/secret-policy";
 
 const execFileAsync = promisify(execFile);
 
@@ -200,6 +202,36 @@ function revalidateProjectViews(slug: string) {
 }
 
 /**
+ * Generates an HMAC-signed, time-limited internal token allowing authorized headless
+ * screenshot services (e.g. cloud Microlink) to render public projects undergoing review.
+ */
+export function generateSnapshotToken(slug: string): string {
+  const secret = getJwtSecret() || new TextEncoder().encode("internal-snapshot-token-salt");
+  const timestamp = Math.floor(Date.now() / 1000);
+  const data = `${slug}:${timestamp}`;
+  const hmac = crypto.createHmac("sha256", secret).update(data).digest("hex");
+  return `${timestamp}.${hmac}`;
+}
+
+export function verifySnapshotToken(slug: string, token: string): boolean {
+  try {
+    const [timestampStr, hmac] = token.split(".");
+    if (!timestampStr || !hmac) return false;
+    if (hmac.length !== 64 || !/^[0-9a-f]{64}$/i.test(hmac)) return false;
+    const timestamp = parseInt(timestampStr, 10);
+    const now = Math.floor(Date.now() / 1000);
+    // Valid for 10 minutes to allow cloud rendering roundtrip
+    if (Math.abs(now - timestamp) > 600) return false;
+    const secret = getJwtSecret() || new TextEncoder().encode("internal-snapshot-token-salt");
+    const data = `${slug}:${timestamp}`;
+    const expectedHmac = crypto.createHmac("sha256", secret).update(data).digest("hex");
+    return crypto.timingSafeEqual(Buffer.from(hmac, "hex"), Buffer.from(expectedHmac, "hex"));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Convenience orchestrator for capturing, committing, and returning image buffer.
  */
 export async function captureProjectScreenshotWithBuffer(
@@ -224,7 +256,11 @@ export async function captureProjectScreenshotWithBuffer(
     : String(file.data);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
-  const publicUrl = project.visibility === "public" ? `${siteUrl}/raw/${project.slug}` : undefined;
+  let publicUrl: string | undefined;
+  if (project.visibility === "public") {
+    const snapshotToken = generateSnapshotToken(project.slug);
+    publicUrl = `${siteUrl}/raw/${project.slug}?_snapshot_token=${encodeURIComponent(snapshotToken)}`;
+  }
 
   const imageBuffer = await renderProjectScreenshot(htmlContent, publicUrl);
   if (!imageBuffer) return null;
