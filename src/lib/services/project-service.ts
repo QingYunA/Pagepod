@@ -12,6 +12,7 @@ import { renderProjectScreenshot, captureProjectScreenshot } from "@/lib/service
 import { assertCanCreateProject } from "@/lib/services/billing-service";
 import { assertCanManageProject, type CurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import type { Project } from "@/db/schema";
 
 // --- Domain Errors ---
@@ -199,7 +200,7 @@ export async function createProject(
   }
 
   if (!title) {
-    title = "未命名项目";
+    title = "Untitled Project";
   }
 
   // 4. Generate poster screenshot directly before initial DB write (Single Atomic Commit)
@@ -248,11 +249,20 @@ export async function createProject(
 
   // 5. Post-commit Asynchronous Poster Ingestion
   // If screenshot was not generated synchronously (e.g. headless Chrome absent in serverless runtime),
-  // trigger background capture now that the project is committed and publicly accessible at /raw/:slug
+  // trigger background capture now that the project is committed and publicly accessible at /raw/:slug.
+  // Wrap in Next.js after() to keep the serverless worker alive until capture completes.
   if (!screenshotUrl && project.visibility === "public") {
-    captureProjectScreenshot(project.slug).catch((err) => {
-      console.warn(`[ProjectService] Post-commit cloud screenshot capture skipped for ${project.slug}:`, err);
-    });
+    try {
+      after(async () => {
+        await captureProjectScreenshot(project.slug).catch((err) => {
+          console.warn(`[ProjectService] Post-commit cloud screenshot capture skipped for ${project.slug}:`, err);
+        });
+      });
+    } catch {
+      captureProjectScreenshot(project.slug).catch((err) => {
+        console.warn(`[ProjectService] Post-commit cloud screenshot capture skipped for ${project.slug}:`, err);
+      });
+    }
   }
 
   return project;

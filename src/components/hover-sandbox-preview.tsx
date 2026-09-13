@@ -298,7 +298,7 @@ export default function HoverSandboxPreview({
           href={`/p/${slug}`}
           target="_blank"
           className="absolute inset-0 z-20"
-          title={`点击直接打开 ${title}`}
+          title={`${defaultOpenText}: ${title}`}
         />
 
         {/* Floating Sandboxed Preview Popover */}
@@ -343,7 +343,7 @@ export default function HoverSandboxPreview({
                   <div className="h-full bg-neutral-200/90 animate-pulse w-full" />
                 </div>
                 <Loader2 className="w-4 h-4 animate-spin text-neutral-300" />
-                <span className="text-[10px] font-mono">加载实时沙箱中...</span>
+                <span className="text-[10px] font-mono">{t.gallery.loadingPreview}</span>
               </div>
             )}
 
