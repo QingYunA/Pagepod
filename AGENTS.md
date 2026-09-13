@@ -72,6 +72,20 @@
    - 采用 Drizzle ORM，原生适配 PostgreSQL（Vercel Postgres / Neon / Supabase）；
    - 在未配置外部数据库的本地开发环境中，通过 `.data/db.json` 自动 fallback，保证开箱即用零报错。
 
+4. **双核存储分工模型 (Dual-Storage Responsibility Matrix)**：
+   - **Cloudflare R2 / 对象存储**：仅承载 HTML、JS、CSS、图片、ZIP 及缩略图截图等**物理静态文件**的持久化存储与流式分发；不存储业务状态，不参与列表过滤；
+   - **PostgreSQL (Neon / Vercel Postgres) / 元数据关系数据库**：存储所有业务实体与元数据（用户、项目 ID、Slug、标题、分类、可见性 `visibility`、审核状态 `review_status` 等）。主页与工作台的列表检索、分类筛选与计数**必须且仅由数据库承担**；
+   - **排障纪律**：若前端页面展示作品为 0 或卡片缺失，必须优先排查 PostgreSQL 查询过滤条件（如 `review_status`、`visibility`、租户隔离条件），切勿误判为 R2 物理文件丢失。
+
+5. **数据库 DDL 祖父法则与向后兼容约束 (Grandfathering Invariant & Backward-Compatible DDL)**：
+   - **严禁排他性默认值**：审查任何向数据表增加新列的 DDL（如 `review_status`、`status`、`is_active`）时，若该列参与了公共查询过滤，列的数据库默认值严禁设为排他或待定状态（如 `'pending'`、`false`），必须设置为保证存量数据可见的宽松状态（如 `'approved'`），新记录再由业务服务层显式赋予待定状态；
+   - **强制存量数据自愈机制**：所有涉及数据过滤状态升级的迁移，必须配套幂等的自愈更新脚本（如 `autoApproveLegacyProjects()`），在服务初始化或冷启动时自动执行，确保历史存量数据平滑过渡（Grandfathered）。
+
+6. **生产环境验证探针优先级 (Tool Economy & Probe Discipline)**：
+   - **优先轻量 HTTP / API 探针**：生产环境部署后验证首选 `curl`、API 端点（`/api/projects`）或 SSR HTML 关键字符串 grep 进行秒级、高确定性的断言；
+   - **按需唤起重型浏览器**：仅在验证复杂拖拽交互、多重动效过渡或 Canvas/WebGL 本地渲染时才调用无头浏览器，避免无谓的超时与算力开销。
+
+
 ---
 
 ## ✉️ 三、认证与系统事务邮件规范 (Auth & Transactional Email Standards)

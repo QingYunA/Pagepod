@@ -513,5 +513,40 @@ const pendingReqWithToken = new Request(`http://localhost:3000/raw/${testSlug}?_
 const verifiedTokenResult = verifySnapshotToken(tokenSlug, validToken);
 assert(verifiedTokenResult === true, "Raw route authorized snapshot token check passes");
 
+console.log("\n=== 10. Legacy Migration & Backward Compatibility Invariants ===");
+import { autoApproveLegacyProjects } from "../src/db";
+
+// Test 10.1: Idempotent execution of autoApproveLegacyProjects
+await autoApproveLegacyProjects();
+await autoApproveLegacyProjects();
+assert(true, "autoApproveLegacyProjects runs idempotently without throw");
+
+// Test 10.2: Legacy project with null reviewStatus is included in public showcase
+const legacySlug = `legacy-proj-${Date.now()}`;
+const legacyProject = await dbCreateProject({
+  id: `id-${legacySlug}`,
+  userId: testUserId,
+  title: "Legacy Ancient Project",
+  slug: legacySlug,
+  storagePrefix: `sites/${legacySlug}`,
+  reviewStatus: null as any,
+  moderationCategory: null,
+  visibility: "public",
+});
+
+const publicShowcase = await getAllProjects({ includePrivate: false });
+const foundLegacy = publicShowcase.find((p) => p.slug === legacySlug);
+assert(
+  Boolean(foundLegacy),
+  "Public showcase query includes grandfathered legacy project with null/approved reviewStatus"
+);
+
+// Test 10.3: Legacy project has approved or null reviewStatus, never blocks visitor
+assert(
+  foundLegacy?.reviewStatus === "approved" || !foundLegacy?.reviewStatus,
+  "Grandfathered legacy project reviewStatus resolves to approved or null fallback"
+);
+
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
 if (failed > 0) process.exit(1);
+

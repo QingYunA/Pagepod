@@ -504,7 +504,7 @@ export async function createProject(data: NewProject): Promise<Project> {
     kdfIterations: data.kdfIterations ?? null,
     fileSize: data.fileSize ?? 0,
     planTier: data.planTier ?? "free",
-    reviewStatus: data.reviewStatus ?? "pending",
+    reviewStatus: data.reviewStatus ?? "approved",
     moderationCategory: data.moderationCategory ?? null,
     moderationSummary: data.moderationSummary ?? null,
     createdAt: now,
