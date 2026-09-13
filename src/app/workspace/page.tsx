@@ -20,13 +20,13 @@ export default async function WorkspacePage() {
   let projects: Project[] = [];
 
   if (currentUser?.id === "selfhost-admin") {
-    projects = await getAllProjects({ includePrivate: true, isWorkspace: true });
+    projects = await getAllProjects({ includePrivate: true, isWorkspace: true, allowAllReviewStatuses: true });
   } else if (currentUser?.id) {
     if (currentUser.role === "admin") {
-      // Platform admin also sees public items from everyone for moderation, but NEVER others' private items!
+      // Platform admin also sees public items from everyone for moderation (including pending & rejected), but NEVER others' private items!
       const [myProjects, publicProjects] = await Promise.all([
-        getAllProjects({ userId: currentUser.id, isWorkspace: true }),
-        getAllProjects({ includePrivate: false, isWorkspace: false }),
+        getAllProjects({ userId: currentUser.id, isWorkspace: true, allowAllReviewStatuses: true }),
+        getAllProjects({ includePrivate: false, isWorkspace: false, allowAllReviewStatuses: true }),
       ]);
       const map = new Map<string, Project>();
       myProjects.forEach((p) => map.set(p.id, p));
@@ -42,10 +42,10 @@ export default async function WorkspacePage() {
       projects = Array.from(map.values());
     } else {
       // User sees their own projects (including their own private ones)
-      projects = await getAllProjects({ userId: currentUser.id, isWorkspace: true });
+      projects = await getAllProjects({ userId: currentUser.id, isWorkspace: true, allowAllReviewStatuses: true });
     }
   } else {
-    projects = await getAllProjects({ includePrivate: false, isWorkspace: true });
+    projects = await getAllProjects({ includePrivate: false, isWorkspace: true, allowAllReviewStatuses: true });
   }
 
   const totalViews = projects.reduce((sum, p) => sum + (p.viewCount || 0), 0);

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, desc, asc, and, sql } from "drizzle-orm";
+import { eq, desc, asc, and, or, isNull, sql } from "drizzle-orm";
 import { calculateTrendingScore } from "@/lib/scoring";
 import * as schema from "./schema";
 import type {
@@ -15,6 +15,8 @@ import type {
   NewOrder,
   UserSubscription,
   NewUserSubscription,
+  Notification,
+  NewNotification,
 } from "./schema";
 
 const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -52,6 +54,7 @@ interface LocalData {
   apiTokens?: ApiToken[];
   orders?: Order[];
   userSubscriptions?: UserSubscription[];
+  notifications?: Notification[];
 }
 
 function readLocalData(): LocalData {
@@ -85,6 +88,10 @@ function readLocalData(): LocalData {
       isGlobalPinned: p.isGlobalPinned ?? (p.isPinned ?? false),
       globalPinnedAt: p.globalPinnedAt ? new Date(p.globalPinnedAt) : (p.isPinned ? new Date(p.createdAt) : null),
       language: p.language ?? "zh",
+      visibility: (p.visibility as string) === "unlisted" ? "private" : p.visibility,
+      reviewStatus: p.reviewStatus ?? "approved",
+      moderationCategory: p.moderationCategory ?? null,
+      moderationSummary: p.moderationSummary ?? null,
       screenshotUrl: p.screenshotUrl ?? null,
       keyMode: p.keyMode ?? "legacy-server",
       kdfSalt: p.kdfSalt ?? null,
@@ -106,10 +113,14 @@ function readLocalData(): LocalData {
       ...s,
       updatedAt: new Date(s.updatedAt),
     }));
+    data.notifications = (data.notifications || []).map((n) => ({
+      ...n,
+      createdAt: new Date(n.createdAt),
+    }));
     return data;
   } catch (err) {
     console.error("Failed to read local data:", err);
-    return { projects: [], settings: {}, apiTokens: [], orders: [], userSubscriptions: [] };
+    return { projects: [], settings: {}, apiTokens: [], orders: [], userSubscriptions: [], notifications: [] };
   }
 }
 
@@ -191,10 +202,15 @@ const SQL_PROJECTS_MIGRATIONS = [
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_global_pinned BOOLEAN NOT NULL DEFAULT false;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS global_pinned_at TIMESTAMPTZ;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT 'zh';`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'approved';`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_category TEXT;`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_summary TEXT;`,
   `CREATE INDEX IF NOT EXISTS projects_user_id_idx ON projects (user_id);`,
   `CREATE INDEX IF NOT EXISTS projects_global_pinned_idx ON projects (is_global_pinned, global_pinned_at);`,
   `CREATE INDEX IF NOT EXISTS projects_language_idx ON projects (language);`,
   `UPDATE projects SET is_global_pinned = true, global_pinned_at = created_at WHERE is_pinned = true AND is_global_pinned = false;`,
+  `UPDATE projects SET visibility = 'private' WHERE visibility = 'unlisted';`,
+  `UPDATE projects SET review_status = 'approved' WHERE (review_status = 'pending' OR review_status IS NULL) AND moderation_category IS NULL;`,
 ];
 
 const SQL_SETTINGS = `
@@ -242,6 +258,43 @@ const SQL_USER_SUBSCRIPTIONS = `
   );
 `;
 
+const SQL_NOTIFICATIONS = `
+  CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    project_id TEXT,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+  CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications (user_id);
+`;
+
+let legacyProjectsApproved = false;
+
+export async function autoApproveLegacyProjects() {
+  if (legacyProjectsApproved || !dbUrl) return;
+  try {
+    getDatabase();
+    if (!pgPool) return;
+    await pgPool.query(`
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'approved';
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_category TEXT;
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_summary TEXT;
+      UPDATE projects 
+      SET review_status = 'approved' 
+      WHERE (review_status = 'pending' OR review_status IS NULL) 
+        AND moderation_category IS NULL;
+    `);
+    legacyProjectsApproved = true;
+    console.log("[DB] Legacy projects successfully grandfathered to approved status.");
+  } catch (err) {
+    console.warn("[DB] autoApproveLegacyProjects notice:", err);
+  }
+}
+
 async function ensurePostgresTables() {
   if (tablesInitialized || !dbUrl) return;
   try {
@@ -258,6 +311,7 @@ async function ensurePostgresTables() {
       SQL_API_TOKENS,
       SQL_ORDERS,
       SQL_USER_SUBSCRIPTIONS,
+      SQL_NOTIFICATIONS,
       ...SQL_PROJECTS_MIGRATIONS,
     ]) {
       try {
@@ -298,12 +352,15 @@ export async function getAllProjects(options?: {
   userId?: string;
   isWorkspace?: boolean;
   includePrivate?: boolean;
+  allowAllReviewStatuses?: boolean;
+  reviewStatus?: string;
   category?: string;
   language?: string;
   tag?: string;
   search?: string;
   sortBy?: ProjectSortOption;
 }): Promise<Project[]> {
+  await autoApproveLegacyProjects();
   const db = getDatabase();
   let list: Project[] = [];
   let isFilteredInSql = false;
@@ -320,6 +377,18 @@ export async function getAllProjects(options?: {
           conditions.push(eq(schema.projects.userId, options.userId));
         } else if (!options?.includePrivate) {
           conditions.push(eq(schema.projects.visibility, "public"));
+          if (!options?.reviewStatus && !options?.allowAllReviewStatuses) {
+            conditions.push(
+              or(
+                eq(schema.projects.reviewStatus, "approved"),
+                isNull(schema.projects.reviewStatus)
+              )
+            );
+          }
+        }
+
+        if (options?.reviewStatus) {
+          conditions.push(eq(schema.projects.reviewStatus, options.reviewStatus));
         }
 
         if (options?.category && options.category !== "all") {
@@ -402,7 +471,17 @@ export async function getAllProjects(options?: {
     if (options?.userId) {
       list = list.filter((p) => p.userId === options.userId);
     } else if (!options?.includePrivate) {
-      list = list.filter((p) => p.visibility === "public");
+      list = list.filter((p) => {
+        const isPublic = p.visibility === "public";
+        if (!isPublic) return false;
+        if (options?.reviewStatus) return p.reviewStatus === options.reviewStatus;
+        if (options?.allowAllReviewStatuses) return true;
+        return p.reviewStatus === "approved" || !p.reviewStatus;
+      });
+    }
+
+    if (options?.reviewStatus) {
+      list = list.filter((p) => p.reviewStatus === options.reviewStatus);
     }
 
     if (options?.category && options.category !== "all") {
@@ -536,6 +615,9 @@ export async function createProject(data: NewProject): Promise<Project> {
     kdfIterations: data.kdfIterations ?? null,
     fileSize: data.fileSize ?? 0,
     planTier: data.planTier ?? "free",
+    reviewStatus: data.reviewStatus ?? "approved",
+    moderationCategory: data.moderationCategory ?? null,
+    moderationSummary: data.moderationSummary ?? null,
     createdAt: now,
     updatedAt: now,
   };
@@ -1064,3 +1146,134 @@ export async function getUserOrders(userId: string): Promise<Order[]> {
     .filter((o) => o.userId === userId)
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
+
+export async function createNotification(data: NewNotification): Promise<Notification> {
+  const db = getDatabase();
+  const now = new Date();
+  const newRecord: Notification = {
+    id: data.id,
+    userId: data.userId,
+    projectId: data.projectId ?? null,
+    type: data.type,
+    title: data.title,
+    message: data.message,
+    isRead: data.isRead ?? false,
+    createdAt: now,
+  };
+
+  if (db) {
+    try {
+      const inserted = await withTableFallback(() =>
+        db.insert(schema.notifications).values(newRecord).returning()
+      );
+      return inserted[0];
+    } catch (err) {
+      console.error("createNotification DB insert error, saving to local fallback:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.notifications) local.notifications = [];
+  const existingIdx = local.notifications.findIndex((n) => n.id === newRecord.id);
+  if (existingIdx !== -1) {
+    local.notifications[existingIdx] = newRecord;
+  } else {
+    local.notifications.push(newRecord);
+  }
+  writeLocalData(local);
+  return newRecord;
+}
+
+export async function getUserNotifications(userId: string, limit = 50): Promise<Notification[]> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      return await withTableFallback(() =>
+        db
+          .select()
+          .from(schema.notifications)
+          .where(eq(schema.notifications.userId, userId))
+          .orderBy(desc(schema.notifications.createdAt))
+          .limit(limit)
+      );
+    } catch (err) {
+      console.error("getUserNotifications DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  return (local.notifications || [])
+    .filter((n) => n.userId === userId)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, limit);
+}
+
+export async function getUnreadNotificationsCount(userId: string): Promise<number> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      const result = await withTableFallback(() =>
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(schema.notifications)
+          .where(and(eq(schema.notifications.userId, userId), eq(schema.notifications.isRead, false)))
+      );
+      return Number(result[0]?.count || 0);
+    } catch (err) {
+      console.error("getUnreadNotificationsCount DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  return (local.notifications || []).filter((n) => n.userId === userId && !n.isRead).length;
+}
+
+export async function markNotificationAsRead(id: string, userId: string): Promise<void> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      await withTableFallback(() =>
+        db
+          .update(schema.notifications)
+          .set({ isRead: true })
+          .where(and(eq(schema.notifications.id, id), eq(schema.notifications.userId, userId)))
+      );
+      return;
+    } catch (err) {
+      console.error("markNotificationAsRead DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.notifications) return;
+  const idx = local.notifications.findIndex((n) => n.id === id && n.userId === userId);
+  if (idx !== -1) {
+    local.notifications[idx].isRead = true;
+    writeLocalData(local);
+  }
+}
+
+export async function markAllNotificationsAsRead(userId: string): Promise<void> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      await withTableFallback(() =>
+        db
+          .update(schema.notifications)
+          .set({ isRead: true })
+          .where(eq(schema.notifications.userId, userId))
+      );
+      return;
+    } catch (err) {
+      console.error("markAllNotificationsAsRead DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.notifications) return;
+  local.notifications.forEach((n) => {
+    if (n.userId === userId) n.isRead = true;
+  });
+  writeLocalData(local);
+}
+

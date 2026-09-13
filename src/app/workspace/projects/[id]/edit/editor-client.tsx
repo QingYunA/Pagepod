@@ -76,7 +76,9 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
   const [language, setLanguage] = useState<"zh" | "en" | "other">((project.language as "zh" | "en" | "other") || "zh");
   const [tags, setTags] = useState<string[]>((project.tags as string[]) || []);
   const [tagInput, setTagInput] = useState("");
-  const [visibility, setVisibility] = useState(project.visibility as "public" | "unlisted" | "private");
+  const [visibility, setVisibility] = useState<"public" | "private">(
+    project.visibility === "private" || (project.visibility as string) === "unlisted" ? "private" : "public"
+  );
   const [isPinned, setIsPinned] = useState(project.isPinned);
   const [isGlobalPinned, setIsGlobalPinned] = useState(Boolean(project.isGlobalPinned));
 
@@ -128,7 +130,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
     setTags(tags.filter((item) => item !== t));
   };
 
-  const performSave = (targetVisibility?: "public" | "unlisted" | "private") => {
+  const performSave = (targetVisibility?: "public" | "private") => {
     setErrorMsg("");
     setSavedSuccess(false);
 
@@ -481,12 +483,11 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       id="edit-visibility"
                       value={visibility}
                       onChange={(e) => {
-                        setVisibility(e.target.value as "public" | "unlisted" | "private");
+                        setVisibility(e.target.value as "public" | "private");
                         setBypassedRiskCheck(false);
                       }}
                     >
                       <option value="public">公开 (Showcase 展示)</option>
-                      <option value="unlisted">仅链接 (Unlisted)</option>
                       <option value="private">私有 (Private，完全隐蔽)</option>
                     </Select>
                   </div>

@@ -28,7 +28,7 @@ export async function toggleGlobalPinAction(id: string, _currentPinned?: boolean
   await toggleGlobalPin(user, id);
 }
 
-export async function updateVisibilityAction(id: string, visibility: "public" | "unlisted" | "private") {
+export async function updateVisibilityAction(id: string, visibility: "public" | "private") {
   const user = await requireUser();
   await updateVisibility(user, id, visibility);
 }

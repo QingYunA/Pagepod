@@ -73,7 +73,7 @@ export default function WorkspaceUploadPage() {
   const [detectedLangHint, setDetectedLangHint] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [isPinned, setIsPinned] = useState(false);
   const [isGlobalPinned, setIsGlobalPinned] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -727,12 +727,11 @@ export default function WorkspaceUploadPage() {
                       id="upload-visibility"
                       value={visibility}
                       onChange={(e) => {
-                        setVisibility(e.target.value as "public" | "unlisted" | "private");
+                        setVisibility(e.target.value as "public" | "private");
                         setBypassedRiskCheck(false);
                       }}
                     >
                       <option value="public">公开 (Showcase 画廊展示)</option>
-                      <option value="unlisted">仅链接可见 (Unlisted)</option>
                       <option value="private">私有 (仅自己可见，绝对保密)</option>
                     </Select>
                   </div>

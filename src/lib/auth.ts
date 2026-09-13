@@ -147,20 +147,24 @@ export async function getCurrentUser(request?: Request): Promise<CurrentUser | n
   }
 
   // 3. Fallback / Self-hosted check
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (token) {
-    const isValid = await verifyAdminSessionToken(token);
-    if (isValid) {
-      const planTier = await getUserPlanTier("selfhost-admin");
-      return {
-        id: "selfhost-admin",
-        email: "owner@workspace.local",
-        fullName: "Workspace Owner",
-        role: "admin",
-        planTier,
-      };
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(COOKIE_NAME)?.value;
+    if (token) {
+      const isValid = await verifyAdminSessionToken(token);
+      if (isValid) {
+        const planTier = await getUserPlanTier("selfhost-admin");
+        return {
+          id: "selfhost-admin",
+          email: "owner@workspace.local",
+          fullName: "Workspace Owner",
+          role: "admin",
+          planTier,
+        };
+      }
     }
+  } catch {
+    // Outside of request scope or cookies unavailable
   }
 
   return null;
@@ -197,6 +201,21 @@ export function assertCanManageProject(
   if (!canManageProject(user, project)) {
     throw new Error("Forbidden: You do not have permission to modify this project");
   }
+}
+
+/**
+ * Strict creator identity verification for private resources and pending review content.
+ * Platform administrators CANNOT peek at other users' private projects.
+ */
+export function isExactProjectCreator(
+  user: CurrentUser | null | undefined,
+  project: { userId?: string | null }
+): boolean {
+  if (!user) return false;
+  if (project.userId) {
+    return user.id === project.userId;
+  }
+  return user.id === "selfhost-admin";
 }
 
 export async function verifyAdminTokenFromRequest(request: Request): Promise<boolean> {

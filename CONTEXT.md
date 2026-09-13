@@ -12,15 +12,16 @@ This file is the single source of truth for the domain glossary and architectura
 - **ScreenshotRenderer**: A pure rendering port (`render(html) -> Buffer`) decoupling headless browser capture (Chrome CLI args, timeout, virtual time budget, temp file isolation) and cloud fallbacks from domain and database mutations.
 - **BillingService & PlanQuota**: The authority governing user tiers (`free`, `lite`, `pro`) and payment order state transitions. Enforces hard backend limits (e.g. Free: 20 projects, 2MB max upload; Lite: 500 projects, 10MB; Pro: unlimited).
 - **Entry Path**: The relative file path to the primary HTML document within the project's storage prefix (typically `index.html`).
-- **Visibility**: The discovery and access control tier of a project:
-  - `public`: Listed in showcase/explore feeds, indexable by search engines, viewable by anyone.
-  - `unlisted`: Unindexed and hidden from public feeds; viewable only by anyone possessing the direct link.
+- **Visibility**: The discovery and access control tier of a project (binary model per ADR 0003):
+  - `public`: Listed in showcase/explore feeds, indexable by search engines, viewable by anyone, protected by automated compliance gates.
   - `private`: Strictly accessible **only by the exact creator**. Even platform administrators cannot view or peek at other users' private project contents or raw endpoints.
+  _Avoid_: unlisted (deprecated to eliminate unauthenticated anonymous blast radius).
 - **Poster (Screenshot)**: A 1280x720 static PNG preview of the project's entry view. Used for instant, zero-cost card previews across the catalog and workspace without spinning up iframes.
 - **Curated Ingestion**: The programmatic ingestion and publication of vetted community and open-source web applications via API tokens into the platform's public showcase gallery.
 - **License Provenance**: The legal compliance invariant requiring all catalog showcase applications to possess verified permissive licensing (`MIT`, `Apache-2.0`, `BSD`, `GPL`, `CC0`) with original author and upstream repository attribution.
 - **Guest Sovereignty**: The core architectural principle that hosted projects possess full visual and technical autonomy (arbitrary visual styles, frameworks, and external CDN scripts), while security is enforced via strict sandbox CSP boundaries rather than styling constraints.
-- **Asynchronous Poster Ingestion**: The server-side lifecycle hook that triggers non-blocking automated screenshot generation after project commitment, preventing client upload stalling while ensuring automatic poster generation.
+- **ReviewStatus**: The compliance lifecycle state of a hosted project (`pending`, `approved`, `rejected`, `flagged`).
+- **Tiered Enforcement**: The compliance remediation strategy where severe legal violations (CSAM, pornography, gore, phishing) trigger immediate access cutoff (`rejected`), while geopolitical or sensitive political controversies trigger automated downgrade to `private` mode with in-app creator notification and appeal rights.
 
 - **Global Pin (`isGlobalPinned`, `globalPinnedAt`)**: A curated showcase state set exclusively by administrators to promote standout public projects to the very top of the public explore and home galleries, ordered by `globalPinnedAt` descending.
 - **Workspace Pin (`isPinned`, `pinnedAt`)**: A user-scoped preference allowing project owners to pin their frequently edited or important projects to the top of their personal `/workspace` table or grid.
@@ -48,3 +49,4 @@ This file is the single source of truth for the domain glossary and architectura
 8. **Atomic State & Poster Synchronization**: Project updates that modify HTML content coordinate screenshot rendering and perform a single atomic database update, followed by unified Next.js view cache revalidation.
 9. **Decoupled Rendering Port**: `ScreenshotRenderer` does not touch databases or issue Next.js cache revalidations. It returns raw image buffers to orchestrators.
 10. **Typed Domain Exceptions**: Failures within domain layers are signaled by explicit typed errors (`NotFoundError`, `ForbiddenError`, `ValidationError`, `PayloadTooLargeError`), which are translated into appropriate HTTP or Action responses by caller adapters.
+11. **Compliance Seam Isolation**: Content moderation executes asynchronously post-commit via dual-core multimodal inspection (HTML DOM text extraction + rendered headless poster audit), preventing illegal content leakage into public discovery feeds without stalling upload latency.

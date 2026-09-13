@@ -32,6 +32,11 @@ export const projects = pgTable(
     fileSize: integer("file_size").default(0), // Bytes (for quota tracking)
     planTier: text("plan_tier").default("free"), // 'free' | 'pro'
 
+    // Content moderation fields
+    reviewStatus: text("review_status").notNull().default("approved"), // 'pending' | 'approved' | 'rejected' | 'flagged'
+    moderationCategory: text("moderation_category"),
+    moderationSummary: text("moderation_summary"),
+
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -79,6 +84,23 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    projectId: text("project_id"),
+    type: text("type").notNull(), // 'moderation_downgrade' | 'moderation_rejected' | 'system'
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    isRead: boolean("is_read").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("notifications_user_id_idx").on(table.userId),
+  ]
+);
+
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
 export type ApiToken = typeof apiTokens.$inferSelect;
@@ -87,3 +109,5 @@ export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type NewUserSubscription = typeof userSubscriptions.$inferInsert;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
