@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Retro Pixel Dithering Studio (Floyd-Steinberg & Atkinson)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Based on open source image processing algorithms by Surma & Floyd-Steinberg: Apache-2.0 / MIT License -->
+  <style>
+    :root {
+      --bg: #121316;
+      --panel: #1a1c23;
+      --panel-border: #2e323e;
+      --text: #e2e8f0;
+      --text-muted: #848d9f;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --accent-soft: rgba(16, 185, 129, 0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    header {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand h1 {
+      font-size: 20px;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .attribution {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .attribution a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .attribution a:hover {
+      text-decoration: underline;
+    }
+    .main-layout {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      flex: 1;
+    }
+    @media (max-width: 900px) {
+      .main-layout { grid-template-columns: 1fr; }
+    }
+    .controls-panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .control-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    select, button, input[type="file"] {
+      font-family: inherit;
+      background: #0d0e12;
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    select:focus, button:focus {
+      border-color: var(--accent);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--panel-border);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+    }
+    .canvas-container {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      min-height: 480px;
+    }
+    canvas {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 4px;
+      image-rendering: pixelated;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .stats-overlay {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      font-size: 11px;
+      font-family: monospace;
+      background: rgba(13, 14, 18, 0.85);
+      border: 1px solid var(--panel-border);
+      padding: 4px 10px;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+    .stats-overlay span {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>Pixel Dither Studio</h1>
+      <span class="badge">Floyd-Steinberg / Atkinson</span>
+    </div>
+    <div class="attribution">
+      Algorithms: <a href="https://github.com/surma/image-dithering" target="_blank" rel="noopener">surma/image-dithering</a> (Apache-2.0)
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <div class="controls-panel">
+      <div class="control-group">
+        <label class="control-label">Algorithm</label>
+        <select id="algorithmSelect" onchange="renderDither()">
+          <option value="floyd-steinberg">Floyd-Steinberg (Error Diffusion)</option>
+          <option value="atkinson" selected>Atkinson (Classic Mac 1-bit)</option>
+          <option value="bayer">Ordered Bayer Matrix (4x4)</option>
+          <option value="threshold">Simple Luminance Threshold</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Color Palette</label>
+        <select id="paletteSelect" onchange="renderDither()">
+          <option value="macintosh" selected>Macintosh 1-Bit (Black & White)</option>
+          <option value="gameboy">Nintendo Game Boy (4-Shade Olive)</option>
+          <option value="cga">CGA Retro Cyan & Magenta (4-Color)</option>
+          <option value="amber">Vintage Amber Phosphor CRT</option>
+          <option value="cyberpunk">Cyberpunk Neon (Violet & Emerald)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Contrast</span>
+          <span id="contrastVal">1.2</span>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="contrastSlider" min="0.5" max="2.5" step="0.1" value="1.2" oninput="updateSliders()">
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Brightness</span>
+          <span id="brightnessVal">0</span>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="brightnessSlider" min="-80" max="80" step="5" value="0" oninput="updateSliders()">
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Pixel Resolution Scale</span>
+          <span id="scaleVal">2x</span>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="scaleSlider" min="1" max="4" step="1" value="2" oninput="updateSliders()">
+        </div>
+      </div>
+
+      <div class="control-group" style="margin-top: 8px;">
+        <label class="control-label">Load Custom Image</label>
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFileUpload(event)">
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: auto;">
+        <button class="btn-outline" style="flex: 1;" onclick="loadSample('portrait')">Sample 1</button>
+        <button class="btn-outline" style="flex: 1;" onclick="loadSample('landscape')">Sample 2</button>
+      </div>
+
+      <button class="btn-primary" onclick="downloadImage()">Download Dithered PNG</button>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="mainCanvas"></canvas>
+      <div class="stats-overlay">
+        Render time: <span id="renderTime">0ms</span> | Resolution: <span id="resInfo">400x300</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    let sourceImage = new Image();
+
+    const PALETTES = {
+      macintosh: [
+        [0, 0, 0],
+        [255, 255, 255]
+      ],
+      gameboy: [
+        [15, 56, 15],
+        [48, 98, 48],
+        [139, 172, 15],
+        [155, 188, 15]
+      ],
+      cga: [
+        [0, 0, 0],
+        [85, 255, 255],
+        [255, 85, 255],
+        [255, 255, 255]
+      ],
+      amber: [
+        [20, 12, 0],
+        [90, 50, 0],
+        [180, 110, 0],
+        [255, 176, 0]
+      ],
+      cyberpunk: [
+        [10, 10, 24],
+        [120, 20, 150],
+        [20, 200, 160],
+        [240, 250, 255]
+      ]
+    };
+
+    const BAYER_4X4 = [
+      [ 0,  8,  2, 10],
+      [12,  4, 14,  6],
+      [ 3, 11,  1,  9],
+      [15,  7, 13,  5]
+    ].map(row => row.map(v => (v / 16.0) * 255 - 128));
+
+    function findClosestColor(r, g, b, palette) {
+      let minDistance = Infinity;
+      let closest = palette[0];
+      for (let i = 0; i < palette.length; i++) {
+        const p = palette[i];
+        const dr = r - p[0];
+        const dg = g - p[1];
+        const db = b - p[2];
+        const dist = dr * dr + dg * dg + db * db;
+        if (dist < minDistance) {
+          minDistance = dist;
+          closest = p;
+        }
+      }
+      return closest;
+    }
+
+    function updateSliders() {
+      document.getElementById('contrastVal').textContent = document.getElementById('contrastSlider').value;
+      document.getElementById('brightnessVal').textContent = document.getElementById('brightnessSlider').value;
+      document.getElementById('scaleVal').textContent = document.getElementById('scaleSlider').value + 'x';
+      renderDither();
+    }
+
+    function renderDither() {
+      if (!sourceImage.width) return;
+      const t0 = performance.now();
+
+      const pixelScale = parseInt(document.getElementById('scaleSlider').value, 10);
+      const contrast = parseFloat(document.getElementById('contrastSlider').value);
+      const brightness = parseInt(document.getElementById('brightnessSlider').value, 10);
+      const algorithm = document.getElementById('algorithmSelect').value;
+      const palette = PALETTES[document.getElementById('paletteSelect').value];
+
+      const targetWidth = Math.max(80, Math.floor(sourceImage.width / pixelScale));
+      const targetHeight = Math.max(60, Math.floor(sourceImage.height / pixelScale));
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      // Draw and apply contrast/brightness
+      ctx.drawImage(sourceImage, 0, 0, targetWidth, targetHeight);
+      const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+      const data = imgData.data;
+
+      // Adjust pre-process
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.min(255, Math.max(0, (data[i] - 128) * contrast + 128 + brightness));
+        data[i+1] = Math.min(255, Math.max(0, (data[i+1] - 128) * contrast + 128 + brightness));
+        data[i+2] = Math.min(255, Math.max(0, (data[i+2] - 128) * contrast + 128 + brightness));
+      }
+
+      const w = targetWidth;
+      const h = targetHeight;
+
+      if (algorithm === 'bayer') {
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const idx = (y * w + x) * 4;
+            const threshold = BAYER_4X4[y % 4][x % 4];
+            const r = Math.min(255, Math.max(0, data[idx] + threshold));
+            const g = Math.min(255, Math.max(0, data[idx+1] + threshold));
+            const b = Math.min(255, Math.max(0, data[idx+2] + threshold));
+            const c = findClosestColor(r, g, b, palette);
+            data[idx] = c[0];
+            data[idx+1] = c[1];
+            data[idx+2] = c[2];
+          }
+        }
+      } else if (algorithm === 'threshold') {
+        for (let idx = 0; idx < data.length; idx += 4) {
+          const c = findClosestColor(data[idx], data[idx+1], data[idx+2], palette);
+          data[idx] = c[0];
+          data[idx+1] = c[1];
+          data[idx+2] = c[2];
+        }
+      } else {
+        // Error diffusion (Floyd-Steinberg or Atkinson)
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const idx = (y * w + x) * 4;
+            const oldR = data[idx];
+            const oldG = data[idx+1];
+            const oldB = data[idx+2];
+
+            const newColor = findClosestColor(oldR, oldG, oldB, palette);
+            data[idx] = newColor[0];
+            data[idx+1] = newColor[1];
+            data[idx+2] = newColor[2];
+
+            const errR = oldR - newColor[0];
+            const errG = oldG - newColor[1];
+            const errB = oldB - newColor[2];
+
+            if (algorithm === 'floyd-steinberg') {
+              distributeError(data, w, h, x + 1, y, errR, errG, errB, 7 / 16);
+              distributeError(data, w, h, x - 1, y + 1, errR, errG, errB, 3 / 16);
+              distributeError(data, w, h, x, y + 1, errR, errG, errB, 5 / 16);
+              distributeError(data, w, h, x + 1, y + 1, errR, errG, errB, 1 / 16);
+            } else if (algorithm === 'atkinson') {
+              // Atkinson distributes 1/8 to 6 neighbors
+              const fraction = 1 / 8;
+              distributeError(data, w, h, x + 1, y, errR, errG, errB, fraction);
+              distributeError(data, w, h, x + 2, y, errR, errG, errB, fraction);
+              distributeError(data, w, h, x - 1, y + 1, errR, errG, errB, fraction);
+              distributeError(data, w, h, x, y + 1, errR, errG, errB, fraction);
+              distributeError(data, w, h, x + 1, y + 1, errR, errG, errB, fraction);
+              distributeError(data, w, h, x, y + 2, errR, errG, errB, fraction);
+            }
+          }
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      const elapsed = Math.round(performance.now() - t0);
+      document.getElementById('renderTime').textContent = `${elapsed}ms`;
+      document.getElementById('resInfo').textContent = `${targetWidth}x${targetHeight}`;
+    }
+
+    function distributeError(data, w, h, x, y, errR, errG, errB, weight) {
+      if (x < 0 || x >= w || y < 0 || y >= h) return;
+      const idx = (y * w + x) * 4;
+      data[idx] = Math.min(255, Math.max(0, data[idx] + errR * weight));
+      data[idx+1] = Math.min(255, Math.max(0, data[idx+1] + errG * weight));
+      data[idx+2] = Math.min(255, Math.max(0, data[idx+2] + errB * weight));
+    }
+
+    function generateProceduralScene(type) {
+      const off = document.createElement('canvas');
+      off.width = 640;
+      off.height = 480;
+      const oCtx = off.getContext('2d');
+
+      if (type === 'portrait') {
+        // High-contrast geometric cyberpunk portrait
+        const grad = oCtx.createLinearGradient(0, 0, 640, 480);
+        grad.addColorStop(0, '#1a102f');
+        grad.addColorStop(1, '#06060c');
+        oCtx.fillStyle = grad;
+        oCtx.fillRect(0, 0, 640, 480);
+
+        // Radial sphere lighting
+        const rad = oCtx.createRadialGradient(320, 240, 20, 320, 240, 180);
+        rad.addColorStop(0, '#ffffff');
+        rad.addColorStop(0.5, '#9988cc');
+        rad.addColorStop(1, 'rgba(0,0,0,0)');
+        oCtx.fillStyle = rad;
+        oCtx.beginPath();
+        oCtx.arc(320, 240, 180, 0, Math.PI * 2);
+        oCtx.fill();
+
+        // Architectural geometric rings
+        oCtx.strokeStyle = '#ffffff';
+        oCtx.lineWidth = 4;
+        for (let r = 50; r < 300; r += 40) {
+          oCtx.beginPath();
+          oCtx.arc(320, 240, r, 0, Math.PI * 2);
+          oCtx.stroke();
+        }
+      } else {
+        // Cyber synthwave landscape
+        const grad = oCtx.createLinearGradient(0, 0, 0, 480);
+        grad.addColorStop(0, '#000814');
+        grad.addColorStop(0.5, '#d946ef');
+        grad.addColorStop(1, '#0284c7');
+        oCtx.fillStyle = grad;
+        oCtx.fillRect(0, 0, 640, 480);
+
+        // Giant sun
+        oCtx.fillStyle = '#fef08a';
+        oCtx.beginPath();
+        oCtx.arc(320, 220, 110, 0, Math.PI * 2);
+        oCtx.fill();
+
+        // Mountains
+        oCtx.fillStyle = '#1e1b4b';
+        oCtx.beginPath();
+        oCtx.moveTo(0, 320);
+        oCtx.lineTo(160, 200);
+        oCtx.lineTo(300, 310);
+        oCtx.lineTo(440, 180);
+        oCtx.lineTo(640, 330);
+        oCtx.lineTo(640, 480);
+        oCtx.lineTo(0, 480);
+        oCtx.fill();
+      }
+
+      sourceImage.src = off.toDataURL();
+      sourceImage.onload = () => renderDither();
+    }
+
+    function loadSample(type) {
+      generateProceduralScene(type);
+    }
+
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        sourceImage.src = event.target.result;
+        sourceImage.onload = () => renderDither();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = `dither-${document.getElementById('paletteSelect').value}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Initialize with portrait sample
+    loadSample('portrait');
+  </script>
+</body>
+</html>

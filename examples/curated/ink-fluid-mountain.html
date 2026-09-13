@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>水墨烟岚流体粒子动态山水 - Procedural Ink Mountain</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --panel: rgba(18, 18, 22, 0.75);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+    header {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      pointer-events: auto;
+    }
+    .brand h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 2px;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .verse {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 3px;
+      writing-mode: vertical-rl;
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      padding: 14px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      pointer-events: auto;
+      line-height: 1.8;
+    }
+    .controls {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    button, select {
+      background: #27272e;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    button:hover, select:hover { background: #383842; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>水墨烟岚流体粒子动态山水</h1>
+      <span class="badge">柏林噪声群山</span>
+      <span class="badge">MIT License</span>
+    </div>
+    <div class="verse">
+      远山如黛 · 烟渚微茫 · 澄怀味象
+    </div>
+  </header>
+
+  <canvas id="stage"></canvas>
+
+  <div class="controls">
+    <select id="colorScheme">
+      <option value="ink">墨色 (玄墨)</option>
+      <option value="teal">黛青 (远山黛)</option>
+      <option value="green">青绿 (千里江山)</option>
+      <option value="ochre">浅绛 (暮秋赭石)</option>
+    </select>
+    <button id="btnRegen">重新重构群山</button>
+    <button id="btnSave">留存水墨画卷</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    const colorScheme = document.getElementById('colorScheme');
+
+    let width, height;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      generateMountains();
+    }
+    window.addEventListener('resize', resize);
+
+    // Mountain layers
+    let mountains = [];
+    const LAYER_COUNT = 5;
+
+    function generateMountains() {
+      mountains = [];
+      const seeds = Array.from({ length: LAYER_COUNT }, () => Math.random() * 100);
+
+      for (let l = 0; l < LAYER_COUNT; l++) {
+        const points = [];
+        const baseHeight = height * (0.38 + l * 0.13);
+        const amp = height * (0.12 - l * 0.015);
+        const freq = 0.0025 / (l + 1);
+        const step = 8;
+
+        for (let x = 0; x <= width + step; x += step) {
+          const y = baseHeight 
+            - Math.sin(x * freq + seeds[l]) * amp
+            - Math.sin(x * freq * 2.3 + seeds[l] * 1.5) * (amp * 0.4)
+            - Math.cos(x * freq * 4.7) * (amp * 0.15);
+          points.push({ x, y });
+        }
+        mountains.push(points);
+      }
+    }
+
+    // Mist Particles
+    const PARTICLE_COUNT = 300;
+    const particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight * 0.8 + window.innerHeight * 0.2,
+        radius: Math.random() * 24 + 10,
+        vx: Math.random() * 0.6 + 0.2,
+        vy: (Math.random() - 0.5) * 0.2,
+        opacity: Math.random() * 0.06 + 0.02
+      });
+    }
+
+    let mouse = { x: -999, y: -999 };
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    const PALETTES = {
+      ink: [
+        'rgba(35, 35, 42, 0.4)',
+        'rgba(28, 28, 34, 0.6)',
+        'rgba(20, 20, 25, 0.8)',
+        'rgba(14, 14, 18, 0.92)',
+        'rgba(9, 9, 11, 1.0)'
+      ],
+      teal: [
+        'rgba(28, 48, 54, 0.4)',
+        'rgba(22, 40, 46, 0.6)',
+        'rgba(16, 32, 38, 0.8)',
+        'rgba(12, 24, 30, 0.92)',
+        'rgba(8, 16, 20, 1.0)'
+      ],
+      green: [
+        'rgba(30, 52, 40, 0.4)',
+        'rgba(24, 44, 34, 0.6)',
+        'rgba(18, 34, 26, 0.8)',
+        'rgba(12, 26, 20, 0.92)',
+        'rgba(8, 18, 14, 1.0)'
+      ],
+      ochre: [
+        'rgba(56, 42, 30, 0.4)',
+        'rgba(46, 34, 24, 0.6)',
+        'rgba(36, 26, 18, 0.8)',
+        'rgba(26, 18, 12, 0.92)',
+        'rgba(18, 12, 8, 1.0)'
+      ]
+    };
+
+    function render() {
+      requestAnimationFrame(render);
+      ctx.clearRect(0, 0, width, height);
+
+      // Sky gradient
+      const sky = ctx.createLinearGradient(0, 0, 0, height);
+      sky.addColorStop(0, '#09090b');
+      sky.addColorStop(0.5, '#16161d');
+      sky.addColorStop(1, '#23232c');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, width, height);
+
+      // Distant Moon / Sun
+      ctx.save();
+      ctx.shadowColor = 'rgba(255, 255, 240, 0.3)';
+      ctx.shadowBlur = 40;
+      ctx.fillStyle = 'rgba(245, 245, 235, 0.7)';
+      ctx.beginPath();
+      ctx.arc(width * 0.78, height * 0.25, 34, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      const scheme = colorScheme.value;
+      const colors = PALETTES[scheme] || PALETTES.ink;
+
+      // Draw each mountain layer with mist
+      mountains.forEach((pts, l) => {
+        ctx.fillStyle = colors[l];
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+        pts.forEach((p, idx) => {
+          if (idx === 0) ctx.lineTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        ctx.fill();
+
+        // Mist drift between layers
+        ctx.fillStyle = 'rgba(230, 230, 245, 0.025)';
+        ctx.fillRect(0, height * 0.35 + l * 40, width, 50);
+      });
+
+      // Update & Draw Mist Particles
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Mouse repulsion / wind disturbance
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 140) {
+          const force = (140 - dist) / 140;
+          p.x += (dx / dist) * force * 4;
+          p.y += (dy / dist) * force * 4;
+        }
+
+        if (p.x > width + p.radius) p.x = -p.radius;
+        if (p.y > height) p.y = height * 0.2;
+
+        ctx.save();
+        ctx.fillStyle = `rgba(230, 230, 240, ${p.opacity})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    document.getElementById('btnRegen').addEventListener('click', generateMountains);
+    document.getElementById('btnSave').addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'ink-mountain-landscape.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    resize();
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KaTeX Live Mathematical Typography Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- KaTeX Open Source Project by Khan Academy: https://github.com/KaTeX/KaTeX (MIT License) -->
+  <!-- Loaded via Public CDN to demonstrate external CDN support -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #fdfbf7;
+      color: #2c2925;
+      font-family: -apple-system, BlinkMacSystemFont, "Palatino", "Georgia", serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+    header {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e7e2d9;
+    }
+    .brand h1 {
+      font-size: 22px;
+      font-weight: normal;
+      letter-spacing: 0.5px;
+    }
+    .badge {
+      font-family: sans-serif;
+      font-size: 11px;
+      padding: 3px 8px;
+      background: #eef2f6;
+      color: #1e3a8a;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    main {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      flex: 1;
+    }
+    @media (max-width: 800px) {
+      main { grid-template-columns: 1fr; }
+    }
+    .pane {
+      background: #ffffff;
+      border: 1px solid #e7e2d9;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      overflow: hidden;
+    }
+    .pane-header {
+      padding: 12px 18px;
+      background: #f8f6f0;
+      border-bottom: 1px solid #e7e2d9;
+      font-family: sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #736b63;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 320px;
+      padding: 18px;
+      border: none;
+      outline: none;
+      font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      background: transparent;
+      resize: none;
+      color: #1f2937;
+    }
+    .preview-box {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      color: #111827;
+      min-height: 320px;
+    }
+    .cheatsheet {
+      max-width: 1100px;
+      width: 100%;
+      margin: 20px auto 0;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid #e7e2d9;
+      border-radius: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-family: sans-serif;
+      font-size: 12px;
+    }
+    .pill {
+      background: #f8f6f0;
+      border: 1px solid #e7e2d9;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .pill:hover { background: #efebe2; }
+    .btn {
+      background: #f8f6f0;
+      border: 1px solid #e7e2d9;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-family: sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #eee8dc; }
+    footer {
+      max-width: 1100px;
+      width: 100%;
+      margin: 24px auto 0;
+      text-align: center;
+      font-family: sans-serif;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    footer a { color: #4b5563; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>Mathematical Typography Studio</h1>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <span class="badge">Powered by KaTeX &bull; Khan Academy</span>
+      <span class="badge" style="background: #fef3c7; color: #92400e;">CDN Enabled</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="pane">
+      <div class="pane-header">
+        <span>LaTeX / TeX Formula Input</span>
+        <button class="btn" id="btnSample">Load Complex Example</button>
+      </div>
+      <textarea id="latexInput" spellcheck="false">\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}</textarea>
+    </div>
+
+    <div class="pane">
+      <div class="pane-header">
+        <span>High-Precision Typeset Render</span>
+        <button class="btn" id="btnCopyLatex">Copy LaTeX</button>
+      </div>
+      <div class="preview-box" id="mathOutput"></div>
+    </div>
+  </main>
+
+  <div class="cheatsheet">
+    <strong style="color: #736b63;">Quick Formula Snippets:</strong>
+    <span class="pill" data-tex="E = mc^2">Einstein: E = mc²</span>
+    <span class="pill" data-tex="f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!} (x-a)^n">Taylor Series</span>
+    <span class="pill" data-tex="\nabla \times \mathbf{E} = -\frac{\partial \mathbf{B}}{\partial t}">Maxwell Faraday</span>
+    <span class="pill" data-tex="i\hbar \frac{\partial}{\partial t}\Psi = \hat{H}\Psi">Schrödinger Eq</span>
+    <span class="pill" data-tex="\begin{pmatrix} a & b \\ c & d \end{pmatrix}^{-1} = \frac{1}{ad-bc}\begin{pmatrix} d & -b \\ -c & a \end{pmatrix}">Matrix Inverse</span>
+  </div>
+
+  <footer>
+    Typeset powered by KaTeX under MIT License &bull; Khan Academy. External CDN runtime demonstrated on Pagepod.
+  </footer>
+
+  <script>
+    const latexInput = document.getElementById('latexInput');
+    const mathOutput = document.getElementById('mathOutput');
+    const btnSample = document.getElementById('btnSample');
+    const btnCopyLatex = document.getElementById('btnCopyLatex');
+
+    function renderMath() {
+      if (typeof katex === 'undefined') {
+        setTimeout(renderMath, 100);
+        return;
+      }
+      try {
+        katex.render(latexInput.value, mathOutput, {
+          displayMode: true,
+          throwOnError: false
+        });
+      } catch (e) {
+        mathOutput.innerHTML = `<span style="color: red; font-size: 14px;">Render error: ${e.message}</span>`;
+      }
+    }
+
+    latexInput.addEventListener('input', renderMath);
+
+    btnSample.addEventListener('click', () => {
+      latexInput.value = `\\oint_{\\partial \\Sigma} \\mathbf{B} \\cdot d\\boldsymbol{\\ell} = \\mu_0 \\left( \\iint_{\\Sigma} \\mathbf{J} \\cdot d\\mathbf{S} + \\varepsilon_0 \\frac{d}{dt} \\iint_{\\Sigma} \\mathbf{E} \\cdot d\\mathbf{S} \\right)`;
+      renderMath();
+    });
+
+    btnCopyLatex.addEventListener('click', () => {
+      navigator.clipboard.writeText(latexInput.value);
+      alert('Copied LaTeX source to clipboard');
+    });
+
+    document.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        latexInput.value = pill.getAttribute('data-tex');
+        renderMath();
+      });
+    });
+
+    window.addEventListener('load', renderMath);
+  </script>
+</body>
+</html>

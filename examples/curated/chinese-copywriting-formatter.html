@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中文文案排版美化器 - Chinese Copywriting Formatter</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: #121215;
+      --card-subtle: #18181b;
+      --border: #27272a;
+      --border-subtle: #3f3f46;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --accent: #ffffff;
+      --accent-btn: #27272a;
+      --accent-hover: #3f3f46;
+      --success: #10b981;
+      --primary: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
+    header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(9, 9, 11, 0.8);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .brand h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: var(--card-bg);
+    }
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .options-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .option-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .option-item input[type="checkbox"] {
+      accent-color: #3b82f6;
+      cursor: pointer;
+    }
+    .actions-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    button {
+      background: var(--card-subtle);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    button:hover {
+      background: var(--accent-hover);
+      border-color: var(--border-subtle);
+    }
+    button.primary {
+      background: #f4f4f5;
+      color: #09090b;
+      border-color: #ffffff;
+    }
+    button.primary:hover {
+      background: #e4e4e7;
+    }
+    .editor-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+      min-height: 520px;
+    }
+    @media (max-width: 860px) {
+      .editor-container { grid-template-columns: 1fr; }
+    }
+    .pane {
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .pane-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .pane-title {
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    textarea, .output-area {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      min-height: 440px;
+      padding: 16px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      line-height: 1.7;
+      resize: none;
+      outline: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .output-area {
+      user-select: text;
+      overflow-y: auto;
+    }
+    .stats-footer {
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: #0d0d10;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #18181b;
+      color: #10b981;
+      border: 1px solid #27272a;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">文</div>
+      <div>
+        <h1>中文文案排版美化器</h1>
+      </div>
+      <span class="badge">MIT Open Source</span>
+      <span class="badge">100% 离线自包含</span>
+    </div>
+    <div class="actions-group">
+      <button id="btnLoadSample">载入排版范例</button>
+      <button id="btnClear">清空</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <div class="options-group">
+        <label class="option-item">
+          <input type="checkbox" id="optPangu" checked> 中英文与数字盘古空格
+        </label>
+        <label class="option-item">
+          <input type="checkbox" id="optPunctuation" checked> 全半角标点智能修正
+        </label>
+        <label class="option-item">
+          <input type="checkbox" id="optTrimLines" checked> 压缩连续多余空行
+        </label>
+        <label class="option-item">
+          <input type="checkbox" id="optProperNouns" checked> 专有名词大小写纠错
+        </label>
+      </div>
+      <div class="actions-group">
+        <button id="btnFormat" class="primary">立即美化格式</button>
+        <button id="btnCopy">复制排版结果</button>
+      </div>
+    </div>
+
+    <div class="editor-container">
+      <!-- Input Pane -->
+      <div class="pane">
+        <div class="pane-header">
+          <span class="pane-title">待排版原文 (Input)</span>
+          <span id="inputCharCount">0 字符</span>
+        </div>
+        <textarea id="inputText" placeholder="在此输入或粘贴需要美化排版的文本、Markdown 或技术文章..."></textarea>
+        <div class="stats-footer">
+          <span>支持中英混排、数字、符号自动纠错</span>
+          <span>实时统计</span>
+        </div>
+      </div>
+
+      <!-- Output Pane -->
+      <div class="pane">
+        <div class="pane-header">
+          <span class="pane-title">美化后文案 (Formatted Output)</span>
+          <span id="outputStatCount">0 字符</span>
+        </div>
+        <div class="output-area" id="outputText"></div>
+        <div class="stats-footer">
+          <span id="diffReport">等待格式化...</span>
+          <span>遵循《中文文案排版指北》</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast">✓ 已成功复制到剪贴板</div>
+
+  <script>
+    const SAMPLE_TEXT = `在2026年，利用Next.js与TailwindCSS构建web应用变得极其普及。很多人写文案经常忽视排版规范,比如在中文字符和english单词之间不加空格,数字比如100和汉字混在一起写成了"买了100个苹果"。
+此外，全角半角标点也经常用错。例如：这里有个bug！请尽快修复。或者英文缩写大小写混乱，比如javascript,github,iphone,ipad,macOS等。
+良好的中文排版不仅提升产品质感，更能显著提高阅读舒适度与转化率。`;
+
+    const PROPER_NOUNS = {
+      "javascript": "JavaScript",
+      "typescript": "TypeScript",
+      "nextjs": "Next.js",
+      "next.js": "Next.js",
+      "reactjs": "React",
+      "react.js": "React",
+      "vuejs": "Vue.js",
+      "vue.js": "Vue.js",
+      "github": "GitHub",
+      "gitlab": "GitLab",
+      "iphone": "iPhone",
+      "ipad": "iPad",
+      "macos": "macOS",
+      "ios": "iOS",
+      "app store": "App Store",
+      "tailwindcss": "Tailwind CSS",
+      "tailwind css": "Tailwind CSS"
+    };
+
+    const $ = (sel) => document.querySelector(sel);
+    const inputText = $('#inputText');
+    const outputText = $('#outputText');
+    const inputCharCount = $('#inputCharCount');
+    const outputStatCount = $('#outputStatCount');
+    const diffReport = $('#diffReport');
+    const toast = $('#toast');
+
+    function formatChinese(text) {
+      if (!text) return "";
+      let res = text;
+      let initialLen = res.length;
+
+      const optPangu = $('#optPangu').checked;
+      const optPunctuation = $('#optPunctuation').checked;
+      const optTrimLines = $('#optTrimLines').checked;
+      const optProperNouns = $('#optProperNouns').checked;
+
+      // 1. Pangu Spacing (中英文之间增加空格)
+      if (optPangu) {
+        // CJK and ASCII letter
+        res = res.replace(/([\u4e00-\u9fa5\u3040-\u30ff])([a-zA-Z0-9$@%#])/g, '$1 $2');
+        res = res.replace(/([a-zA-Z0-9$@%#])([\u4e00-\u9fa5\u3040-\u30ff])/g, '$1 $2');
+      }
+
+      // 2. Full-width / Half-width punctuation correction in Chinese context
+      if (optPunctuation) {
+        // Replace half-width comma, period, colon, exclamation, question mark after CJK
+        res = res.replace(/([\u4e00-\u9fa5]),/g, '$1，');
+        res = res.replace(/([\u4e00-\u9fa5])!/g, '$1！');
+        res = res.replace(/([\u4e00-\u9fa5])\?/g, '$1？');
+        res = res.replace(/([\u4e00-\u9fa5]);/g, '$1；');
+        res = res.replace(/([\u4e00-\u9fa5]): /g, '$1：');
+        // Chinese full-width bracket
+        res = res.replace(/([\u4e00-\u9fa5])\(/g, '$1（');
+        res = res.replace(/\)([\u4e00-\u9fa5])/g, '）$1');
+      }
+
+      // 3. Trim extra blank lines & line end spaces
+      if (optTrimLines) {
+        res = res.replace(/[ \t]+$/gm, '');
+        res = res.replace(/\n{3,}/g, '\n\n');
+      }
+
+      // 4. Proper Nouns casing
+      if (optProperNouns) {
+        for (const [wrong, right] of Object.entries(PROPER_NOUNS)) {
+          const regex = new RegExp(`\\b${wrong.replace('.', '\\.')}\\b`, 'gi');
+          res = res.replace(regex, right);
+        }
+      }
+
+      return res;
+    }
+
+    function doFormat() {
+      const raw = inputText.value;
+      const formatted = formatChinese(raw);
+      outputText.textContent = formatted;
+
+      inputCharCount.textContent = `${raw.length} 字符`;
+      outputStatCount.textContent = `${formatted.length} 字符`;
+
+      const diff = formatted.length - raw.length;
+      diffReport.textContent = diff === 0 
+        ? "✓ 排版已完全规范" 
+        : `✓ 已修正 ${Math.abs(diff)} 处空格与标点规范`;
+    }
+
+    inputText.addEventListener('input', () => {
+      inputCharCount.textContent = `${inputText.value.length} 字符`;
+      doFormat();
+    });
+
+    $('#btnFormat').addEventListener('click', doFormat);
+
+    $('#btnLoadSample').addEventListener('click', () => {
+      inputText.value = SAMPLE_TEXT;
+      doFormat();
+    });
+
+    $('#btnClear').addEventListener('click', () => {
+      inputText.value = '';
+      outputText.textContent = '';
+      inputCharCount.textContent = '0 字符';
+      outputStatCount.textContent = '0 字符';
+      diffReport.textContent = '等待格式化...';
+    });
+
+    $('#btnCopy').addEventListener('click', async () => {
+      const text = outputText.textContent;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      }
+    });
+
+    // Auto load sample on initial open
+    inputText.value = SAMPLE_TEXT;
+    doFormat();
+  </script>
+</body>
+</html>

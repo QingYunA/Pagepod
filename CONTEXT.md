@@ -17,6 +17,10 @@ This file is the single source of truth for the domain glossary and architectura
   - `unlisted`: Unindexed and hidden from public feeds; viewable only by anyone possessing the direct link.
   - `private`: Strictly accessible **only by the exact creator**. Even platform administrators cannot view or peek at other users' private project contents or raw endpoints.
 - **Poster (Screenshot)**: A 1280x720 static PNG preview of the project's entry view. Used for instant, zero-cost card previews across the catalog and workspace without spinning up iframes.
+- **Curated Ingestion**: The programmatic ingestion and publication of vetted community and open-source web applications via API tokens into the platform's public showcase gallery.
+- **License Provenance**: The legal compliance invariant requiring all catalog showcase applications to possess verified permissive licensing (`MIT`, `Apache-2.0`, `BSD`, `GPL`, `CC0`) with original author and upstream repository attribution.
+- **Guest Sovereignty**: The core architectural principle that hosted projects possess full visual and technical autonomy (arbitrary visual styles, frameworks, and external CDN scripts), while security is enforced via strict sandbox CSP boundaries rather than styling constraints.
+- **Asynchronous Poster Ingestion**: The server-side lifecycle hook that triggers non-blocking automated screenshot generation after project commitment, preventing client upload stalling while ensuring automatic poster generation.
 
 ---
 

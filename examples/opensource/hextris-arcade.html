@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hextris - Hexagonal Puzzle Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <!-- Original Open Source by Garrett Finucane & Logan Engstrom: https://github.com/Hextris/hextris (MIT License) -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f111a;
+      color: #fff;
+      font-family: "Exo 2", "Helvetica Neue", sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      touch-action: none;
+    }
+    #canvas {
+      display: block;
+      cursor: pointer;
+    }
+    .hud {
+      position: absolute;
+      top: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+    }
+    .score {
+      font-size: 42px;
+      font-weight: 900;
+      color: #2c75ff;
+      text-shadow: 0 0 12px rgba(44, 117, 255, 0.4);
+    }
+    .high-score {
+      font-size: 13px;
+      color: #8f9ba8;
+      letter-spacing: 1px;
+    }
+    .instructions {
+      position: absolute;
+      bottom: 24px;
+      font-size: 12px;
+      color: #5d6778;
+      text-align: center;
+      pointer-events: none;
+      line-height: 1.6;
+    }
+    .instructions a { color: #8f9ba8; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="score" id="score">0</div>
+    <div class="high-score">BEST: <span id="best">0</span></div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="instructions">
+    [A / D or Left / Right Arrows] Rotate Hexagon &bull; Match 3 of same color<br>
+    Open Source under MIT License &bull; Created by <a href="https://github.com/Hextris/hextris" target="_blank">Hextris Team</a>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+
+    let width, height, cx, cy;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      cx = width / 2;
+      cy = height / 2;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const COLORS = ['#e74c3c', '#f1c40f', '#2ecc71', '#3498db'];
+    const HEX_RADIUS = 60;
+    const BLOCK_THICKNESS = 14;
+
+    let angle = 0;
+    let targetAngle = 0;
+    let score = 0;
+    let best = parseInt(localStorage.getItem('hextris_best') || '0', 10);
+    bestEl.textContent = best;
+
+    // 6 sectors
+    let blocksOnHex = [[], [], [], [], [], []];
+    let fallingBlocks = [];
+    let spawnTimer = 0;
+    let gameOver = false;
+
+    function spawnBlock() {
+      const sector = Math.floor(Math.random() * 6);
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      fallingBlocks.push({
+        sector,
+        color,
+        dist: Math.max(cx, cy) * 0.9,
+        speed: 2.5 + Math.min(score * 0.02, 4)
+      });
+    }
+
+    function checkCombos() {
+      for (let s = 0; s < 6; s++) {
+        const stack = blocksOnHex[s];
+        if (stack.length >= 3) {
+          for (let i = 0; i <= stack.length - 3; i++) {
+            if (stack[i] === stack[i + 1] && stack[i + 1] === stack[i + 2]) {
+              const matchColor = stack[i];
+              let matchCount = 3;
+              while (i + matchCount < stack.length && stack[i + matchCount] === matchColor) {
+                matchCount++;
+              }
+              stack.splice(i, matchCount);
+              score += matchCount * 15;
+              scoreEl.textContent = score;
+              if (score > best) {
+                best = score;
+                bestEl.textContent = best;
+                localStorage.setItem('hextris_best', best);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      angle += (targetAngle - angle) * 0.2;
+
+      spawnTimer++;
+      if (spawnTimer > Math.max(35, 75 - Math.floor(score / 50))) {
+        spawnBlock();
+        spawnTimer = 0;
+      }
+
+      for (let i = fallingBlocks.length - 1; i >= 0; i--) {
+        const b = fallingBlocks[i];
+        b.dist -= b.speed;
+
+        // Current stack height on this sector
+        const targetSector = (b.sector + Math.round(angle / (Math.PI / 3))) % 6;
+        const normalizedSector = (targetSector + 6) % 6;
+        const stackHeight = blocksOnHex[normalizedSector].length;
+        const collisionDist = HEX_RADIUS + stackHeight * (BLOCK_THICKNESS + 2);
+
+        if (b.dist <= collisionDist) {
+          if (stackHeight >= 7) {
+            gameOver = true;
+          } else {
+            blocksOnHex[normalizedSector].push(b.color);
+            fallingBlocks.splice(i, 1);
+            checkCombos();
+          }
+        }
+      }
+    }
+
+    function drawHexagon(x, y, r, stroke, fill) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        const px = x + Math.cos(a) * r;
+        const py = y + Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+    }
+
+    function drawSectorSegment(centerR, outerR, sectorIdx, color) {
+      const a1 = (sectorIdx * Math.PI) / 3;
+      const a2 = ((sectorIdx + 1) * Math.PI) / 3;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR, a1, a2);
+      ctx.arc(cx, cy, centerR, a2, a1, true);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.translate(-cx, -cy);
+
+      // Center Hexagon
+      drawHexagon(cx, cy, HEX_RADIUS - 6, '#2c3e50', '#1a252f');
+
+      // Blocks stacked on Hexagon
+      for (let s = 0; s < 6; s++) {
+        const stack = blocksOnHex[s];
+        for (let l = 0; l < stack.length; l++) {
+          const r1 = HEX_RADIUS + l * (BLOCK_THICKNESS + 2);
+          const r2 = r1 + BLOCK_THICKNESS;
+          drawSectorSegment(r1, r2, s, stack[l]);
+        }
+      }
+
+      ctx.restore();
+
+      // Falling Blocks
+      fallingBlocks.forEach(b => {
+        const r1 = b.dist;
+        const r2 = b.dist + BLOCK_THICKNESS;
+        drawSectorSegment(r1, r2, b.sector, b.color);
+      });
+
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(15, 17, 26, 0.8)';
+        ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = 'bold 36px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', cx, cy - 20);
+        ctx.fillStyle = '#fff';
+        ctx.font = '16px sans-serif';
+        ctx.fillText('Click or press SPACE to restart', cx, cy + 24);
+      }
+    }
+
+    function loop() {
+      update();
+      render();
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    function restart() {
+      blocksOnHex = [[], [], [], [], [], []];
+      fallingBlocks = [];
+      score = 0;
+      scoreEl.textContent = '0';
+      spawnTimer = 0;
+      gameOver = false;
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (gameOver && (e.code === 'Space' || e.code === 'Enter')) {
+        restart();
+        return;
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'a') targetAngle -= Math.PI / 3;
+      if (e.key === 'ArrowRight' || e.key === 'd') targetAngle += Math.PI / 3;
+    });
+
+    window.addEventListener('click', (e) => {
+      if (gameOver) { restart(); return; }
+      if (e.clientX < cx) targetAngle -= Math.PI / 3;
+      else targetAngle += Math.PI / 3;
+    });
+  </script>
+</body>
+</html>

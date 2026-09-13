@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>水墨禅意五子棋 - Zen Gomoku AI</title>
+  <style>
+    :root {
+      --bg: #121214;
+      --board-bg: #d7c4a3;
+      --board-line: #5c4b37;
+      --panel-bg: #1a1a1e;
+      --border: #2e2e36;
+      --text: #e4e4e7;
+      --text-muted: #a1a1aa;
+      --accent: #d4a373;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      user-select: none;
+    }
+    header {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .game-layout {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 640px;
+    }
+    .board-wrapper {
+      position: relative;
+      background: #cbb493;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(0, 0, 0, 0.2);
+      border: 2px solid #8c7355;
+    }
+    canvas {
+      display: block;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .controls-card {
+      width: 100%;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .status-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .stone-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .stone-black { background: radial-gradient(circle at 30% 30%, #555, #111); }
+    .stone-white { background: radial-gradient(circle at 30% 30%, #fff, #bbb); border: 1px solid #aaa; }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button, select {
+      background: #25252b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    button:hover, select:hover {
+      background: #32323a;
+      border-color: #4a4a56;
+    }
+    .modal {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .modal p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>水墨禅意五子棋</h1>
+      <span class="badge">原生 Canvas AI</span>
+      <span class="badge">MIT License</span>
+    </div>
+    <div class="btn-group">
+      <select id="modeSelect">
+        <option value="ai-medium">人机对战 (进阶)</option>
+        <option value="ai-easy">人机对战 (入门)</option>
+        <option value="pvp">双人对弈</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="game-layout">
+    <div class="board-wrapper">
+      <canvas id="board" width="560" height="560"></canvas>
+      <div id="winModal" class="modal">
+        <h2 id="winTitle">黑子获胜</h2>
+        <p id="winDesc">共用时 24 手，棋逢对手，意境深邃。</p>
+        <button id="btnModalRestart" style="padding: 8px 18px; font-size: 13px; background: #d7c4a3; color: #111; border: none; font-weight: 600;">再来一局</button>
+      </div>
+    </div>
+
+    <div class="controls-card">
+      <div class="status-group">
+        <div id="turnIndicator" class="stone-indicator stone-black"></div>
+        <span id="statusText">轮到黑子落子 (玩家)</span>
+      </div>
+      <div class="btn-group">
+        <button id="btnUndo">悔棋</button>
+        <button id="btnRestart">重新开局</button>
+        <button id="btnSound">🔊 音效</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GRID_SIZE = 15;
+    const CANVAS_SIZE = 560;
+    const CELL_SIZE = CANVAS_SIZE / (GRID_SIZE + 1);
+    const PADDING = CELL_SIZE;
+
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('statusText');
+    const turnIndicator = document.getElementById('turnIndicator');
+    const winModal = document.getElementById('winModal');
+    const winTitle = document.getElementById('winTitle');
+    const winDesc = document.getElementById('winDesc');
+
+    let board = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+    let moveHistory = [];
+    let currentPlayer = 1; // 1: Black (Human), 2: White (AI/P2)
+    let gameOver = false;
+    let soundEnabled = true;
+
+    // Web Audio Sound Engine
+    let audioCtx = null;
+    function playStoneSound() {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      } catch (e) {}
+    }
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+      // Wood grain / paper backdrop
+      ctx.fillStyle = '#d5be9b';
+      ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+      // Grid lines
+      ctx.strokeStyle = '#614e38';
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i < GRID_SIZE; i++) {
+        // Horizontal
+        ctx.beginPath();
+        ctx.moveTo(PADDING, PADDING + i * CELL_SIZE);
+        ctx.lineTo(PADDING + (GRID_SIZE - 1) * CELL_SIZE, PADDING + i * CELL_SIZE);
+        ctx.stroke();
+
+        // Vertical
+        ctx.beginPath();
+        ctx.moveTo(PADDING + i * CELL_SIZE, PADDING);
+        ctx.lineTo(PADDING + i * CELL_SIZE, PADDING + (GRID_SIZE - 1) * CELL_SIZE);
+        ctx.stroke();
+      }
+
+      // Star points (天元与星位)
+      const stars = [
+        [3, 3], [3, 11], [11, 3], [11, 11], [7, 7]
+      ];
+      ctx.fillStyle = '#614e38';
+      stars.forEach(([r, c]) => {
+        ctx.beginPath();
+        ctx.arc(PADDING + c * CELL_SIZE, PADDING + r * CELL_SIZE, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw stones
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (board[r][c] !== 0) {
+            drawStone(r, c, board[r][c]);
+          }
+        }
+      }
+
+      // Highlight last move
+      if (moveHistory.length > 0) {
+        const last = moveHistory[moveHistory.length - 1];
+        ctx.strokeStyle = '#e11d48';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(PADDING + last.c * CELL_SIZE, PADDING + last.r * CELL_SIZE, 6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    function drawStone(r, c, player) {
+      const x = PADDING + c * CELL_SIZE;
+      const y = PADDING + r * CELL_SIZE;
+      const radius = CELL_SIZE * 0.42;
+
+      ctx.save();
+      // Subtle shadow
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 3;
+
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+
+      const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
+      if (player === 1) { // Black
+        grad.addColorStop(0, '#55555c');
+        grad.addColorStop(0.5, '#222226');
+        grad.addColorStop(1, '#09090b');
+      } else { // White
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.7, '#e4e4e7');
+        grad.addColorStop(1, '#a1a1aa');
+      }
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function checkWin(r, c, player) {
+      const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+      for (const [dr, dc] of dirs) {
+        let count = 1;
+        for (let step = 1; step < 5; step++) {
+          const nr = r + dr * step;
+          const nc = c + dc * step;
+          if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && board[nr][nc] === player) {
+            count++;
+          } else break;
+        }
+        for (let step = 1; step < 5; step++) {
+          const nr = r - dr * step;
+          const nc = c - dc * step;
+          if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && board[nr][nc] === player) {
+            count++;
+          } else break;
+        }
+        if (count >= 5) return true;
+      }
+      return false;
+    }
+
+    // Heuristic AI engine for Gomoku
+    function evaluatePosition(r, c, player) {
+      const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+      let score = 0;
+      for (const [dr, dc] of dirs) {
+        let count = 1;
+        let blocked = 0;
+        for (let step = 1; step < 5; step++) {
+          const nr = r + dr * step, nc = c + dc * step;
+          if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) { blocked++; break; }
+          if (board[nr][nc] === player) count++;
+          else if (board[nr][nc] === 0) break;
+          else { blocked++; break; }
+        }
+        for (let step = 1; step < 5; step++) {
+          const nr = r - dr * step, nc = c - dc * step;
+          if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) { blocked++; break; }
+          if (board[nr][nc] === player) count++;
+          else if (board[nr][nc] === 0) break;
+          else { blocked++; break; }
+        }
+        if (blocked === 2) continue;
+        if (count >= 5) score += 100000;
+        else if (count === 4) score += blocked === 0 ? 10000 : 1000;
+        else if (count === 3) score += blocked === 0 ? 1000 : 100;
+        else if (count === 2) score += blocked === 0 ? 100 : 10;
+      }
+      return score;
+    }
+
+    function getBestAIMove() {
+      let bestScore = -Infinity;
+      let bestMove = null;
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (board[r][c] !== 0) continue;
+          // Attack score + defense score
+          const attack = evaluatePosition(r, c, 2);
+          const defense = evaluatePosition(r, c, 1);
+          const total = attack * 1.2 + defense;
+          if (total > bestScore) {
+            bestScore = total;
+            bestMove = { r, c };
+          }
+        }
+      }
+      return bestMove || { r: 7, c: 7 };
+    }
+
+    function makeMove(r, c) {
+      if (board[r][c] !== 0 || gameOver) return;
+      board[r][c] = currentPlayer;
+      moveHistory.push({ r, c, player: currentPlayer });
+      playStoneSound();
+      drawBoard();
+
+      if (checkWin(r, c, currentPlayer)) {
+        gameOver = true;
+        winTitle.textContent = currentPlayer === 1 ? '黑子胜出！' : '白子胜出！';
+        winDesc.textContent = `共博弈 ${moveHistory.length} 手，神思精妙，大局已定。`;
+        winModal.classList.add('show');
+        return;
+      }
+
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      updateStatusUI();
+
+      const mode = document.getElementById('modeSelect').value;
+      if (!gameOver && currentPlayer === 2 && mode.startsWith('ai')) {
+        setTimeout(() => {
+          const move = getBestAIMove();
+          if (move) makeMove(move.r, move.c);
+        }, 200);
+      }
+    }
+
+    function updateStatusUI() {
+      if (currentPlayer === 1) {
+        turnIndicator.className = 'stone-indicator stone-black';
+        statusText.textContent = '轮到黑子落子 (玩家)';
+      } else {
+        turnIndicator.className = 'stone-indicator stone-white';
+        const mode = document.getElementById('modeSelect').value;
+        statusText.textContent = mode.startsWith('ai') ? 'AI 正在思索落子...' : '轮到白子落子';
+      }
+    }
+
+    canvas.addEventListener('click', (e) => {
+      if (gameOver) return;
+      const mode = document.getElementById('modeSelect').value;
+      if (currentPlayer === 2 && mode.startsWith('ai')) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scale = CANVAS_SIZE / rect.width;
+      const x = (e.clientX - rect.left) * scale;
+      const y = (e.clientY - rect.top) * scale;
+
+      const c = Math.round((x - PADDING) / CELL_SIZE);
+      const r = Math.round((y - PADDING) / CELL_SIZE);
+
+      if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) {
+        makeMove(r, c);
+      }
+    });
+
+    function resetGame() {
+      board = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+      moveHistory = [];
+      currentPlayer = 1;
+      gameOver = false;
+      winModal.classList.remove('show');
+      drawBoard();
+      updateStatusUI();
+    }
+
+    document.getElementById('btnRestart').addEventListener('click', resetGame);
+    document.getElementById('btnModalRestart').addEventListener('click', resetGame);
+    document.getElementById('modeSelect').addEventListener('change', resetGame);
+
+    document.getElementById('btnUndo').addEventListener('click', () => {
+      if (gameOver || moveHistory.length === 0) return;
+      const mode = document.getElementById('modeSelect').value;
+      const popCount = mode.startsWith('ai') ? 2 : 1;
+      for (let i = 0; i < popCount; i++) {
+        const last = moveHistory.pop();
+        if (last) board[last.r][last.c] = 0;
+      }
+      currentPlayer = 1;
+      drawBoard();
+      updateStatusUI();
+    });
+
+    document.getElementById('btnSound').addEventListener('click', (e) => {
+      soundEnabled = !soundEnabled;
+      e.target.textContent = soundEnabled ? '🔊 音效' : '🔇 静音';
+    });
+
+    // Initial render
+    drawBoard();
+    updateStatusUI();
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, assertCanManageProject } from "@/lib/auth";
-import { getProjectById } from "@/db";
+import { getProjectById, getProjectBySlug } from "@/db";
 import { captureProjectScreenshot, saveCustomScreenshot } from "@/lib/services/screenshot-service";
 
 interface RouteParams {
@@ -16,7 +16,7 @@ export async function POST(request: Request, context: RouteParams) {
     return NextResponse.json({ success: false, error: "Unauthorized: Please log in" }, { status: 401 });
   }
 
-  const project = await getProjectById(id);
+  const project = (await getProjectById(id)) || (await getProjectBySlug(id));
   if (!project) {
     return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
   }

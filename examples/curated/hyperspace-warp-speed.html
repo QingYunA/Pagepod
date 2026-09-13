@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Hyperspace Warp Speed Starfield</title>
+  <style>
+    :root {
+      --bg: #030206;
+      --panel: rgba(15, 12, 25, 0.85);
+      --border: rgba(255, 255, 255, 0.15);
+      --neon-cyan: #38bdf8;
+      --neon-magenta: #f43f5e;
+      --text: #f4f4f5;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      background: var(--bg);
+      color: var(--text);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+    canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+    header {
+      position: absolute;
+      top: 20px; left: 24px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      pointer-events: auto;
+    }
+    .brand h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--neon-cyan);
+    }
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    /* Sci-fi HUD Telemetry */
+    .hud {
+      position: absolute;
+      top: 20px; right: 24px;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      z-index: 10;
+    }
+    .hud-val { color: var(--text); font-weight: bold; }
+    .hud-green { color: #34d399; font-weight: bold; }
+
+    /* Controls */
+    .controls {
+      position: absolute;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 10;
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    input[type="range"] {
+      accent-color: var(--neon-cyan);
+      cursor: pointer;
+      width: 120px;
+    }
+    button, select {
+      background: #1e1b2e;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    button:hover, select:hover { background: #2f2b47; }
+    .btn-warp {
+      background: linear-gradient(135deg, #f43f5e, #be123c);
+      border: none;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(244, 63, 94, 0.4);
+    }
+    .btn-warp:active { transform: scale(0.96); }
+    .flash {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #ffffff;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-out;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>3D HYPERSPACE WARP</h1>
+      <span class="badge">60FPS 3D PROJECTION</span>
+      <span class="badge">MIT License</span>
+    </div>
+  </header>
+
+  <div class="hud">
+    <div>WARP FACTOR: <span id="dispWarp" class="hud-green">WARP 2.4</span></div>
+    <div>VELOCITY: <span id="dispVelocity" class="hud-val">12.5 c</span></div>
+    <div>ACTIVE BODIES: <span class="hud-val">2,400</span></div>
+    <div>STEERING VECTOR: <span id="dispVector" class="hud-val">0.0°, 0.0°</span></div>
+  </div>
+
+  <canvas id="warpStage"></canvas>
+  <div id="flash" class="flash"></div>
+
+  <div class="controls">
+    <div class="slider-group">
+      <span>THROTTLE</span>
+      <input type="range" id="speedSlider" min="2" max="60" value="12">
+    </div>
+
+    <select id="colorTheme">
+      <option value="stellar">Stellar Cyan</option>
+      <option value="cyberpunk">Cyberpunk Neon</option>
+      <option value="supernova">Supernova Gold</option>
+      <option value="mono">Pure White</option>
+    </select>
+
+    <button id="btnWarp" class="btn-warp">⚡ ENGAGE WARP DRIVE</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('warpStage');
+    const ctx = canvas.getContext('2d');
+    const speedSlider = document.getElementById('speedSlider');
+    const colorTheme = document.getElementById('colorTheme');
+    const btnWarp = document.getElementById('btnWarp');
+    const flash = document.getElementById('flash');
+    const dispWarp = document.getElementById('dispWarp');
+    const dispVelocity = document.getElementById('dispVelocity');
+    const dispVector = document.getElementById('dispVector');
+
+    let width, height, cx, cy;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      cx = width / 2;
+      cy = height / 2;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const STAR_COUNT = 2400;
+    const FOV = 280;
+    const MAX_DEPTH = 1800;
+
+    const stars = Array.from({ length: STAR_COUNT }, () => ({
+      x: (Math.random() - 0.5) * 2000,
+      y: (Math.random() - 0.5) * 2000,
+      z: Math.random() * MAX_DEPTH
+    }));
+
+    let speed = 12;
+    let targetSpeed = 12;
+    let mouseOffset = { x: 0, y: 0 };
+
+    window.addEventListener('mousemove', (e) => {
+      mouseOffset.x = (e.clientX - cx) * 0.2;
+      mouseOffset.y = (e.clientY - cy) * 0.2;
+      const pitch = (mouseOffset.y / 10).toFixed(1);
+      const yaw = (mouseOffset.x / 10).toFixed(1);
+      dispVector.textContent = `${yaw}°, ${pitch}°`;
+    });
+
+    // Sound FX Synth
+    let audioCtx = null;
+    function playWarpSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.6);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 1.6);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.6);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.6);
+      } catch (e) {}
+    }
+
+    const THEMES = {
+      stellar: ['#38bdf8', '#818cf8', '#ffffff'],
+      cyberpunk: ['#f43f5e', '#a855f7', '#06b6d4'],
+      supernova: ['#f59e0b', '#fbbf24', '#fef08a'],
+      mono: ['#ffffff', '#e2e8f0', '#94a3b8']
+    };
+
+    function update() {
+      speed += (targetSpeed - speed) * 0.08;
+
+      const warpFactor = (speed / 6).toFixed(1);
+      dispWarp.textContent = `WARP ${warpFactor}`;
+      dispVelocity.textContent = `${(speed * 1.4).toFixed(1)} c`;
+
+      ctx.fillStyle = 'rgba(3, 2, 6, 0.4)';
+      ctx.fillRect(0, 0, width, height);
+
+      const themeColors = THEMES[colorTheme.value] || THEMES.stellar;
+
+      stars.forEach((star, i) => {
+        const prevZ = star.z;
+        star.z -= speed;
+
+        if (star.z <= 0) {
+          star.x = (Math.random() - 0.5) * 2000;
+          star.y = (Math.random() - 0.5) * 2000;
+          star.z = MAX_DEPTH;
+          return;
+        }
+
+        // 3D perspective projection
+        const k = FOV / star.z;
+        const px = (star.x - mouseOffset.x) * k + cx;
+        const py = (star.y - mouseOffset.y) * k + cy;
+
+        const prevK = FOV / prevZ;
+        const prevPx = (star.x - mouseOffset.x) * prevK + cx;
+        const prevPy = (star.y - mouseOffset.y) * prevK + cy;
+
+        if (px < 0 || px >= width || py < 0 || py >= height) {
+          star.z = MAX_DEPTH;
+          return;
+        }
+
+        const depthRatio = 1 - (star.z / MAX_DEPTH);
+        const color = themeColors[i % themeColors.length];
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = Math.max(0.8, depthRatio * 3.5);
+        ctx.beginPath();
+        ctx.moveTo(prevPx, prevPy);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+      });
+
+      requestAnimationFrame(update);
+    }
+
+    speedSlider.addEventListener('input', (e) => {
+      targetSpeed = parseFloat(e.target.value);
+    });
+
+    btnWarp.addEventListener('click', () => {
+      targetSpeed = 80;
+      speedSlider.value = 60;
+      playWarpSound();
+      flash.style.opacity = '0.9';
+      setTimeout(() => {
+        flash.style.opacity = '0';
+        setTimeout(() => { targetSpeed = 16; speedSlider.value = 16; }, 1200);
+      }, 200);
+    });
+
+    update();
+  </script>
+</body>
+</html>

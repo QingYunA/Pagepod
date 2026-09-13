@@ -118,7 +118,7 @@ export class CloudFallbackRenderer implements ScreenshotRenderer {
     if (!publicUrl) return null;
 
     try {
-      const cloudApiUrl = `https://api.microlink.io?url=${encodeURIComponent(publicUrl)}&screenshot=true&meta=false&embed=screenshot.url`;
+      const cloudApiUrl = `https://api.microlink.io?url=${encodeURIComponent(publicUrl)}&screenshot=true&meta=false&embed=screenshot.url&viewport.width=1280&viewport.height=720`;
       const res = await fetch(cloudApiUrl, {
         headers: { "user-agent": "Pagepod-AutoScreenshot/1.0" },
         signal: AbortSignal.timeout(12000),

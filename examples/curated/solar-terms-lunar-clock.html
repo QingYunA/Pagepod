@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>二十四节气与农历日月运转罗盘 - Solar Terms & Lunar Orbit</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: #121215;
+      --border: #27272a;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --spring: #10b981;
+      --summer: #f43f5e;
+      --autumn: #f59e0b;
+      --winter: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    header {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand h1 {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      width: 100%;
+      max-width: 960px;
+    }
+    @media (max-width: 840px) {
+      .container { grid-template-columns: 1fr; }
+    }
+    .canvas-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      cursor: crosshair;
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .current-term-box {
+      border-left: 3px solid var(--spring);
+      padding-left: 12px;
+      margin-bottom: 12px;
+    }
+    .term-name {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .term-season {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .term-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #d4d4d8;
+      margin-top: 8px;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #3b82f6;
+      cursor: pointer;
+    }
+    .btn {
+      background: #18181b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn:hover { background: #27272a; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>二十四节气与农历日月运转罗盘</h1>
+      <span class="badge">天文力学计算</span>
+      <span class="badge">MIT License</span>
+    </div>
+    <div style="font-size: 12px; color: var(--text-muted);" id="currentDateStr">2026-09-13</div>
+  </header>
+
+  <div class="container">
+    <!-- Visual Dial -->
+    <div class="canvas-card">
+      <canvas id="compassCanvas" width="520" height="520"></canvas>
+    </div>
+
+    <!-- Telemetry & Term Detail Sidebar -->
+    <div class="sidebar">
+      <div class="card">
+        <div class="card-title">当前节气定位 (Solar Term)</div>
+        <div class="current-term-box" id="termBox">
+          <div class="term-name" id="dispTermName">白露</div>
+          <div class="term-season" id="dispTermSeason">秋季第三个节气 · 太阳黄经 165°</div>
+          <div class="term-desc" id="dispTermDesc">“水土湿气凝而为露，秋属金，金色白，白者露之色，而气始寒也。” 鸿雁来，玄鸟归，群鸟养羞。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">月相与天体运行 (Lunar Phase)</div>
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
+          <div id="moonIcon" style="width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #888); box-shadow: 0 0 14px rgba(255,255,255,0.3);"></div>
+          <div>
+            <div style="font-size: 15px; font-weight: 600;" id="dispMoonPhase">渐盈凸月 (Waxing Gibbous)</div>
+            <div style="font-size: 12px; color: var(--text-muted);" id="dispMoonIllum">月照度: 82% · 农历初十</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card controls">
+        <div class="card-title">时间穿梭控制 (Time Travel)</div>
+        <div class="control-row">
+          <span>日历步进 (1 ~ 365 天)</span>
+          <span id="dayVal">第 256 天</span>
+        </div>
+        <input type="range" id="daySlider" min="1" max="365" value="256">
+        <button class="btn" id="btnResetToday">恢复今日实时天象</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SOLAR_TERMS = [
+      { name: "立春", deg: 315, season: "春", desc: "阳和起蛰，品物皆春。立，始建也。春气始而建立也。" },
+      { name: "雨水", deg: 330, season: "春", desc: "东风解冻，散而为雨。雪散而为雨水以至也。" },
+      { name: "惊蛰", deg: 345, season: "春", desc: "春雷乍动，万物生机盎然。蛰，藏也，雷发而万物出于震。" },
+      { name: "春分", deg: 0,   season: "春", desc: "昼夜均而寒暑平。阴阳相半也，故昼夜均而寒暑平。" },
+      { name: "清明", deg: 15,  season: "春", desc: "时万物皆洁齐而清明。气清景明，万物皆显。" },
+      { name: "谷雨", deg: 30,  season: "春", desc: "雨生百谷，清净明洁。播种时节，春雨绵绵。" },
+      { name: "立夏", deg: 45,  season: "夏", desc: "万物至此皆长大，故名立夏。天地始交，万物并秀。" },
+      { name: "小满", deg: 60,  season: "夏", desc: "麦类等夏熟作物籽粒饱满而未熟，小得盈满。" },
+      { name: "芒种", deg: 75,  season: "夏", desc: "有芒之谷类可种，过此即失效。农事繁忙之期。" },
+      { name: "夏至", deg: 90,  season: "夏", desc: "日北至，日长之至，日影短至。一年中白昼最长之日。" },
+      { name: "小暑", deg: 105, season: "夏", desc: "暑，热也。就极热之中，分为大小，月初为小。" },
+      { name: "大暑", deg: 120, season: "夏", desc: "炎炎夏日之至盛，湿热熏蒸，雷雨丰沛。" },
+      { name: "立秋", deg: 135, season: "秋", desc: "秋，揪也，物于此而揪敛也。凉风至，白露生。" },
+      { name: "处暑", deg: 150, season: "秋", desc: "处，止也。暑气至此而止矣。秋高气爽之始。" },
+      { name: "白露", deg: 165, season: "秋", desc: "水土湿气凝而为露，秋属金，金色白，气始寒也。" },
+      { name: "秋分", deg: 180, season: "秋", desc: "阴阳相半，昼夜均分。雷始收声，蛰虫坯户。" },
+      { name: "寒露", deg: 195, season: "秋", desc: "露气寒冷，将凝结也。袅袅凉风动，凄凄寒露零。" },
+      { name: "霜降", deg: 210, season: "秋", desc: "气肃而凝，露结为霜。秋季最后一个节气。" },
+      { name: "立冬", deg: 225, season: "冬", desc: "冬者，终也，万物收藏也。水始冰，地始冻。" },
+      { name: "小雪", deg: 240, season: "冬", desc: "气寒而将雪矣，地寒未甚而雪未大也。" },
+      { name: "大雪", deg: 255, season: "冬", desc: "至此而雪盛也。仲冬之月，冰益壮，地益坼。" },
+      { name: "冬至", deg: 270, season: "冬", desc: "日南之至，日短之至，日影长之至。阴极之至，阳气始生。" },
+      { name: "小寒", deg: 285, season: "冬", desc: "月初寒尚小，故云。天寒地冻，冷气积久而为寒。" },
+      { name: "大寒", deg: 300, season: "冬", desc: "大寒为中者，上形于小寒，故谓之大。一年岁暮寒冷至极。" },
+    ];
+
+    const canvas = document.getElementById('compassCanvas');
+    const ctx = canvas.getContext('2d');
+    const daySlider = document.getElementById('daySlider');
+    const dayVal = document.getElementById('dayVal');
+    const dispTermName = document.getElementById('dispTermName');
+    const dispTermSeason = document.getElementById('dispTermSeason');
+    const dispTermDesc = document.getElementById('dispTermDesc');
+    const termBox = document.getElementById('termBox');
+
+    function getDayOfYear(date) {
+      const start = new Date(date.getFullYear(), 0, 0);
+      const diff = date - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      return Math.floor(diff / oneDay);
+    }
+
+    const todayDayOfYear = getDayOfYear(new Date());
+    daySlider.value = todayDayOfYear;
+
+    function renderCompass(day) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      // Outer rim
+      ctx.strokeStyle = '#27272a';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 240, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Sun Angle: Day 1 ~ 365 maps to 0 ~ 360 deg
+      const sunAngle = (day / 365) * Math.PI * 2 - Math.PI / 2;
+
+      // Find closest solar term
+      const sunDegNormalized = ((day / 365) * 360 + 285) % 360;
+      let activeTerm = SOLAR_TERMS[0];
+      let minDiff = 999;
+      SOLAR_TERMS.forEach(t => {
+        let diff = Math.abs(t.deg - sunDegNormalized);
+        if (diff > 180) diff = 360 - diff;
+        if (diff < minDiff) {
+          minDiff = diff;
+          activeTerm = t;
+        }
+      });
+
+      // Update sidebar
+      dispTermName.textContent = activeTerm.name;
+      dispTermSeason.textContent = `${activeTerm.season}季节气 · 太阳黄经 ${activeTerm.deg}°`;
+      dispTermDesc.textContent = activeTerm.desc;
+      const seasonColors = { '春': '#10b981', '夏': '#f43f5e', '秋': '#f59e0b', '冬': '#38bdf8' };
+      termBox.style.borderColor = seasonColors[activeTerm.season];
+
+      // Draw 24 terms around the perimeter
+      SOLAR_TERMS.forEach((term, i) => {
+        const rad = (i / 24) * Math.PI * 2 - Math.PI / 2;
+        const x = cx + Math.cos(rad) * 205;
+        const y = cy + Math.sin(rad) * 205;
+
+        const isCurrent = term.name === activeTerm.name;
+        ctx.fillStyle = isCurrent ? '#ffffff' : '#71717a';
+        ctx.font = isCurrent ? 'bold 13px sans-serif' : '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(term.name, x, y);
+
+        // Tick mark
+        ctx.strokeStyle = isCurrent ? seasonColors[term.season] : '#3f3f46';
+        ctx.lineWidth = isCurrent ? 2 : 1;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(rad) * 225, cy + Math.sin(rad) * 225);
+        ctx.lineTo(cx + Math.cos(rad) * 238, cy + Math.sin(rad) * 238);
+        ctx.stroke();
+      });
+
+      // Orbit track
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 140, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Earth at Center
+      ctx.save();
+      ctx.shadowColor = 'rgba(56, 189, 248, 0.4)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '10px sans-serif';
+      ctx.fillText('地球', cx, cy);
+
+      // Sun on orbit
+      const sunX = cx + Math.cos(sunAngle) * 140;
+      const sunY = cy + Math.sin(sunAngle) * 140;
+
+      // Radiance line from sun to earth
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(sunX, sunY);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 16;
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    daySlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      dayVal.textContent = `第 ${val} 天`;
+      renderCompass(val);
+    });
+
+    document.getElementById('btnResetToday').addEventListener('click', () => {
+      daySlider.value = todayDayOfYear;
+      dayVal.textContent = `第 ${todayDayOfYear} 天 (今日)`;
+      renderCompass(todayDayOfYear);
+    });
+
+    // Initial render
+    dayVal.textContent = `第 ${todayDayOfYear} 天 (今日)`;
+    renderCompass(todayDayOfYear);
+  </script>
+</body>
+</html>
