@@ -316,7 +316,7 @@ export async function getAllProjects(options?: {
 }): Promise<Project[]> {
   const db = getDatabase();
   let list: Project[] = [];
-  let isLocalFallback = false;
+  let isFilteredInSql = false;
 
   if (db) {
     try {
@@ -348,23 +348,19 @@ export async function getAllProjects(options?: {
           desc(schema.projects.createdAt)
         );
       });
+      isFilteredInSql = true;
     } catch (err) {
       console.error("Database query failed, falling back to local data:", err);
       const local = readLocalData();
       list = [...local.projects];
-      isLocalFallback = true;
     }
   } else {
     const local = readLocalData();
-    list = [...local.projects].sort((a, b) => {
-      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-      return b.createdAt.getTime() - a.createdAt.getTime();
-    });
-    isLocalFallback = true;
+    list = [...local.projects];
   }
 
-  // Filter in memory for local fallback mode
-  if (isLocalFallback) {
+  // Filter and sort in memory if SQL pushdown was not executed (fallback or local mode)
+  if (!isFilteredInSql) {
     if (options?.userId) {
       list = list.filter((p) => p.userId === options.userId);
     } else if (!options?.includePrivate) {
@@ -384,6 +380,11 @@ export async function getAllProjects(options?: {
     if (options?.category && options.category !== "all") {
       list = list.filter((p) => p.category === options.category);
     }
+
+    list.sort((a, b) => {
+      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
   }
 
   if (options?.tag) {

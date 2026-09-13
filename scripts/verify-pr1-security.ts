@@ -1,6 +1,7 @@
 import { assertSafeStoragePath, assertSafeStorageKey, UnsafePathError } from "../src/lib/storage/path-safety";
 import { sanitizeRedirectPath, sanitizeNextParam } from "../src/lib/safe-redirect";
 import { canManageProject, type CurrentUser } from "../src/lib/auth";
+import { getAllProjects } from "../src/db";
 
 let passed = 0;
 let failed = 0;
@@ -72,6 +73,14 @@ assert(!canManageProject(otherUser, aliceProject), "Other user CANNOT manage Ali
 assert(!canManageProject(ownerUser, legacyNoUserProject), "Regular user cannot manage legacy unclaimed project");
 assert(canManageProject(superAdmin, legacyNoUserProject), "Admin can manage legacy unclaimed project");
 assert(!canManageProject(null, aliceProject), "Guest cannot manage project");
+
+console.log("\n=== 4. Fallback Data Isolation & Privacy Tests ===");
+const isolatedAlice = await getAllProjects({ userId: "user_alice" });
+assert(isolatedAlice.every((p) => p.userId === "user_alice"), "Fallback query: Alice only sees projects with userId === user_alice");
+const isolatedBob = await getAllProjects({ userId: "user_bob_isolated_empty" });
+assert(isolatedBob.length === 0, "Fallback query: Non-existent user query returns empty array (zero tenant leak)");
+const publicOnly = await getAllProjects({ includePrivate: false });
+assert(publicOnly.every((p) => p.visibility === "public"), "Fallback query: Public filter never leaks private or unlisted projects");
 
 console.log(`\nResults: ${passed} passed, ${failed} failed`);
 if (failed > 0) {
