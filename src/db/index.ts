@@ -183,6 +183,9 @@ const SQL_PROJECTS = `
     kdf_iterations INTEGER,
     file_size INTEGER DEFAULT 0,
     plan_tier TEXT DEFAULT 'free',
+    review_status TEXT NOT NULL DEFAULT 'approved',
+    moderation_category TEXT,
+    moderation_summary TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
@@ -284,17 +287,9 @@ export async function autoApproveLegacyProjects() {
   try {
     getDatabase();
     if (!pgPool) return;
-    await pgPool.query(`
-      ALTER TABLE projects ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'approved';
-      ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_category TEXT;
-      ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_summary TEXT;
-      UPDATE projects 
-      SET review_status = 'approved' 
-      WHERE (review_status = 'pending' OR review_status IS NULL) 
-        AND moderation_category IS NULL;
-    `);
+    await ensurePostgresTables();
     legacyProjectsApproved = true;
-    console.log("[DB] Legacy projects successfully grandfathered to approved status.");
+    console.log("[DB] Legacy projects successfully grandfathered to approved status and tables ensured.");
   } catch (err: any) {
     lastDbError = `autoApprove: ${err?.message || String(err)}`;
     console.warn("[DB] autoApproveLegacyProjects notice:", err);
@@ -354,9 +349,11 @@ async function withTableFallback<T>(fn: () => Promise<T>): Promise<T> {
       code === "42P01" ||
       error?.code === "42703" ||
       code === "42703" ||
+      error?.message?.includes("does not exist") ||
       fullMsg.includes("does not exist") ||
       fullMsg.includes("relation") ||
-      fullMsg.includes("column")
+      fullMsg.includes("column") ||
+      fullMsg.includes("failed query")
     ) {
       tablesInitialized = false;
       await ensurePostgresTables();
@@ -569,6 +566,7 @@ export async function getUserProjectsCount(userId: string): Promise<number> {
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
+  await autoApproveLegacyProjects();
   const db = getDatabase();
   if (db) {
     try {
@@ -588,6 +586,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
 }
 
 export async function getProjectById(id: string): Promise<Project | null> {
+  await autoApproveLegacyProjects();
   const db = getDatabase();
   if (db) {
     try {
@@ -607,6 +606,7 @@ export async function getProjectById(id: string): Promise<Project | null> {
 }
 
 export async function createProject(data: NewProject): Promise<Project> {
+  await autoApproveLegacyProjects();
   const db = getDatabase();
   const now = new Date();
   const newRecord: Project = {
