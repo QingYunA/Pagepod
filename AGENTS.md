@@ -3,12 +3,14 @@
 本文档记录了 **HTML Manager** 项目的核心架构规范、设计美学与交互准则，所有协助本项目的 AI Agent 和开发者均须严格遵守。
 
 ### 🗺️ 核心工程导航指针 (Navigation Pointers)
-- **主页与展示画廊 (Marketing)**：[`src/app/(marketing)/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/app/(marketing)/page.tsx)（注意 Route Group 目录括号）
-- **独立全屏运行台**：[`src/app/p/[slug]/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/app/p/[slug]/page.tsx)
-- **安全沙箱隔离端点**：[`src/app/raw/[slug]/[[...path]]/route.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/app/raw/[slug]/[[...path]]/route.ts)
-- **创作者工作台**：[`src/app/workspace/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/app/workspace/page.tsx)
-- **数据访问层与迁移**：[`src/db/index.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/db/index.ts) 与 [`src/db/schema.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/db/schema.ts)
-- **生产健康自动化探针**：[`scripts/probe-prod.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/scripts/probe-prod.ts)（`npm run probe:prod`）
+- **主页与展示画廊 (Marketing)**：[`src/app/(marketing)/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/(marketing)/page.tsx)（注意 Route Group 目录括号）
+- **探索专题发现中心 (Explore Hub)**：[`src/app/(marketing)/explore/explore-client.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/(marketing)/explore/explore-client.tsx)
+- **分类专题聚合与静态页**：[`src/app/(marketing)/explore/[category]/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/(marketing)/explore/[category]/page.tsx) 与 [`category-client.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/(marketing)/explore/[category]/category-client.tsx)
+- **独立全屏运行台**：[`src/app/p/[slug]/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/p/[slug]/page.tsx)
+- **安全沙箱隔离端点**：[`src/app/raw/[slug]/[[...path]]/route.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/raw/[slug]/[[...path]]/route.ts)
+- **创作者工作台**：[`src/app/workspace/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/workspace/page.tsx)
+- **数据访问层与迁移**：[`src/db/index.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/db/index.ts) 与 [`src/db/schema.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/db/schema.ts)
+- **生产健康自动化探针**：[`scripts/probe-prod.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/scripts/probe-prod.ts)（`npm run probe:prod`）
 
 ---
 
@@ -40,6 +42,9 @@
     - **超时与异常守护**：6.5s 加载超时自动阻断并提示友好告警与直接打开；捕获脚本致命异常，保障主站性能不受拖累；
   - **全局活跃池与持久预览**：全局通过 LRU 队列（`sandboxPool`）将并发活跃沙箱数上限硬限制为 **最多 6 个**；超出上限时自动淘汰最久未交互的沙箱并恢复静态底图态，并支持用户随时手动点击微型 `×` 释放资源；
   - 必须完整支持深色（Dark）与浅色（Light）双主题无缝切换与系统偏好联动。
+- **全域卡片导航交互规范 (Card-Level Full Navigation Invariant)**：
+  - 专题导航与展示型卡片（如 Category Hub Cards、Feature Cards）必须将外层根容器作为标准的 Next.js `<Link>`，保证整张卡片（标题、描述、图标、空白区域）100% 区域均可点击；
+  - 微动效箭头图标（如 `ArrowUpRight`）仅作视觉动效辅助（`aria-hidden="true"`），严禁作为唯一可点击入口，严禁将卡片写为 `<button>` 并在其内嵌套微型 `<a>`（彻底杜绝合法冒泡被拦截与 DOM 规范违规）。
 
 ### 3. 动态交互与加载动效规范 (Motion & Loading Standards)
 - **Tailwind v4 旋转动画防死锁准则**：
@@ -106,48 +111,31 @@
      1. “当前改动应用到生产已有存量历史数据时，默认值是否会破坏既有数据的可见性或正常业务行为？”
      2. “是否提供了存量数据的向下兼容或自愈更新路径，并在回归测试中模拟了存量数据结构？”
 
+9. **公共展示页面静态预渲染与冷启动零 DDL 准则 (Static ISR & Zero Cold-Start DDL Invariant)**：
+   - **严禁在公开展示页面服务端消费 `searchParams`**：公共分类聚合、专题展示与 Marketing 页面（如 `/explore/[category]`）严禁在服务端组件入参中直接解构或 `await searchParams`，避免强制退化为动态 SSR（`ƒ Dynamic`）并导致 CDN 缓存穿透；多语言过滤等前端偏好必须抽离至客户端组件通过 React 状态即时受控处理；
+    - **冷启动 0 DDL 绝对禁令**：业务读路径（如 `getAllProjects`、`autoApproveLegacyProjects`）严禁在无异常的冷启动阶段无差别执行 DDL 脚本（`ensurePostgresTables()` 的 27 条 SQL）；DDL 自愈必须严格限制在 `withTableFallback` 真实捕获到 `42P01` / `42703` 缺失异常时按需触发，保障新实例首次请求毫秒级响应。
+
+10. **Git Worktree 与构建协同避坑 (Worktree Build Discipline)**：
+    - **Worktree node_modules 软链接自愈**：新建或切换 Git Worktree 时，若根目录缺少依赖，首选直接软链接主仓库依赖 `ln -s /Users/mac/cyq/Code/开源/html-manager/node_modules node_modules`，实现零安装、秒级开箱即用；
+    - **Webpack 构建规避 Turbopack Panic**：Git Worktree 中由于 `node_modules` 软链接特性，Next.js Turbopack 会触发内部 Panic。Worktree 下本地构建测试必须使用 `npm run build:webpack`（`next build --webpack`）；
+    - **Worktree 冲突合并防伪冲突原则 (Worktree Merge Over Interactive Rebase)**：当远端主分支（`origin/main`）发生并发更新时，Worktree 特性分支拉取最新主分支更新**优先采用 `git merge origin/main`**（或前置将分支历史本地 commit squash 为单一提交后再 rebase）；严禁在包含多阶段迭代提交的分支上执行逐个 commit 交互式 rebase，彻底杜绝历史废弃提交引发的重复伪冲突；
+    - 分支合并遵循无冲突流程：Worktree 提 PR 并通过 `gh pr merge <id> --squash` 合并（**严禁携带 `--delete-branch`**，避免 Git 尝试自动检出已被主仓库锁定的 main 分支触发 `fatal: 'main' is already checked out` 错误）。主仓库 `git pull origin main` 后，Worktree 执行 `git reset --hard origin/main` 对齐，远端分支在 Web 界面或主仓库安全清理；
+    - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`。
 
 ---
 
-## ✉️ 三、认证与系统事务邮件规范 (Auth & Transactional Email Standards)
+## 📚 三、特定领域扩展规范 (Domain Standards & Context Pointers)
 
-1. **双语国际化排版规范 (English First, Chinese Second)**：
-   - 面向国际化与出海标准，所有系统事务邮件、模版与双语通知一律遵循“**英文为主（首行/主标题）、中文为辅（次行/辅助说明）**”，如 `Confirm your email address / 验证您的邮箱账号`；
-   - 按钮文案统一采用双语格式：`Confirm & Sign In / 验证邮箱并登录`。
+为保持工程准则高信噪比并遵循渐进式揭示原则（Progressive Disclosure），以下特定业务领域的详细规范已外置独立文档，相关开发时按需触发阅读：
 
-2. **官方品牌形象与邮件客户端兼容 (Branded Email Assets)**：
-   - 邮件头部必须引入生产环境全球 CDN 托管的官方 Logo（`https://www.pagepod.dev/logo.png`），以 30x30 Retina 视网膜规格配合 1px 精细微边框与圆角呈现；
-   - **严禁使用 Base64 Data URI**（防范主流邮件服务商 Gmail、Outlook、QQ、网易的垃圾拦截）；
-   - 操作按钮下方必须保留纯文本链接回退通道，确保极端环境下用户仍可复制 URL 完成验证。
-
-3. **自适应验证码与剪贴板容错 (Adaptive Verification Token)**：
-   - **严禁文案硬编码位数**：前端提示、占位符与邮件文案中严禁硬编码“6 位数字验证码”或“000000”，统一采用自适应的“数字验证码 / Verification Code”；
-   - **全链路空格清洗**：前端 OTP 输入框与后端 Action 必须在处理前通过 `.replace(/[\s-]+/g, "")` 自动清洗剪贴板带入的视觉空格与连字符；
-   - **输入框宽度自适应**：前端输入框上限放宽至 10 位，完美兼容 Supabase 后端配置的 6~10 位 OTP。
-
-4. **Git Worktree 与 Turbopack 协同避坑 (Worktree Build Discipline)**：
-   - Git Worktree 中由于 `node_modules` 软链接特性，Next.js Turbopack 会触发内部 Panic。Worktree 下本地构建测试必须使用 `npx next build --webpack`，或直接切至主仓库目录运行；
-   - **Worktree 冲突合并防伪冲突原则 (Worktree Merge Over Interactive Rebase)**：当远端主分支（`origin/main`）发生并发更新时，Worktree 特性分支拉取最新主分支更新**优先采用 `git merge origin/main`**（或前置将分支历史本地 commit squash 为单一提交后再 rebase）；严禁在包含多阶段迭代提交的分支上执行逐个 commit 交互式 rebase，彻底杜绝历史废弃提交引发的重复伪冲突。
-   - 分支合并遵循无冲突流程：Worktree 提 PR 并通过 `gh pr merge <id> --squash` 合并（**严禁携带 `--delete-branch`**，避免 Git 尝试自动检出已被主仓库锁定的 main 分支触发 `fatal: 'main' is already checked out` 错误）。主仓库 `git pull origin main` 后，Worktree 执行 `git reset --hard origin/main` 对齐，远端分支在 Web 界面或主仓库安全清理；
-   - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`（避免无效鉴权与漫长安装）。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`。
+1. **认证与系统事务邮件规范**：
+   - 涉及验证码 OTP、注册确认信、邮件客户端排版防垃圾拦截与 CDN 邮件 Logo 时，遵循 [`docs/standards/transactional-emails.md`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/docs/standards/transactional-emails.md)。
+2. **商业化支付与交易安全规范**：
+   - 涉及会员定价方案、结账弹窗意图恢复、PayPal 扣款短路防重与 IDOR 所有权越权核验时，遵循 [`docs/standards/payment-security.md`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/docs/standards/payment-security.md)。
 
 ---
 
-## 💳 四、商业化支付与交易安全规范 (Commercial Payment & Security Standards)
-
-1. **前置强制鉴权与意图无缝恢复 (Auth Gate & Payment Resumption)**：
-   - 未登录用户严禁初始化或唤起真实支付 SDK；
-   - 点击付费方案若未登录，必须通过 URL 编码携带意图跳转：`/login?from=${encodeURIComponent('/pricing?tier=' + tier)}`；
-   - 登录成功回跳后，定价页必须自动响应式解析 `tier` 参数并自动弹出对应结账弹窗，实现零二次点击的无缝闭环；
-   - 定价与支付客户端组件必须外层包裹 `<Suspense fallback={null}>`，避免 Next.js 静态预渲染 de-opt。
-
-2. **支付捕获防越权与幂等短路防御 (IDOR & Idempotency Defense)**：
-   - **IDOR 所有权核验**：支付捕获端点（如 `/api/payments/*/capture-order`）必须比对本地订单 `order.userId` 与当前 Session `currentUser.id`（管理员除外），不匹配严禁向支付渠道发起 capture，直接返回 `403 Forbidden`；
-   - **本地订单存在性验证**：若本地无此订单直接返回 `404 Not Found`，绝不盲目向上游发起扣款；
-   - **短路防重复扣款**：捕获接口必须前置检查本地订单状态，若已为 `completed` 则立即短路返回已有 `captureId`，严禁重复调用上游支付渠道扣款 API；
- ---
-
-## 🌐 五、交互沟通与技能语言规范 (Language & Skill Communication Standards)
+## 🌐 四、交互沟通与技能语言规范 (Language & Skill Communication Standards)
 
 1. **中文母语交互与汇报基准 (Chinese-First Communication Invariant)**：
    - 除非用户明确要求使用英文，所有与用户的日常交互、阶段性工作汇报、数据分析、排障总结、以及所有 Slash Command 技能的最终答复，**必须一律采用清晰、地道的中文输出**。

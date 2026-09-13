@@ -287,9 +287,15 @@ export async function autoApproveLegacyProjects() {
   try {
     getDatabase();
     if (!pgPool) return;
-    await ensurePostgresTables();
+    await withTableFallback(async () => {
+      // Idempotent grandfathering guarded by withTableFallback.
+      // Missing tables or columns (42P01 / 42703) will automatically trigger ensurePostgresTables() on-demand.
+      await pgPool!.query(
+        `UPDATE projects SET review_status = 'approved' WHERE (review_status = 'pending' OR review_status IS NULL) AND moderation_category IS NULL;`
+      );
+    });
     legacyProjectsApproved = true;
-    console.log("[DB] Legacy projects successfully grandfathered to approved status and tables ensured.");
+    console.log("[DB] Legacy projects grandfathered to approved status (0 proactive DDL).");
   } catch (err: any) {
     lastDbError = `autoApprove: ${err?.message || String(err)}`;
     console.warn("[DB] autoApproveLegacyProjects notice:", err);
