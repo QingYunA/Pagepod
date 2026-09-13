@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>全唐诗宋词·水墨诗笺与活字排版工坊 (chinese-poetry)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Based on open source chinese-poetry: https://github.com/chinese-poetry/chinese-poetry (MIT License) -->
+  <style>
+    :root {
+      --bg: #1c1917;
+      --card-bg: #fdfbf7;
+      --ink: #1f1d1d;
+      --ink-soft: #57534e;
+      --seal-red: #b91c1c;
+      --gold: #d97706;
+      --font-serif: "Songti SC", "SimSun", "STSong", "Noto Serif SC", serif;
+      --font-kai: "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: #e7e5e4;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    header {
+      max-width: 1080px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #292524;
+    }
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge {
+      font-family: monospace;
+      font-size: 11px;
+      padding: 2px 8px;
+      background: rgba(217, 119, 6, 0.15);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      color: var(--gold);
+      border-radius: 4px;
+    }
+    .upstream a {
+      color: #a8a29e;
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .upstream a:hover {
+      color: var(--gold);
+    }
+    .main-workspace {
+      max-width: 1080px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .main-workspace { grid-template-columns: 1fr; }
+    }
+    .controls-panel {
+      background: #292524;
+      border: 1px solid #44403c;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .control-label {
+      font-size: 12px;
+      color: #a8a29e;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+      letter-spacing: 0.5px;
+    }
+    select, button {
+      width: 100%;
+      padding: 9px 12px;
+      background: #1c1917;
+      border: 1px solid #44403c;
+      color: #f5f5f4;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    select:focus, button:focus {
+      border-color: var(--gold);
+    }
+    .color-swatches {
+      display: flex;
+      gap: 10px;
+    }
+    .swatch {
+      flex: 1;
+      height: 36px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .swatch.active {
+      border-color: var(--gold);
+    }
+    .btn-action {
+      background: #44403c;
+      color: #fafaf9;
+      cursor: pointer;
+      font-weight: 600;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-action:hover {
+      background: #57534e;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover {
+      background: #b45309;
+    }
+
+    /* Paper Showcase Card */
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .paper-card {
+      width: 100%;
+      max-width: 540px;
+      min-height: 520px;
+      background: var(--card-bg);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 80px rgba(0,0,0,0.03);
+      border-radius: 4px;
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+    .paper-texture {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.02) 100%);
+      pointer-events: none;
+    }
+    .poem-layout {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 36px;
+      flex: 1;
+      margin: 20px 0;
+    }
+    .column-title {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-family: var(--font-serif);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: var(--ink);
+    }
+    .column-author {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-family: var(--font-kai);
+      font-size: 15px;
+      letter-spacing: 4px;
+      color: var(--ink-soft);
+      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .column-body {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-family: var(--font-kai);
+      font-size: 20px;
+      line-height: 2.2;
+      letter-spacing: 5px;
+      color: var(--ink);
+    }
+    .seal-stamp {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--seal-red);
+      color: var(--seal-red);
+      font-family: var(--font-serif);
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      margin-top: 12px;
+      line-height: 1.1;
+      padding: 2px;
+      text-align: center;
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding-top: 16px;
+      font-size: 11px;
+      color: var(--ink-soft);
+      font-family: var(--font-serif);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-title">
+      水墨诗笺·活字工坊
+      <span class="badge">chinese-poetry</span>
+    </div>
+    <div class="upstream">
+      <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" rel="noopener">Upstream: chinese-poetry/chinese-poetry (MIT)</a>
+    </div>
+  </header>
+
+  <div class="main-workspace">
+    <div class="controls-panel">
+      <div>
+        <label class="control-label">精选诗词篇目</label>
+        <select id="poemSelect" onchange="renderPoem(this.value)">
+          <option value="0">李白 · 将进酒 (君不见黄河之水天上来)</option>
+          <option value="1" selected>苏轼 · 水调歌头 (明月几时有)</option>
+          <option value="2">王维 · 山居秋暝 (空山新雨后)</option>
+          <option value="3">李清照 · 声声慢 (寻寻觅觅)</option>
+          <option value="4">辛弃疾 · 青玉案·元夕 (东风夜放花千树)</option>
+          <option value="5">杜甫 · 望岳 (岱宗夫如何)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="control-label">宣纸古笺底色</label>
+        <div class="color-swatches">
+          <button class="swatch active" style="background: #fdfbf7; color: #1c1917;" onclick="setPaper('#fdfbf7', this)">澄心素宣</button>
+          <button class="swatch" style="background: #fef3c7; color: #78350f;" onclick="setPaper('#fef3c7', this)">冷金古竹</button>
+          <button class="swatch" style="background: #f1f5f9; color: #0f172a;" onclick="setPaper('#f1f5f9', this)">玉版素笺</button>
+          <button class="swatch" style="background: #ffe4e6; color: #881337;" onclick="setPaper('#ffe4e6', this)">桃花粉笺</button>
+        </div>
+      </div>
+
+      <div>
+        <label class="control-label">朱砂印章题款</label>
+        <select id="sealSelect" onchange="updateSeal(this.value)">
+          <option value="青云">青云 · 诗境</option>
+          <option value="墨韵" selected>墨韵 · 雅集</option>
+          <option value="逍遥">逍遥 · 尘外</option>
+          <option value="抱朴">抱朴 · 守真</option>
+        </select>
+      </div>
+
+      <button class="btn-action" onclick="randomPoem()">随机赋诗</button>
+      <button class="btn-primary" onclick="exportImage()">导出高清诗笺 (PNG)</button>
+    </div>
+
+    <div class="preview-container">
+      <div class="paper-card" id="paperCard">
+        <div class="paper-texture"></div>
+
+        <div class="poem-layout">
+          <div class="column-title" id="poemTitle">水调歌头</div>
+          <div class="column-author">
+            <span id="poemDynasty">宋</span> · <span id="poemAuthor">苏轼</span>
+            <div class="seal-stamp" id="sealStamp">墨韵雅集</div>
+          </div>
+          <div class="column-body" id="poemBody">
+            明月几时有？把酒问青天。<br>
+            不知天上宫阙，今夕是何年。<br>
+            我欲乘风归去，又恐琼楼玉宇，高处不胜寒。<br>
+            起舞弄清影，何似在人间。<br>
+            人有悲欢离合，月有阴晴圆缺，此事古难全。<br>
+            但愿人长久，千里共婵娟。
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div>中华经典诗词数据库 · 开源活字排版工坊</div>
+          <div>Pagepod Art Collection</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const POEMS = [
+      {
+        title: "将进酒",
+        dynasty: "唐",
+        author: "李白",
+        lines: [
+          "君不见黄河之水天上来，奔流到海不复回。",
+          "君不见高堂明镜悲白发，朝如青丝暮成雪。",
+          "人生得意须尽欢，莫使金樽空对月。",
+          "天生我材必有用，千金散尽还复来。",
+          "呼儿将出换美酒，与尔同销万古愁。"
+        ]
+      },
+      {
+        title: "水调歌头",
+        dynasty: "宋",
+        author: "苏轼",
+        lines: [
+          "明月几时有？把酒问青天。",
+          "不知天上宫阙，今夕是何年。",
+          "我欲乘风归去，又恐琼楼玉宇，高处不胜寒。",
+          "起舞弄清影，何似在人间。",
+          "人有悲欢离合，月有阴晴圆缺，此事古难全。",
+          "但愿人长久，千里共婵娟。"
+        ]
+      },
+      {
+        title: "山居秋暝",
+        dynasty: "唐",
+        author: "王维",
+        lines: [
+          "空山新雨后，天气晚来秋。",
+          "明月松间照，清泉石上流。",
+          "竹喧归浣女，莲动下渔舟。",
+          "随意春芳歇，王孙自可留。"
+        ]
+      },
+      {
+        title: "声声慢",
+        dynasty: "宋",
+        author: "李清照",
+        lines: [
+          "寻寻觅觅，冷冷清清，凄凄惨惨戚戚。",
+          "乍暖还寒时候，最难将息。",
+          "三杯两盏淡酒，怎敌他、晚来风急！",
+          "雁过也，正伤心，却是旧时相识。",
+          "满地黄花堆积，憔悴损，如今有谁堪摘？",
+          "梧桐更兼细雨，到黄昏、点点滴滴。"
+        ]
+      },
+      {
+        title: "青玉案·元夕",
+        dynasty: "宋",
+        author: "辛弃疾",
+        lines: [
+          "东风夜放花千树。更吹落、星如雨。",
+          "宝马雕车香满路。凤箫声动，玉壶光转，一夜鱼龙舞。",
+          "蛾儿雪柳黄金缕。笑语盈盈暗香去。",
+          "众里寻他千百度。蓦然回首，那人却在，灯火阑珊处。"
+        ]
+      },
+      {
+        title: "望岳",
+        dynasty: "唐",
+        author: "杜甫",
+        lines: [
+          "岱宗夫如何？齐鲁青未了。",
+          "造化钟神秀，阴阳割昏晓。",
+          "荡胸生曾云，决眦入归鸟。",
+          "会当凌绝顶，一览众山小。"
+        ]
+      }
+    ];
+
+    function renderPoem(idx) {
+      const p = POEMS[idx];
+      document.getElementById('poemTitle').textContent = p.title;
+      document.getElementById('poemDynasty').textContent = p.dynasty;
+      document.getElementById('poemAuthor').textContent = p.author;
+      document.getElementById('poemBody').innerHTML = p.lines.join('<br>');
+    }
+
+    function setPaper(color, btn) {
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('paperCard').style.backgroundColor = color;
+    }
+
+    function updateSeal(val) {
+      document.getElementById('sealStamp').textContent = val + '雅集';
+    }
+
+    function randomPoem() {
+      const nextIdx = Math.floor(Math.random() * POEMS.length);
+      document.getElementById('poemSelect').value = nextIdx;
+      renderPoem(nextIdx);
+    }
+
+    function exportImage() {
+      // Create offscreen canvas to export high-res 1200x800 card
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = 1200;
+      exportCanvas.height = 800;
+      const ctx = exportCanvas.getContext('2d');
+
+      const card = document.getElementById('paperCard');
+      const bg = window.getComputedStyle(card).backgroundColor;
+
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, 1200, 800);
+
+      // Fine border
+      ctx.strokeStyle = "rgba(0,0,0,0.15)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(30, 30, 1140, 740);
+
+      // Draw title
+      ctx.fillStyle = "#1f1d1d";
+      ctx.font = "bold 36px 'Songti SC', serif";
+      ctx.textAlign = "center";
+      ctx.fillText(document.getElementById('poemTitle').textContent, 600, 120);
+
+      // Draw author
+      ctx.font = "20px 'Kaiti SC', serif";
+      ctx.fillStyle = "#57534e";
+      ctx.fillText(document.getElementById('poemDynasty').textContent + " · " + document.getElementById('poemAuthor').textContent, 600, 170);
+
+      // Draw lines
+      const selIdx = document.getElementById('poemSelect').value;
+      const lines = POEMS[selIdx].lines;
+      ctx.fillStyle = "#1f1d1d";
+      ctx.font = "24px 'Kaiti SC', serif";
+      let startY = 250;
+      lines.forEach(line => {
+        ctx.fillText(line, 600, startY);
+        startY += 50;
+      });
+
+      // Red seal stamp
+      ctx.strokeStyle = "#b91c1c";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(560, startY + 20, 80, 80);
+      ctx.fillStyle = "#b91c1c";
+      ctx.font = "bold 20px 'Songti SC', serif";
+      ctx.fillText(document.getElementById('sealStamp').textContent.slice(0, 2), 600, startY + 54);
+      ctx.fillText(document.getElementById('sealStamp').textContent.slice(2, 4), 600, startY + 84);
+
+      // Download trigger
+      const link = document.createElement('a');
+      link.download = `shijian-${POEMS[selIdx].title}.png`;
+      link.href = exportCanvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>

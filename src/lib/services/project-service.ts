@@ -8,7 +8,7 @@ import {
 } from "@/db";
 import { getProjectStorage, getStorageType } from "@/lib/storage";
 import { extractMetadataFromHtml, unpackZipBundle } from "@/lib/parser";
-import { renderProjectScreenshot } from "@/lib/services/screenshot-service";
+import { renderProjectScreenshot, captureProjectScreenshot } from "@/lib/services/screenshot-service";
 import { assertCanCreateProject } from "@/lib/services/billing-service";
 import { assertCanManageProject, type CurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -244,6 +244,15 @@ export async function createProject(
 
   if (!options?.skipRevalidate) {
     revalidateProjectPaths(project.slug);
+  }
+
+  // 5. Post-commit Asynchronous Poster Ingestion
+  // If screenshot was not generated synchronously (e.g. headless Chrome absent in serverless runtime),
+  // trigger background capture now that the project is committed and publicly accessible at /raw/:slug
+  if (!screenshotUrl && project.visibility === "public") {
+    captureProjectScreenshot(project.slug).catch((err) => {
+      console.warn(`[ProjectService] Post-commit cloud screenshot capture skipped for ${project.slug}:`, err);
+    });
   }
 
   return project;

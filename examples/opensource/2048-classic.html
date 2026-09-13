@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>2048 - Classic Sliding Tile Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <!-- Original Open Source Project by Gabriele Cirulli: https://github.com/gabrielecirulli/2048 (MIT License) -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #faf8ef;
+      color: #776e65;
+      font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+      font-size: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+      user-select: none;
+      touch-action: none;
+    }
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+    .heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    h1.title {
+      font-size: 56px;
+      font-weight: bold;
+      color: #776e65;
+      line-height: 1;
+    }
+    .scores-container {
+      display: flex;
+      gap: 8px;
+    }
+    .score-container, .best-container {
+      background: #bbada0;
+      padding: 6px 16px;
+      border-radius: 4px;
+      color: #fff;
+      text-align: center;
+    }
+    .score-label {
+      font-size: 11px;
+      font-weight: bold;
+      color: #eee4da;
+      text-transform: uppercase;
+    }
+    .score-value {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .intro {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #776e65;
+    }
+    .restart-button {
+      background: #8f7a66;
+      border-radius: 4px;
+      padding: 8px 16px;
+      text-decoration: none;
+      color: #f9f6f2;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+    }
+    .restart-button:hover { background: #9f8b77; }
+    .game-container {
+      position: relative;
+      background: #bbada0;
+      border-radius: 8px;
+      width: 100%;
+      aspect-ratio: 1;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .grid-cell {
+      background: rgba(238, 228, 218, 0.35);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: bold;
+      color: #776e65;
+      transition: all 0.1s ease;
+    }
+    .cell-2    { background: #eee4da; color: #776e65; }
+    .cell-4    { background: #ede0c8; color: #776e65; }
+    .cell-8    { background: #f2b179; color: #f9f6f2; }
+    .cell-16   { background: #f59563; color: #f9f6f2; }
+    .cell-32   { background: #f67c5f; color: #f9f6f2; }
+    .cell-64   { background: #f65e3b; color: #f9f6f2; }
+    .cell-128  { background: #edcf72; color: #f9f6f2; font-size: 28px; box-shadow: 0 0 10px rgba(243, 215, 116, 0.4); }
+    .cell-256  { background: #edcc61; color: #f9f6f2; font-size: 28px; box-shadow: 0 0 15px rgba(243, 215, 116, 0.5); }
+    .cell-512  { background: #edc850; color: #f9f6f2; font-size: 28px; box-shadow: 0 0 20px rgba(243, 215, 116, 0.6); }
+    .cell-1024 { background: #edc53f; color: #f9f6f2; font-size: 22px; box-shadow: 0 0 25px rgba(243, 215, 116, 0.7); }
+    .cell-2048 { background: #edc22e; color: #f9f6f2; font-size: 22px; box-shadow: 0 0 30px rgba(243, 215, 116, 0.8); }
+    .game-message {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(238, 228, 218, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .game-message.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .game-message p {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+    footer {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #8f7a66;
+      text-align: center;
+      line-height: 1.6;
+    }
+    footer a { color: #776e65; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="heading">
+      <h1 class="title">2048</h1>
+      <div class="scores-container">
+        <div class="score-container">
+          <div class="score-label">SCORE</div>
+          <div class="score-value" id="score">0</div>
+        </div>
+        <div class="best-container">
+          <div class="score-label">BEST</div>
+          <div class="score-value" id="best">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="intro">
+      <span>Join numbers to reach <strong>2048</strong>!</span>
+      <button class="restart-button" id="restartBtn">New Game</button>
+    </div>
+
+    <div class="game-container" id="board">
+      <!-- 16 Cells -->
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="game-message" id="gameMessage">
+        <p id="messageText">Game over!</p>
+        <button class="restart-button" id="retryBtn">Try again</button>
+      </div>
+    </div>
+
+    <footer>
+      Created by <a href="https://github.com/gabrielecirulli/2048" target="_blank">Gabriele Cirulli</a>. Open source under MIT License.
+    </footer>
+  </div>
+
+  <script>
+    let grid = Array(4).fill(0).map(() => Array(4).fill(0));
+    let score = 0;
+    let best = parseInt(localStorage.getItem('2048_best') || '0', 10);
+    document.getElementById('best').textContent = best;
+
+    function init() {
+      grid = Array(4).fill(0).map(() => Array(4).fill(0));
+      score = 0;
+      updateScore(0);
+      document.getElementById('gameMessage').classList.remove('show');
+      addRandomTile();
+      addRandomTile();
+      render();
+    }
+
+    function addRandomTile() {
+      const empty = [];
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (grid[r][c] === 0) empty.push({ r, c });
+        }
+      }
+      if (empty.length > 0) {
+        const spot = empty[Math.floor(Math.random() * empty.length)];
+        grid[spot.r][spot.c] = Math.random() < 0.9 ? 2 : 4;
+      }
+    }
+
+    function render() {
+      const cells = document.querySelectorAll('.grid-cell');
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const val = grid[r][c];
+          const cell = cells[r * 4 + c];
+          cell.textContent = val > 0 ? val : '';
+          cell.className = 'grid-cell' + (val > 0 ? ` cell-${val}` : '');
+        }
+      }
+    }
+
+    function updateScore(add) {
+      score += add;
+      document.getElementById('score').textContent = score;
+      if (score > best) {
+        best = score;
+        document.getElementById('best').textContent = best;
+        localStorage.setItem('2048_best', best);
+      }
+    }
+
+    function slide(row) {
+      let arr = row.filter(v => v !== 0);
+      for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i] === arr[i + 1]) {
+          arr[i] *= 2;
+          updateScore(arr[i]);
+          arr.splice(i + 1, 1);
+        }
+      }
+      while (arr.length < 4) arr.push(0);
+      return arr;
+    }
+
+    function moveLeft() {
+      let changed = false;
+      for (let r = 0; r < 4; r++) {
+        const next = slide(grid[r]);
+        if (next.some((v, i) => v !== grid[r][i])) changed = true;
+        grid[r] = next;
+      }
+      return changed;
+    }
+
+    function rotate() {
+      const next = Array(4).fill(0).map(() => Array(4).fill(0));
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          next[c][3 - r] = grid[r][c];
+        }
+      }
+      grid = next;
+    }
+
+    function move(dir) {
+      let changed = false;
+      if (dir === 'left') changed = moveLeft();
+      if (dir === 'down') { rotate(); changed = moveLeft(); rotate(); rotate(); rotate(); }
+      if (dir === 'right') { rotate(); rotate(); changed = moveLeft(); rotate(); rotate(); }
+      if (dir === 'up') { rotate(); rotate(); rotate(); changed = moveLeft(); rotate(); }
+
+      if (changed) {
+        addRandomTile();
+        render();
+        if (checkGameOver()) {
+          document.getElementById('messageText').textContent = 'Game over!';
+          document.getElementById('gameMessage').classList.add('show');
+        }
+      }
+    }
+
+    function checkGameOver() {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (grid[r][c] === 0) return false;
+          if (r < 3 && grid[r][c] === grid[r + 1][c]) return false;
+          if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
+        }
+      }
+      return true;
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') move('left');
+      if (e.key === 'ArrowRight' || e.key === 'd') move('right');
+      if (e.key === 'ArrowUp' || e.key === 'w') move('up');
+      if (e.key === 'ArrowDown' || e.key === 's') move('down');
+    });
+
+    let touchStart = null;
+    window.addEventListener('touchstart', (e) => {
+      touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (!touchStart) return;
+      const dx = e.changedTouches[0].clientX - touchStart.x;
+      const dy = e.changedTouches[0].clientY - touchStart.y;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 30) move('right');
+        else if (dx < -30) move('left');
+      } else {
+        if (dy > 30) move('down');
+        else if (dy < -30) move('up');
+      }
+      touchStart = null;
+    }, { passive: true });
+
+    document.getElementById('restartBtn').addEventListener('click', init);
+    document.getElementById('retryBtn').addEventListener('click', init);
+
+    init();
+  </script>
+</body>
+</html>

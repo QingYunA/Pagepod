@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Conway's Game of Life - Cellular Automaton</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Original Mathematical Concept by John Conway & Open Source Community (MIT License) -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      user-select: none;
+    }
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #21262d;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #58a6ff;
+    }
+    .stats {
+      font-size: 12px;
+      color: #8b949e;
+      display: flex;
+      gap: 16px;
+    }
+    .stat-val { color: #58a6ff; font-weight: bold; }
+    .canvas-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+    }
+    canvas {
+      display: block;
+      cursor: pointer;
+    }
+    .toolbar {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 10px 16px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+    }
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button, select {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button:hover, select:hover { background: #30363d; }
+    button.primary { background: #238636; border-color: #2ea043; color: #fff; }
+    button.primary:hover { background: #2ea043; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>Conway's Game of Life</h1>
+      <span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #21262d; color: #8b949e;">MIT License</span>
+    </div>
+    <div class="stats">
+      <span>Generation: <span id="dispGen" class="stat-val">0</span></span>
+      <span>Living Cells: <span id="dispPop" class="stat-val">0</span></span>
+    </div>
+  </header>
+
+  <div class="canvas-card">
+    <canvas id="lifeCanvas" width="880" height="520"></canvas>
+  </div>
+
+  <div class="toolbar">
+    <div class="btn-group">
+      <button id="btnPlay" class="primary">▶ Start</button>
+      <button id="btnStep">Step Next</button>
+      <button id="btnClear">Clear Grid</button>
+      <button id="btnRandom">Randomize</button>
+    </div>
+
+    <div class="btn-group">
+      <select id="presetSelect">
+        <option value="">-- Load Pattern Preset --</option>
+        <option value="gosper">Gosper Glider Gun</option>
+        <option value="pulsar">Pulsar (Period 3)</option>
+        <option value="glider">Glider</option>
+        <option value="acorn">Acorn (Methuselah)</option>
+      </select>
+
+      <select id="speedSelect">
+        <option value="60">Fast (30 FPS)</option>
+        <option value="120" selected>Normal (15 FPS)</option>
+        <option value="250">Slow (4 FPS)</option>
+      </select>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('lifeCanvas');
+    const ctx = canvas.getContext('2d');
+    const dispGen = document.getElementById('dispGen');
+    const dispPop = document.getElementById('dispPop');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnStep = document.getElementById('btnStep');
+    const btnClear = document.getElementById('btnClear');
+    const btnRandom = document.getElementById('btnRandom');
+    const presetSelect = document.getElementById('presetSelect');
+    const speedSelect = document.getElementById('speedSelect');
+
+    const CELL_SIZE = 8;
+    const COLS = Math.floor(canvas.width / CELL_SIZE);
+    const ROWS = Math.floor(canvas.height / CELL_SIZE);
+
+    let grid = createGrid();
+    let isRunning = false;
+    let timer = null;
+    let generation = 0;
+
+    function createGrid() {
+      return Array(ROWS).fill(0).map(() => Array(COLS).fill(0));
+    }
+
+    function drawGrid() {
+      ctx.fillStyle = '#0d1117';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let population = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (grid[r][c] === 1) {
+            population++;
+            ctx.fillStyle = '#58a6ff';
+            ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1);
+          }
+        }
+      }
+      dispPop.textContent = population;
+      dispGen.textContent = generation;
+    }
+
+    function countNeighbors(r, c) {
+      let count = 0;
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          if (i === 0 && j === 0) continue;
+          const nr = (r + i + ROWS) % ROWS;
+          const nc = (c + j + COLS) % COLS;
+          count += grid[nr][nc];
+        }
+      }
+      return count;
+    }
+
+    function step() {
+      const next = createGrid();
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const neighbors = countNeighbors(r, c);
+          if (grid[r][c] === 1) {
+            next[r][c] = (neighbors === 2 || neighbors === 3) ? 1 : 0;
+          } else {
+            next[r][c] = (neighbors === 3) ? 1 : 0;
+          }
+        }
+      }
+      grid = next;
+      generation++;
+      drawGrid();
+    }
+
+    function togglePlay() {
+      if (isRunning) {
+        isRunning = false;
+        clearInterval(timer);
+        btnPlay.textContent = '▶ Start';
+        btnPlay.className = 'primary';
+      } else {
+        isRunning = true;
+        btnPlay.textContent = '⏸ Pause';
+        btnPlay.className = '';
+        timer = setInterval(step, parseInt(speedSelect.value, 10));
+      }
+    }
+
+    speedSelect.addEventListener('change', () => {
+      if (isRunning) {
+        clearInterval(timer);
+        timer = setInterval(step, parseInt(speedSelect.value, 10));
+      }
+    });
+
+    btnPlay.addEventListener('click', togglePlay);
+    btnStep.addEventListener('click', () => { if (!isRunning) step(); });
+    btnClear.addEventListener('click', () => {
+      if (isRunning) togglePlay();
+      grid = createGrid();
+      generation = 0;
+      drawGrid();
+    });
+
+    btnRandom.addEventListener('click', () => {
+      if (isRunning) togglePlay();
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          grid[r][c] = Math.random() < 0.2 ? 1 : 0;
+        }
+      }
+      generation = 0;
+      drawGrid();
+    });
+
+    // Drawing with mouse
+    let isDrawing = false;
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      toggleCellAtEvent(e);
+    });
+    window.addEventListener('mouseup', () => isDrawing = false);
+    canvas.addEventListener('mousemove', (e) => {
+      if (isDrawing) toggleCellAtEvent(e, 1);
+    });
+
+    function toggleCellAtEvent(e, forceVal) {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+      const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+      if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+        grid[y][x] = forceVal !== undefined ? forceVal : (grid[y][x] === 1 ? 0 : 1);
+        drawGrid();
+      }
+    }
+
+    // Presets
+    const PRESETS = {
+      glider: [[0, 1], [1, 2], [2, 0], [2, 1], [2, 2]],
+      pulsar: [
+        [2,4],[2,5],[2,6],[2,10],[2,11],[2,12],
+        [4,2],[4,7],[4,9],[4,14],[5,2],[5,7],[5,9],[5,14],[6,2],[6,7],[6,9],[6,14],
+        [7,4],[7,5],[7,6],[7,10],[7,11],[7,12],
+        [9,4],[9,5],[9,6],[9,10],[9,11],[9,12],
+        [10,2],[10,7],[10,9],[10,14],[11,2],[11,7],[11,9],[11,14],[12,2],[12,7],[12,9],[12,14],
+        [14,4],[14,5],[14,6],[14,10],[14,11],[14,12]
+      ],
+      acorn: [[0,1],[1,3],[2,0],[2,1],[2,4],[2,5],[2,6]],
+      gosper: [
+        [5,1],[5,2],[6,1],[6,2],[5,11],[6,11],[7,11],[4,12],[8,12],[3,13],[9,13],[3,14],[9,14],
+        [6,15],[4,16],[8,16],[5,17],[6,17],[7,17],[6,18],[3,21],[4,21],[5,21],[3,22],[4,22],[5,22],
+        [2,23],[6,23],[1,25],[2,25],[6,25],[7,25],[3,35],[4,35],[3,36],[4,36]
+      ]
+    };
+
+    presetSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (!val || !PRESETS[val]) return;
+      if (isRunning) togglePlay();
+      grid = createGrid();
+      generation = 0;
+
+      const pts = PRESETS[val];
+      const startR = Math.floor(ROWS / 2) - 10;
+      const startC = Math.floor(COLS / 2) - 15;
+      pts.forEach(([r, c]) => {
+        if (startR + r < ROWS && startC + c < COLS) grid[startR + r][startC + c] = 1;
+      });
+      drawGrid();
+      e.target.value = '';
+    });
+
+    // Initial random state
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        grid[r][c] = Math.random() < 0.15 ? 1 : 0;
+      }
+    }
+    drawGrid();
+  </script>
+</body>
+</html>
