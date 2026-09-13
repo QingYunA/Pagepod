@@ -144,13 +144,14 @@ export default function RunnerClient({
               </Badge>
             )}
             <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+              variant={showInfo ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 px-2.5 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
               onClick={() => setShowInfo(!showInfo)}
               title={t.runner.details}
             >
               <Info className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline text-[11px] font-medium">{t.runner.details}</span>
             </Button>
           </div>
         </div>
