@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, or, isNull, sql } from "drizzle-orm";
 import * as schema from "./schema";
 import type {
   Project,
@@ -188,11 +188,12 @@ const SQL_PROJECTS_MIGRATIONS = [
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS encryption_iv TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS file_size INTEGER DEFAULT 0;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS plan_tier TEXT DEFAULT 'free';`,
-  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'pending';`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'approved';`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_category TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_summary TEXT;`,
   `CREATE INDEX IF NOT EXISTS projects_user_id_idx ON projects (user_id);`,
   `UPDATE projects SET visibility = 'private' WHERE visibility = 'unlisted';`,
+  `UPDATE projects SET review_status = 'approved' WHERE (review_status = 'pending' OR review_status IS NULL) AND moderation_category IS NULL;`,
 ];
 
 const SQL_SETTINGS = `
@@ -254,6 +255,29 @@ const SQL_NOTIFICATIONS = `
   CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications (user_id);
 `;
 
+let legacyProjectsApproved = false;
+
+export async function autoApproveLegacyProjects() {
+  if (legacyProjectsApproved || !dbUrl) return;
+  try {
+    getDatabase();
+    if (!pgPool) return;
+    await pgPool.query(`
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'approved';
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_category TEXT;
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_summary TEXT;
+      UPDATE projects 
+      SET review_status = 'approved' 
+      WHERE (review_status = 'pending' OR review_status IS NULL) 
+        AND moderation_category IS NULL;
+    `);
+    legacyProjectsApproved = true;
+    console.log("[DB] Legacy projects successfully grandfathered to approved status.");
+  } catch (err) {
+    console.warn("[DB] autoApproveLegacyProjects notice:", err);
+  }
+}
+
 async function ensurePostgresTables() {
   if (tablesInitialized || !dbUrl) return;
   try {
@@ -314,6 +338,7 @@ export async function getAllProjects(options?: {
   tag?: string;
   search?: string;
 }): Promise<Project[]> {
+  await autoApproveLegacyProjects();
   const db = getDatabase();
   let list: Project[] = [];
   let isFilteredInSql = false;
@@ -328,7 +353,12 @@ export async function getAllProjects(options?: {
         } else if (!options?.includePrivate) {
           conditions.push(eq(schema.projects.visibility, "public"));
           if (!options?.reviewStatus && !options?.allowAllReviewStatuses) {
-            conditions.push(eq(schema.projects.reviewStatus, "approved"));
+            conditions.push(
+              or(
+                eq(schema.projects.reviewStatus, "approved"),
+                isNull(schema.projects.reviewStatus)
+              )
+            );
           }
         }
 
