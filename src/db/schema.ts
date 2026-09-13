@@ -29,7 +29,7 @@ export const projects = pgTable(
     planTier: text("plan_tier").default("free"), // 'free' | 'pro'
 
     // Content moderation fields
-    reviewStatus: text("review_status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected' | 'flagged'
+    reviewStatus: text("review_status").notNull().default("approved"), // 'pending' | 'approved' | 'rejected' | 'flagged'
     moderationCategory: text("moderation_category"),
     moderationSummary: text("moderation_summary"),
 
