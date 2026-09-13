@@ -27,6 +27,12 @@ This file is the single source of truth for the domain glossary and architectura
 - **Language Dimension (`language`)**: An orthogonal classification attribute (`zh` | `en` | `other`) identifying the primary user interface language of the hosted HTML application, automatically detected at ingestion and filterable independently of functional categories.
 - **Trending Score**: A time-decay popularity scoring function ($Score = \frac{ViewCount + 1}{(AgeInHours + 2)^{1.5}}$) applied to unpinned public projects to balance fresh submissions with proven high-engagement applications.
 - **Taxonomy (Category)**: The functional domain categorization of a project (`tools`, `games`, `visualization`, `prototypes`, `animations`, `ai`, `creative`, `others`).
+- **Deployment Mode (`APP_MODE`)**: The operational topology of the platform:
+  - `selfhost` (Default): Sovereign single-instance mode with unlimited resource quotas, zero commercial/SaaS UI noise, password-first authentication (`selfhost-admin`), and an independent personal showcase portal.
+  - `cloud`: Multi-tenant commercial SaaS mode backed by Supabase Auth (OAuth / magic links / email OTP), transactional emails, tiered subscriptions (`free`, `lite`, `pro`), and automated PayPal payment processing.
+- **Sovereign Admin (`selfhost-admin`)**: The root owner of a self-hosted instance possessing unmetered project creation quotas, global showcase pin authority, and complete system autonomy without external SaaS billing dependencies.
+- **Commercial Decoupling**: The strict architectural invariant ensuring billing routes (`/pricing`), upgrade prompts, payment SDKs, and subscription banners are completely silenced and bypassed in self-hosted deployments.
+- **Dual-Personality Portal**: The adaptive front-door routing of self-hosted instances: presenting an uncommercialized, branded public project portfolio to anonymous visitors, providing seamless dashboard access to the authenticated owner, and supporting `PRIVATE_INSTANCE=true` for fully private intranets.
 
 ---
 
@@ -35,8 +41,10 @@ This file is the single source of truth for the domain glossary and architectura
 1. **Authorization at the Seam**: All project lifecycle mutations (`create`, `update`, `delete`, `togglePin`, `toggleGlobalPin`, `updateVisibility`, `updateContent`) must receive an `actor` and enforce ownership rules inside the domain module. Only administrators may execute `toggleGlobalPin`.
 2. **Pin Priority Invariant**: Pinned projects strictly precede unpinned projects in both workspace and public showcase views, ordered internally by their respective pin timestamp (`pinnedAt` / `globalPinnedAt` descending).
 3. **Orthogonal Language Independence**: Changing or filtering by functional category (`category`) must not alter or restrict the project's language attribute (`language`), and vice versa.
-4. **Server-Side Quota Enforcement**: `createProject` verifies project count and payload size limits against `PlanQuota` prior to asset ingestion and storage writes.
-5. **Encapsulated Asset Storage**: Callers must never manually format or manipulate `sites/${slug}/...` strings. All file writes, zip extractions, and storage cleanup must be encapsulated behind `ProjectStorage` and `ProjectService`.
-6. **Atomic State & Poster Synchronization**: Project updates that modify HTML content coordinate screenshot rendering and perform a single atomic database update, followed by unified Next.js view cache revalidation.
-7. **Decoupled Rendering Port**: `ScreenshotRenderer` does not touch databases or issue Next.js cache revalidations. It returns raw image buffers to orchestrators.
-8. **Typed Domain Exceptions**: Failures within domain layers are signaled by explicit typed errors (`NotFoundError`, `ForbiddenError`, `ValidationError`, `PayloadTooLargeError`), which are translated into appropriate HTTP or Action responses by caller adapters.
+4. **Server-Side Quota Enforcement**: `createProject` verifies project count and payload size limits against `PlanQuota` prior to asset ingestion and storage writes. In self-hosted mode, quotas evaluate to unconstrained sovereign defaults (`selfhost-unlimited`).
+5. **Self-Hosted by Default**: The instance must operate in `selfhost` mode by default. Cloud SaaS behavior is only activated when `APP_MODE=cloud` is explicitly declared alongside valid cloud authentication and database credentials.
+6. **Zero Commercial Noise in Self-Hosted**: Self-hosted instances must never render subscription pricing, upgrade prompts, or payment capture modals. Accessing `/pricing` in self-hosted mode redirects to `/workspace`.
+7. **Encapsulated Asset Storage**: Callers must never manually format or manipulate `sites/${slug}/...` strings. All file writes, zip extractions, and storage cleanup must be encapsulated behind `ProjectStorage` and `ProjectService`.
+8. **Atomic State & Poster Synchronization**: Project updates that modify HTML content coordinate screenshot rendering and perform a single atomic database update, followed by unified Next.js view cache revalidation.
+9. **Decoupled Rendering Port**: `ScreenshotRenderer` does not touch databases or issue Next.js cache revalidations. It returns raw image buffers to orchestrators.
+10. **Typed Domain Exceptions**: Failures within domain layers are signaled by explicit typed errors (`NotFoundError`, `ForbiddenError`, `ValidationError`, `PayloadTooLargeError`), which are translated into appropriate HTTP or Action responses by caller adapters.
