@@ -45,6 +45,7 @@ interface RunnerClientProps {
   initialSourceCode: string;
   isOwner?: boolean;
   relatedProjects?: Project[];
+  token?: string;
 }
 
 type DeviceMode = "desktop" | "tablet" | "mobile";
@@ -54,6 +55,7 @@ export default function RunnerClient({
   initialSourceCode,
   isOwner = false,
   relatedProjects = [],
+  token,
 }: RunnerClientProps) {
   const { t } = useLanguage();
   const [device, setDevice] = useState<DeviceMode>("desktop");
@@ -68,7 +70,8 @@ export default function RunnerClient({
   const [isIframeLoading, setIsIframeLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const rawUrl = `/raw/${project.slug}/`;
+  const tokenQuery = token ? `?token=${encodeURIComponent(token)}` : "";
+  const rawUrl = `/raw/${project.slug}/${tokenQuery}`;
 
   const handleReload = () => {
     setIsIframeLoading(true);
@@ -99,7 +102,9 @@ export default function RunnerClient({
   };
 
   const handleCopyLink = () => {
-    const fullUrl = `${window.location.origin}/p/${project.slug}`;
+    const fullUrl = token
+      ? `${window.location.origin}/p/${project.slug}?token=${encodeURIComponent(token)}`
+      : `${window.location.origin}/p/${project.slug}`;
     navigator.clipboard.writeText(fullUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
@@ -107,7 +112,7 @@ export default function RunnerClient({
 
   const embedSnippet = `<iframe src="${
     typeof window !== "undefined" ? window.location.origin : ""
-  }/raw/${project.slug}/" width="100%" height="600" frameborder="0" sandbox="allow-scripts allow-forms allow-downloads allow-popups allow-modals" allow="fullscreen; clipboard-write" allowfullscreen></iframe>`;
+  }/raw/${project.slug}/${tokenQuery}" width="100%" height="600" frameborder="0" sandbox="allow-scripts allow-forms allow-downloads allow-popups allow-modals" allow="fullscreen; clipboard-write" allowfullscreen></iframe>`;
 
   const isPrivate = project.visibility === "private";
 
@@ -138,6 +143,11 @@ export default function RunnerClient({
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1 text-amber-600 dark:text-amber-400 border-amber-500/30">
                 <Lock className="w-3 h-3" />
                 <span>私有项目</span>
+              </Badge>
+            ) : project.visibility === "unlisted" ? (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1 text-zinc-300 border-zinc-700 bg-zinc-800/80">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <span>口令保护</span>
               </Badge>
             ) : (
               <Badge variant="outline" className="hidden sm:inline-flex text-[10px] px-1.5 py-0">
@@ -275,7 +285,13 @@ export default function RunnerClient({
               <div>
                 <span className="text-muted-foreground">{t.runner.status}</span>
                 <span className="text-foreground font-medium">
-                  {isPrivate ? (isOwner ? "私有 (所有者可访问)" : "私有保护") : t.runner.plainOutput}
+                  {isPrivate
+                    ? isOwner
+                      ? "私有 (所有者可访问)"
+                      : "私有保护"
+                    : project.visibility === "unlisted"
+                    ? "未公开 (口令保护)"
+                    : t.runner.plainOutput}
                 </span>
               </div>
               {project.description && (

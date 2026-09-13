@@ -4,6 +4,8 @@ import {
   handleGuestUpload,
   claimGuestProjects,
   MAX_GUEST_UPLOAD_BYTES,
+  extractProjectAccessToken,
+  verifyProjectAccessToken,
 } from "../src/lib/services/guest-upload";
 import { getProjectBySlug, deleteProject } from "../src/db";
 
@@ -88,26 +90,66 @@ async function runTests() {
   assert(secretPost.requiresConfirmation === true, "Requires user confirmation before publishing secret");
   assert(secretPost.secretFinding?.type === "openai", "Returns matched secret type metadata");
 
-  // Test successful clean guest upload
-  const cleanPost = await handleGuestUpload({
+  // Test successful default guest upload (unlisted with token)
+  const unlistedPost = await handleGuestUpload({
     htmlContent: `<!DOCTYPE html><html><head><title>Guest Calculator</title></head><body><h1>Calc 1.0</h1></body></html>`,
     clientIp: "10.0.0.3",
     slug: `test-guest-calc-${Date.now()}`,
   });
-  assert(cleanPost.success === true, "Clean guest upload succeeds");
-  assert(Boolean(cleanPost.claimToken && cleanPost.claimToken.length >= 32), "Issues high-entropy claimToken");
-  assert(Boolean(cleanPost.slug), "Returns unique project slug");
+  assert(unlistedPost.success === true, "Clean guest upload succeeds");
+  assert(Boolean(unlistedPost.claimToken && unlistedPost.claimToken.length >= 32), "Issues high-entropy claimToken");
+  assert(Boolean(unlistedPost.accessToken && unlistedPost.accessToken.startsWith("sec_")), "Issues secret accessToken for unlisted upload");
+  assert(Boolean(unlistedPost.url && unlistedPost.url.includes(`?token=${unlistedPost.accessToken}`)), "URL contains accessToken param");
+  assert(Boolean(unlistedPost.slug), "Returns unique project slug");
 
   // Verify created project in database
-  const createdProject = cleanPost.slug ? await getProjectBySlug(cleanPost.slug) : null;
+  const createdProject = unlistedPost.slug ? await getProjectBySlug(unlistedPost.slug) : null;
   assert(createdProject !== null, "Project persisted to database");
-  assert(createdProject?.visibility === "public", "Guest project is public by default");
+  assert(createdProject?.visibility === "unlisted", "Guest project is unlisted by default");
   assert(createdProject?.userId?.startsWith("guest:") === true, "Project tagged with guest userId");
+
+  // Test access token extraction and verification
+  if (createdProject && unlistedPost.accessToken) {
+    const extractedToken = extractProjectAccessToken(createdProject);
+    assert(extractedToken === unlistedPost.accessToken, "Extracted access token matches issued token");
+
+    const validAccess = verifyProjectAccessToken(createdProject, unlistedPost.accessToken);
+    assert(validAccess === true, "Grants access with valid token");
+
+    const invalidAccess = verifyProjectAccessToken(createdProject, "sec_wrongtoken123");
+    assert(invalidAccess === false, "Blocks access with incorrect token");
+
+    const emptyAccess = verifyProjectAccessToken(createdProject, undefined);
+    assert(emptyAccess === false, "Blocks access without token");
+
+    const creatorAccess = verifyProjectAccessToken(createdProject, undefined, true);
+    assert(creatorAccess === true, "Grants access to project creator even without token");
+  }
+
+  // Test explicit public upload
+  const publicPost = await handleGuestUpload({
+    htmlContent: `<!DOCTYPE html><html><head><title>Public Showcase Game</title></head><body><h1>Game 1.0</h1></body></html>`,
+    clientIp: "10.0.0.4",
+    visibility: "public",
+    slug: `test-guest-pub-${Date.now()}`,
+  });
+  assert(publicPost.success === true, "Explicit public guest upload succeeds");
+  assert(publicPost.visibility === "public", "Project is marked as public");
+  assert(publicPost.accessToken === undefined, "Public project has no accessToken");
+  assert(Boolean(publicPost.url && !publicPost.url.includes("?token=")), "Public URL does not require token query");
+
+  if (publicPost.slug) {
+    const pubProject = await getProjectBySlug(publicPost.slug);
+    assert(pubProject?.visibility === "public", "Persisted project visibility is public");
+    if (pubProject) {
+      await deleteProject(pubProject.id);
+    }
+  }
 
 
   console.log("\n=== 4. Claim Token Ownership Transition Tests ===");
 
-  if (cleanPost.slug && cleanPost.claimToken) {
+  if (unlistedPost.slug && unlistedPost.claimToken) {
     const mockUser = {
       id: "registered_user_alice",
       email: "alice@example.com",
@@ -116,17 +158,17 @@ async function runTests() {
 
     // Attempt claim with wrong token
     const invalidClaim = await claimGuestProjects(mockUser, [
-      { slug: cleanPost.slug, claimToken: "wrong_token_1234567890" },
+      { slug: unlistedPost.slug, claimToken: "wrong_token_1234567890" },
     ]);
     assert(invalidClaim.claimedCount === 0, "Rejects claim with invalid token");
 
     // Successful claim
     const validClaim = await claimGuestProjects(mockUser, [
-      { slug: cleanPost.slug, claimToken: cleanPost.claimToken },
+      { slug: unlistedPost.slug, claimToken: unlistedPost.claimToken },
     ]);
     assert(validClaim.claimedCount === 1, "Transfers ownership to authenticated user");
 
-    const claimedProject = await getProjectBySlug(cleanPost.slug);
+    const claimedProject = await getProjectBySlug(unlistedPost.slug);
     assert(claimedProject?.userId === mockUser.id, "Database userId updated to Alice's account");
 
     // Cleanup test project
