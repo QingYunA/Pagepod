@@ -12,7 +12,7 @@
     "screenshots": "tsx scripts/capture-screenshots.ts",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "bun run scripts/verify-pr1-security.ts && bun run scripts/verify-pr2-validation.ts && bun run scripts/verify-secret-policy.ts && bun run scripts/verify-payment-security.ts && bun run scripts/diagnose-workspace-perf.ts && bun run scripts/verify-moderation.ts && bun run scripts/verify-pin-sorting-categories.ts && bun run scripts/verify-selfhost-sovereignty.ts && bun run scripts/verify-explore-navigation.ts",
+    "test": "bun run scripts/verify-pr1-security.ts && bun run scripts/verify-pr2-validation.ts && bun run scripts/verify-secret-policy.ts && bun run scripts/verify-payment-security.ts && bun run scripts/diagnose-workspace-perf.ts && bun run scripts/verify-moderation.ts && bun run scripts/verify-pin-sorting-categories.ts && bun run scripts/verify-selfhost-sovereignty.ts && bun run scripts/verify-explore-navigation.ts && bun run scripts/verify-guest-ingestion-and-seo.ts",
     "check:standards": "bun run scripts/check-standards.ts",
     "probe:prod": "bun run scripts/probe-prod.ts",
     "db:push": "drizzle-kit push"

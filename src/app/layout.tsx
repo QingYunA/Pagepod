@@ -16,18 +16,21 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Pagepod - Host & Run HTML Apps, Web Tools & Prototypes",
+    default: "Pagepod - Host HTML Files Free, Run & Share Web Apps Online",
     template: "%s | Pagepod",
   },
   description:
-    "Instant zero-config hosting and discovery platform for HTML applications, interactive web tools, games, and prototypes. Safe sandbox isolation with 0 egress bandwidth cost.",
+    "Instant zero-config hosting and discovery platform. Upload single HTML files to get a shareable link in seconds, or explore curated web tools, mini games, and interactive prototypes in a hardened sandbox.",
   keywords: [
-    "HTML hosting",
+    "host html file free",
+    "upload html and get link",
+    "share html file online",
+    "free html host",
     "HTML runner",
     "web app showcase",
     "HTML sandbox",
     "run HTML online",
-    "web tools",
+    "interactive web tools",
     "Pagepod",
   ],
   authors: [{ name: "Pagepod Team" }],
