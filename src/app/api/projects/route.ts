@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getAllProjects } from "@/db";
+import { getAllProjects, getLastDbError } from "@/db";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser(request);
@@ -39,5 +39,9 @@ export async function GET(request: Request) {
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     })),
+    debug: {
+      dbConfigured: Boolean(process.env.DATABASE_URL || process.env.POSTGRES_URL),
+      dbError: getLastDbError(),
+    },
   });
 }

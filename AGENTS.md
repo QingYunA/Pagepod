@@ -2,6 +2,14 @@
 
 本文档记录了 **HTML Manager** 项目的核心架构规范、设计美学与交互准则，所有协助本项目的 AI Agent 和开发者均须严格遵守。
 
+### 🗺️ 核心工程导航指针 (Navigation Pointers)
+- **主页与展示画廊 (Marketing)**：[`src/app/(marketing)/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/app/(marketing)/page.tsx)（注意 Route Group 目录括号）
+- **独立全屏运行台**：[`src/app/p/[slug]/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/app/p/[slug]/page.tsx)
+- **安全沙箱隔离端点**：[`src/app/raw/[slug]/[[...path]]/route.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/app/raw/[slug]/[[...path]]/route.ts)
+- **创作者工作台**：[`src/app/workspace/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/app/workspace/page.tsx)
+- **数据访问层与迁移**：[`src/db/index.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/db/index.ts) 与 [`src/db/schema.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/src/db/schema.ts)
+- **生产健康自动化探针**：[`scripts/probe-prod.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/html_content_moderation/scripts/probe-prod.ts)（`npm run probe:prod`）
+
 ---
 
 ## 💎 一、设计美学与视觉原则（严禁“AI 廉价味”）
@@ -82,7 +90,7 @@
    - **强制存量数据自愈机制**：所有涉及数据过滤状态升级的迁移，必须配套幂等的自愈更新脚本（如 `autoApproveLegacyProjects()`），在服务初始化或冷启动时自动执行，确保历史存量数据平滑过渡（Grandfathered）。
 
 6. **生产环境验证探针优先级 (Tool Economy & Probe Discipline)**：
-   - **优先轻量 HTTP / API 探针**：生产环境部署后验证首选 `curl`、API 端点（`/api/projects`）或 SSR HTML 关键字符串 grep 进行秒级、高确定性的断言；
+   - **优先轻量 HTTP / API 探针**：生产环境部署后验证首选 `curl`、API 端点（`/api/projects`）或 SSR HTML 关键字符串 grep 进行秒级、高确定性的断言，推荐直接运行 `npm run probe:prod`；
    - **按需唤起重型浏览器**：仅在验证复杂拖拽交互、多重动效过渡或 Canvas/WebGL 本地渲染时才调用无头浏览器，避免无谓的超时与算力开销。
 
 7. **全链路实体字段渗透审计准则 (Full-Path Schema Ingestion Invariant)**：
@@ -92,6 +100,11 @@
      3. `src/lib/services/project-service.ts`（领域服务防线、入参解构与 Seam 处 RBAC 鉴权）；
      4. `src/app/actions/*` 与 `src/app/api/upload/route.ts`（Server Action 与 REST API 的 JSON/Multipart 分支双通道透传）；
      5. 客户端表单交互层（`upload/page.tsx`、`editor-client.tsx` 表单回显与受控状态绑定）。
+
+8. **有状态迁移与代码评审自检 (Stateful Migration Invariant)**：
+   - 在执行 `/code-review` 或实施涉及数据库列增删、字段默认值、索引以及公共过滤逻辑（`WHERE` 条件）的 PR 时，评审必须显式回答：
+     1. “当前改动应用到生产已有存量历史数据时，默认值是否会破坏既有数据的可见性或正常业务行为？”
+     2. “是否提供了存量数据的向下兼容或自愈更新路径，并在回归测试中模拟了存量数据结构？”
 
 
 ---
