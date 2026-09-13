@@ -336,13 +336,27 @@ async function withTableFallback<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (err: unknown) {
-    const error = err as { code?: string; message?: string };
+    const rawError = err as any;
+    const error = (rawError?.cause || rawError) as { code?: string; message?: string };
+    const fullMsg = [
+      rawError?.message,
+      rawError?.cause?.message,
+      error?.message,
+      String(err),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    const code = error?.code || rawError?.code;
     if (
       error?.code === "42P01" ||
+      code === "42P01" ||
       error?.code === "42703" ||
-      error?.message?.includes("does not exist") ||
-      error?.message?.includes("relation") ||
-      error?.message?.includes("column")
+      code === "42703" ||
+      fullMsg.includes("does not exist") ||
+      fullMsg.includes("relation") ||
+      fullMsg.includes("column")
     ) {
       tablesInitialized = false;
       await ensurePostgresTables();
