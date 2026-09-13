@@ -10,7 +10,7 @@
     "seed": "bun run scripts/seed.ts",
     "screenshots": "tsx scripts/capture-screenshots.ts",
     "lint": "eslint",
-    "test": "bun run scripts/verify-pr1-security.ts && bun run scripts/verify-pr2-validation.ts && bun run scripts/verify-secret-policy.ts && bun run scripts/verify-payment-security.ts && bun run scripts/diagnose-workspace-perf.ts",
+    "test": "bun run scripts/verify-pr1-security.ts && bun run scripts/verify-pr2-validation.ts && bun run scripts/verify-secret-policy.ts && bun run scripts/verify-payment-security.ts && bun run scripts/diagnose-workspace-perf.ts && bun run scripts/verify-moderation.ts",
     "check:standards": "bun run scripts/check-standards.ts",
     "db:push": "drizzle-kit push"
   },

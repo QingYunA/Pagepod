@@ -19,6 +19,7 @@ import {
 import type { CurrentUser } from "@/lib/auth";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { UserDropdown } from "@/components/user-dropdown";
+import { NotificationBell } from "@/components/notification-bell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -187,7 +188,10 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
 
           {/* Dynamic Login / User Status */}
           {user ? (
-            <UserDropdown currentUser={user} />
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <UserDropdown currentUser={user} />
+            </div>
           ) : (
             <div className="flex items-center gap-1.5">
               <Button
