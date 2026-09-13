@@ -14,7 +14,7 @@ export const slugSchema = z
 
 export const LANGUAGE_ENUM = ["zh", "en", "other"] as const;
 export type Language = (typeof LANGUAGE_ENUM)[number];
-export const languageSchema = z.enum(LANGUAGE_ENUM).default("zh");
+export const languageSchema = z.enum(LANGUAGE_ENUM);
 
 export const CATEGORIES_ENUM = [
   "tools",

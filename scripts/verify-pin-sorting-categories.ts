@@ -77,16 +77,30 @@ const calculateScore = (viewCount: number, ageInHours: number) => {
   return (viewCount + 1) / Math.pow(ageInHours + 2, 1.5);
 };
 
+// 3.1 Verify calculateTrendingScore pure function
+import { calculateTrendingScore } from "../src/lib/scoring";
+
+const now = new Date();
+const oneHourAgo = new Date(now.getTime() - 1 * 3600 * 1000);
+const oneDayAgo = new Date(now.getTime() - 24 * 3600 * 1000);
+const fourDaysAgo = new Date(now.getTime() - 100 * 3600 * 1000);
+
 // Item A: 100 views, 1 hour old (Hot & Fresh)
-const scoreA = calculateScore(100, 1);
+const scoreA = calculateTrendingScore(100, oneHourAgo, now);
 // Item B: 120 views, 24 hours old (Older, slightly more views)
-const scoreB = calculateScore(120, 24);
+const scoreB = calculateTrendingScore(120, oneDayAgo, now);
 // Item C: 200 views, 100 hours old (Very old popular item)
-const scoreC = calculateScore(200, 100);
+const scoreC = calculateTrendingScore(200, fourDaysAgo, now);
 
 assert.ok(scoreA > scoreB, `Fresh hot item (${scoreA.toFixed(2)}) should rank higher than day-old item (${scoreB.toFixed(2)})`);
 assert.ok(scoreB > scoreC, `Day-old item (${scoreB.toFixed(2)}) should rank higher than week-old item (${scoreC.toFixed(2)})`);
 console.log("  ✓ Gravity time-decay trending formula verifies age-adjusted ranking");
+
+// 3.2 Clock drift defense: future created_at must not produce NaN or throw
+const futureTime = new Date(now.getTime() + 24 * 3600 * 1000);
+const scoreFuture = calculateTrendingScore(50, futureTime, now);
+assert.ok(Number.isFinite(scoreFuture) && scoreFuture > 0, "Future timestamp must be guarded and finite");
+console.log("  ✓ Clock drift safety defense prevents NaN and non-positive root errors");
 
 console.log("\n=== 4. Dual-Tier Pinning RBAC Authorization ===");
 
@@ -106,5 +120,18 @@ try {
 assert.ok(regularError instanceof ProjectForbiddenError, "Regular user must be forbidden from toggleGlobalPin");
 assert.equal((regularError as ProjectForbiddenError).statusCode, 403, "Must return HTTP 403 status code");
 console.log("  ✓ Non-admin users strictly forbidden from setting global pin (HTTP 403)");
+
+// 4.2 Auto language detection preservation in uploadPayloadSchema
+const parsedWithoutLanguage = uploadPayloadSchema.parse({
+  category: "tools",
+});
+assert.equal(parsedWithoutLanguage.language, undefined, "language must remain undefined when omitted to allow auto-detection");
+
+const parsedWithExplicitLanguage = uploadPayloadSchema.parse({
+  category: "tools",
+  language: "en",
+});
+assert.equal(parsedWithExplicitLanguage.language, "en", "explicit language must be respected");
+console.log("  ✓ uploadPayloadSchema preserves undefined for automatic heuristic detection");
 
 console.log("\n=== ALL VERIFICATION TESTS PASSED SUCCESSFULLY! ===");

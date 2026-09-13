@@ -39,6 +39,7 @@ import { scanHtmlForSensitiveData, type SensitiveRiskMatch } from "@/lib/scanner
 import { PublicRiskDialog } from "@/components/public-risk-dialog";
 import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 import { sandboxPool } from "@/lib/sandbox-pool";
+import { detectHtmlLanguage } from "@/lib/parser/language-detector";
 
 const CATEGORIES = [
   { id: "tools", label: "实用工具", icon: Wrench },
@@ -65,7 +66,8 @@ export default function WorkspaceUploadPage() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("tools");
-  const [language, setLanguage] = useState<string>("zh");
+  const [language, setLanguage] = useState<string>("auto");
+  const [detectedLangHint, setDetectedLangHint] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
@@ -108,6 +110,9 @@ export default function WorkspaceUploadPage() {
     if (descMatch && descMatch[1]) {
       setDescription(descMatch[1].trim());
     }
+
+    const detected = detectHtmlLanguage(html);
+    setDetectedLangHint(detected);
   };
 
   const processFile = async (selected: File) => {
@@ -222,7 +227,9 @@ export default function WorkspaceUploadPage() {
         formData.append("slug", finalSlug);
         formData.append("description", description);
         formData.append("category", category);
-        formData.append("language", language);
+        if (language !== "auto") {
+          formData.append("language", language);
+        }
         formData.append("tags", tags.join(","));
         formData.append("visibility", targetVisibility);
         formData.append("isPinned", String(isPinned));
@@ -254,7 +261,9 @@ export default function WorkspaceUploadPage() {
             apiFormData.append("slug", finalSlug);
             apiFormData.append("description", description);
             apiFormData.append("category", category);
-            apiFormData.append("language", language);
+            if (language !== "auto") {
+              apiFormData.append("language", language);
+            }
             apiFormData.append("tags", tags.join(","));
             apiFormData.append("visibility", targetVisibility);
             apiFormData.append("isPinned", String(isPinned));
@@ -614,14 +623,17 @@ export default function WorkspaceUploadPage() {
                       id="upload-language"
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
-                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-44"
+                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-52"
                     >
+                      <option value="auto">
+                        自动检测 (Auto){detectedLangHint ? ` → ${detectedLangHint === "zh" ? "中文" : detectedLangHint === "en" ? "English" : "Other"}` : ""}
+                      </option>
                       <option value="zh">中文 (Chinese)</option>
                       <option value="en">英文 (English)</option>
                       <option value="other">其他 (Other)</option>
                     </Select>
                     <span className="text-[11px] text-muted-foreground">
-                      用于正交多语言筛选与索引
+                      基于 HTML 智能启发式算法自动识别，亦可手动锁定
                     </span>
                   </div>
                 </div>

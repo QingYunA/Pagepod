@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/context";
+import { calculateTrendingScore } from "@/lib/scoring";
 import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 
 interface ShowcaseGalleryProps {
@@ -56,7 +57,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedLanguage, setSelectedLanguage] = useState<"all" | "zh" | "en">("all");
+  const [selectedLanguage, setSelectedLanguage] = useState<"all" | "zh" | "en" | "other">("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"trending" | "newest" | "views" | "alpha">("trending");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -125,14 +126,10 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
 
     // Unpinned projects sorted by sortBy
     const now = Date.now();
-    const getTrendingScore = (p: Project) => {
-      const ageHours = Math.max(0, (now - new Date(p.createdAt).getTime()) / (1000 * 60 * 60));
-      return ((p.viewCount || 0) + 1) / Math.pow(ageHours + 2, 1.5);
-    };
 
     unpinnedList.sort((a, b) => {
       if (sortBy === "trending") {
-        return getTrendingScore(b) - getTrendingScore(a);
+        return calculateTrendingScore(b.viewCount, b.createdAt, now) - calculateTrendingScore(a.viewCount, a.createdAt, now);
       }
       if (sortBy === "views") {
         return (b.viewCount || 0) - (a.viewCount || 0);
@@ -259,6 +256,19 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
               }`}
             >
               {t.gallery.languageEn || "English"}
+            </button>
+            <button
+              onClick={() => {
+                setSelectedLanguage("other");
+                setVisibleCount(PAGE_SIZE);
+              }}
+              className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                selectedLanguage === "other"
+                  ? "bg-background text-foreground shadow-xs font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.gallery.languageOther || "Other"}
             </button>
           </div>
         </div>

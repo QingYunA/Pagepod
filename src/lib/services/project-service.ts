@@ -14,6 +14,7 @@ import { assertCanManageProject, type CurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import type { Project } from "@/db/schema";
+import type { Language } from "@/lib/validation";
 
 // --- Domain Errors ---
 
@@ -66,7 +67,7 @@ export interface CreateProjectInput {
   slug?: string;
   description?: string;
   category?: string;
-  language?: string;
+  language?: Language;
   tags?: string[];
   visibility?: ProjectVisibility;
   isPinned?: boolean;
@@ -82,7 +83,7 @@ export interface UpdateProjectInput {
   title?: string;
   description?: string;
   category?: string;
-  language?: string;
+  language?: Language;
   tags?: string[];
   visibility?: ProjectVisibility;
   isPinned?: boolean;

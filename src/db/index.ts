@@ -4,6 +4,7 @@ import path from "node:path";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { eq, desc, asc, and, sql } from "drizzle-orm";
+import { calculateTrendingScore } from "@/lib/scoring";
 import * as schema from "./schema";
 import type {
   Project,
@@ -295,6 +296,7 @@ export type ProjectSortOption = "trending" | "newest" | "views" | "alpha";
 
 export async function getAllProjects(options?: {
   userId?: string;
+  isWorkspace?: boolean;
   includePrivate?: boolean;
   category?: string;
   language?: string;
@@ -306,7 +308,7 @@ export async function getAllProjects(options?: {
   let list: Project[] = [];
   let isFilteredInSql = false;
 
-  const isPublicMode = !options?.userId;
+  const isPublicMode = !options?.isWorkspace && !options?.userId;
   const sortBy: ProjectSortOption = options?.sortBy || (isPublicMode ? "trending" : "newest");
 
   if (db) {
@@ -336,7 +338,7 @@ export async function getAllProjects(options?: {
             return await queryWithWhere.orderBy(
               desc(schema.projects.isGlobalPinned),
               desc(schema.projects.globalPinnedAt),
-              sql`(${schema.projects.viewCount} + 1) / POWER(EXTRACT(EPOCH FROM (NOW() - ${schema.projects.createdAt})) / 3600.0 + 2.0, 1.5) DESC`,
+              sql`(${schema.projects.viewCount} + 1.0) / POWER(GREATEST(0.1, (EXTRACT(EPOCH FROM (NOW() - ${schema.projects.createdAt})) / 3600.0) + 2.0), 1.5) DESC`,
               desc(schema.projects.createdAt)
             );
           } else if (sortBy === "views") {
@@ -412,10 +414,6 @@ export async function getAllProjects(options?: {
     }
 
     const now = Date.now();
-    const getTrendingScore = (p: Project) => {
-      const ageHours = Math.max(0, (now - p.createdAt.getTime()) / (1000 * 60 * 60));
-      return (p.viewCount + 1) / Math.pow(ageHours + 2, 1.5);
-    };
 
     list.sort((a, b) => {
       if (isPublicMode) {
@@ -435,7 +433,7 @@ export async function getAllProjects(options?: {
       }
 
       if (sortBy === "trending") {
-        return getTrendingScore(b) - getTrendingScore(a);
+        return calculateTrendingScore(b.viewCount, b.createdAt, now) - calculateTrendingScore(a.viewCount, a.createdAt, now);
       }
       if (sortBy === "views") {
         return (b.viewCount || 0) - (a.viewCount || 0);

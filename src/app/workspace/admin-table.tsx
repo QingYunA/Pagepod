@@ -222,12 +222,14 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
           )
         );
         setToastMessage({
-          text: !current ? "已将项目置顶至工作区首行" : "已取消工作区置顶",
+          text: !current
+            ? t.workspace?.pinWorkspaceSuccess || "已将项目置顶至工作区首行"
+            : t.workspace?.unpinWorkspaceSuccess || "已取消工作区置顶",
           type: "success",
         });
       } catch (err: unknown) {
         setToastMessage({
-          text: (err as Error)?.message || "置顶操作失败",
+          text: (err as Error)?.message || t.workspace?.pinFail || "置顶操作失败",
           type: "error",
         });
       }
@@ -246,12 +248,14 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
           )
         );
         setToastMessage({
-          text: !current ? "已将该项目置顶至全站公共首页与探索页！" : "已取消全站置顶",
+          text: !current
+            ? t.workspace?.pinGlobalSuccess || "已将该项目置顶至全站公共首页与探索页！"
+            : t.workspace?.unpinGlobalSuccess || "已取消全站置顶",
           type: "success",
         });
       } catch (err: unknown) {
         setToastMessage({
-          text: (err as Error)?.message || "操作失败，仅管理员可设置全站置顶",
+          text: (err as Error)?.message || t.workspace?.globalPinForbidden || "操作失败，仅管理员可设置全站置顶",
           type: "error",
         });
       }
@@ -426,6 +430,18 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
             >
               {t.gallery?.languageEn || "English"}
             </button>
+            <button
+              type="button"
+              onClick={() => setLanguageFilter("other")}
+              className={cn(
+                "px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer",
+                languageFilter === "other"
+                  ? "bg-foreground text-background font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.gallery?.languageOther || "Other"}
+            </button>
           </div>
 
           {/* Sort selector */}
@@ -490,13 +506,13 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
                         {item.isPinned && (
                           <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/75 border-neutral-400 text-neutral-100 font-medium">
                             <Pin className="w-2.5 h-2.5 fill-current" />
-                            <span>工作区置顶</span>
+                            <span>{t.workspace?.workspacePinned || "工作区置顶"}</span>
                           </Badge>
                         )}
                         {item.isGlobalPinned && (
                           <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/75 border-white/20 text-white font-medium">
                             <Globe className="w-2.5 h-2.5" />
-                            <span>全站推荐</span>
+                            <span>{t.workspace?.globalPinned || "全站推荐"}</span>
                           </Badge>
                         )}
                         {item.visibility === "private" && (
@@ -585,7 +601,11 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
                                 ? "text-foreground bg-muted hover:bg-muted/80"
                                 : "text-muted-foreground hover:text-foreground"
                             }`}
-                            title={item.isPinned ? "取消工作区置顶" : "置顶至工作区首位"}
+                            title={
+                              item.isPinned
+                                ? t.workspace?.unpinWorkspaceTitle || "取消工作区置顶"
+                                : t.workspace?.pinWorkspaceTitle || "置顶至工作区首位"
+                            }
                           >
                             <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
                           </Button>
@@ -601,7 +621,11 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
                                   ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
                                   : "text-muted-foreground hover:text-foreground"
                               }`}
-                              title={item.isGlobalPinned ? "取消全站置顶 (公共首页推荐)" : "设置全站置顶 (公共首页推荐)"}
+                              title={
+                                item.isGlobalPinned
+                                  ? t.workspace?.unpinGlobalTitle || "取消全站置顶 (公共首页推荐)"
+                                  : t.workspace?.pinGlobalTitle || "设置全站置顶 (公共首页推荐)"
+                              }
                             >
                               <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
                             </Button>
@@ -665,11 +689,11 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-border text-[11px] font-medium text-muted-foreground bg-muted/20">
-                <th className="py-2.5 px-3 w-10 text-center">置顶</th>
-                {isAdmin && <th className="py-2.5 px-3 w-10 text-center">全站</th>}
+                <th className="py-2.5 px-3 w-10 text-center">{t.workspace?.tableHeaderPin || "置顶"}</th>
+                {isAdmin && <th className="py-2.5 px-3 w-10 text-center">{t.workspace?.tableHeaderGlobal || "全站"}</th>}
                 <th className="py-2.5 px-3 w-20">预览</th>
                 <th className="py-2.5 px-3">项目</th>
-                <th className="py-2.5 px-3">分类与语言</th>
+                <th className="py-2.5 px-3">{t.workspace?.tableHeaderCategoryLang || "分类与语言"}</th>
                 <th className="py-2.5 px-3">访问量</th>
                 <th className="py-2.5 px-3">可见性</th>
                 <th className="py-2.5 px-3">创建时间</th>
@@ -708,7 +732,11 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
                               ? "text-foreground bg-muted hover:bg-muted/80"
                               : "text-muted-foreground hover:text-foreground"
                           }`}
-                          title={item.isPinned ? "取消工作区置顶" : "置顶至工作区首位"}
+                          title={
+                            item.isPinned
+                              ? t.workspace?.unpinWorkspaceTitle || "取消工作区置顶"
+                              : t.workspace?.pinWorkspaceTitle || "置顶至工作区首位"
+                          }
                         >
                           <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
                         </Button>
@@ -727,7 +755,11 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
                                 ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
                                 : "text-muted-foreground hover:text-foreground"
                             }`}
-                            title={item.isGlobalPinned ? "取消全站置顶 (公共首页推荐)" : "设置全站置顶 (公共首页推荐)"}
+                            title={
+                              item.isGlobalPinned
+                                ? t.workspace?.unpinGlobalTitle || "取消全站置顶 (公共首页推荐)"
+                                : t.workspace?.pinGlobalTitle || "设置全站置顶 (公共首页推荐)"
+                            }
                           >
                             <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
                           </Button>
