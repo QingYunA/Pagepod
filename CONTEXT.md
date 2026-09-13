@@ -22,13 +22,21 @@ This file is the single source of truth for the domain glossary and architectura
 - **Guest Sovereignty**: The core architectural principle that hosted projects possess full visual and technical autonomy (arbitrary visual styles, frameworks, and external CDN scripts), while security is enforced via strict sandbox CSP boundaries rather than styling constraints.
 - **Asynchronous Poster Ingestion**: The server-side lifecycle hook that triggers non-blocking automated screenshot generation after project commitment, preventing client upload stalling while ensuring automatic poster generation.
 
+- **Global Pin (`isGlobalPinned`, `globalPinnedAt`)**: A curated showcase state set exclusively by administrators to promote standout public projects to the very top of the public explore and home galleries, ordered by `globalPinnedAt` descending.
+- **Workspace Pin (`isPinned`, `pinnedAt`)**: A user-scoped preference allowing project owners to pin their frequently edited or important projects to the top of their personal `/workspace` table or grid.
+- **Language Dimension (`language`)**: An orthogonal classification attribute (`zh` | `en` | `other`) identifying the primary user interface language of the hosted HTML application, automatically detected at ingestion and filterable independently of functional categories.
+- **Trending Score**: A time-decay popularity scoring function ($Score = \frac{ViewCount + 1}{(AgeInHours + 2)^{1.5}}$) applied to unpinned public projects to balance fresh submissions with proven high-engagement applications.
+- **Taxonomy (Category)**: The functional domain categorization of a project (`tools`, `games`, `visualization`, `prototypes`, `animations`, `ai`, `creative`, `others`).
+
 ---
 
 ## 2. Invariants & Seam Rules
 
-1. **Authorization at the Seam**: All project lifecycle mutations (`create`, `update`, `delete`, `togglePin`, `updateVisibility`, `updateContent`) must receive an `actor` and enforce ownership rules inside the domain module.
-2. **Server-Side Quota Enforcement**: `createProject` verifies project count and payload size limits against `PlanQuota` prior to asset ingestion and storage writes.
-3. **Encapsulated Asset Storage**: Callers must never manually format or manipulate `sites/${slug}/...` strings. All file writes, zip extractions, and storage cleanup must be encapsulated behind `ProjectStorage` and `ProjectService`.
-4. **Atomic State & Poster Synchronization**: Project updates that modify HTML content coordinate screenshot rendering and perform a single atomic database update, followed by unified Next.js view cache revalidation.
-5. **Decoupled Rendering Port**: `ScreenshotRenderer` does not touch databases or issue Next.js cache revalidations. It returns raw image buffers to orchestrators.
-6. **Typed Domain Exceptions**: Failures within domain layers are signaled by explicit typed errors (`NotFoundError`, `ForbiddenError`, `ValidationError`, `PayloadTooLargeError`), which are translated into appropriate HTTP or Action responses by caller adapters.
+1. **Authorization at the Seam**: All project lifecycle mutations (`create`, `update`, `delete`, `togglePin`, `toggleGlobalPin`, `updateVisibility`, `updateContent`) must receive an `actor` and enforce ownership rules inside the domain module. Only administrators may execute `toggleGlobalPin`.
+2. **Pin Priority Invariant**: Pinned projects strictly precede unpinned projects in both workspace and public showcase views, ordered internally by their respective pin timestamp (`pinnedAt` / `globalPinnedAt` descending).
+3. **Orthogonal Language Independence**: Changing or filtering by functional category (`category`) must not alter or restrict the project's language attribute (`language`), and vice versa.
+4. **Server-Side Quota Enforcement**: `createProject` verifies project count and payload size limits against `PlanQuota` prior to asset ingestion and storage writes.
+5. **Encapsulated Asset Storage**: Callers must never manually format or manipulate `sites/${slug}/...` strings. All file writes, zip extractions, and storage cleanup must be encapsulated behind `ProjectStorage` and `ProjectService`.
+6. **Atomic State & Poster Synchronization**: Project updates that modify HTML content coordinate screenshot rendering and perform a single atomic database update, followed by unified Next.js view cache revalidation.
+7. **Decoupled Rendering Port**: `ScreenshotRenderer` does not touch databases or issue Next.js cache revalidations. It returns raw image buffers to orchestrators.
+8. **Typed Domain Exceptions**: Failures within domain layers are signaled by explicit typed errors (`NotFoundError`, `ForbiddenError`, `ValidationError`, `PayloadTooLargeError`), which are translated into appropriate HTTP or Action responses by caller adapters.

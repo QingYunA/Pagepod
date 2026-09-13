@@ -17,6 +17,8 @@ import {
   Sparkles,
   Layers,
   FileCode2,
+  Bot,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsSandboxActive, sandboxPool } from "@/lib/sandbox-pool";
@@ -44,7 +46,9 @@ const CELL_CIRCUMFERENCE = 2 * Math.PI * CELL_RADIUS; // ~56.55
 
 const CATEGORY_BACKGROUND_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   tools: Wrench,
+  ai: Bot,
   games: Gamepad2,
+  creative: Palette,
   visualization: BarChart3,
   prototypes: Smartphone,
   animations: Sparkles,

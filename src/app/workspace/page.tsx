@@ -60,7 +60,10 @@ export default async function WorkspacePage() {
         />
 
         {/* Projects Management Table */}
-        <AdminTable initialProjects={projects} />
+        <AdminTable
+          initialProjects={projects}
+          isAdmin={currentUser?.role === "admin" || currentUser?.id === "selfhost-admin"}
+        />
       </main>
     </div>
   );

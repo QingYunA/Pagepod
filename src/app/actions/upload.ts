@@ -29,9 +29,11 @@ export async function handleUploadAction(
     slug: str("slug"),
     description: str("description"),
     category: str("category"),
+    language: str("language"),
     tags: str("tags") ?? "",
     visibility: str("visibility") ?? "public",
     isPinned: formData.get("isPinned") === "true",
+    isGlobalPinned: formData.get("isGlobalPinned") === "true",
   });
 
   if (!parseResult.success) {
@@ -44,9 +46,11 @@ export async function handleUploadAction(
     slug,
     description,
     category,
+    language,
     tags,
     visibility,
     isPinned,
+    isGlobalPinned,
   } = parseResult.data;
 
   try {
@@ -64,9 +68,11 @@ export async function handleUploadAction(
         slug,
         description,
         category,
+        language,
         tags,
         visibility,
         isPinned,
+        isGlobalPinned,
         htmlContent,
       });
 
@@ -88,9 +94,11 @@ export async function handleUploadAction(
         slug,
         description,
         category,
+        language,
         tags,
         visibility,
         isPinned,
+        isGlobalPinned,
         fileBuffer,
         fileName: file.name,
       });

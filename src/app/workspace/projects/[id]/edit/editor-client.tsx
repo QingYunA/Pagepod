@@ -21,6 +21,8 @@ import {
   Loader2,
   RotateCw,
   Camera,
+  Bot,
+  Palette,
 } from "lucide-react";
 import type { Project } from "@/db/schema";
 
@@ -52,7 +54,9 @@ interface EditorClientProps {
 
 const CATEGORIES = [
   { id: "tools", label: "实用工具", icon: Wrench },
+  { id: "ai", label: "AI 应用", icon: Bot },
   { id: "games", label: "互动游戏", icon: Gamepad2 },
+  { id: "creative", label: "创意与 3D", icon: Palette },
   { id: "visualization", label: "数据可视化", icon: BarChart3 },
   { id: "prototypes", label: "页面原型", icon: Smartphone },
   { id: "animations", label: "动效演示", icon: Sparkles },
@@ -65,6 +69,7 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
   const [title, setTitle] = useState(project.title);
   const [description, setDescription] = useState(project.description || "");
   const [category, setCategory] = useState(project.category);
+  const [language, setLanguage] = useState<"zh" | "en" | "other">((project.language as "zh" | "en" | "other") || "zh");
   const [tags, setTags] = useState<string[]>((project.tags as string[]) || []);
   const [tagInput, setTagInput] = useState("");
   const [visibility, setVisibility] = useState(project.visibility as "public" | "unlisted" | "private");
@@ -128,6 +133,7 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
           title,
           description,
           category,
+          language,
           tags,
           visibility: targetVisibility || visibility,
           isPinned,
@@ -377,7 +383,7 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
 
                 <div>
                   <label className="block text-xs font-medium text-foreground mb-1.5">所属分类</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {CATEGORIES.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.id;
@@ -397,6 +403,25 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="edit-language" className="block text-xs font-medium text-foreground mb-1.5">主要语言 (Language)</label>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      id="edit-language"
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value as "zh" | "en" | "other")}
+                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-44"
+                    >
+                      <option value="zh">中文 (Chinese)</option>
+                      <option value="en">英文 (English)</option>
+                      <option value="other">其他 (Other)</option>
+                    </Select>
+                    <span className="text-[11px] text-muted-foreground">
+                      用于正交多语言筛选与索引
+                    </span>
                   </div>
                 </div>
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Compass, Wrench, Gamepad2, BarChart2, Layers, Sparkles, ArrowRight, ExternalLink, Play } from "lucide-react";
+import { Compass, Wrench, Gamepad2, BarChart2, Layers, Sparkles, ArrowRight, ExternalLink, Play, Bot, Palette } from "lucide-react";
 import type { Project } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,16 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
 
   const categoryCards = [
     {
+      id: "ai",
+      label: t.categories.ai,
+      icon: Bot,
+      count: projects.filter((p) => p.category === "ai").length,
+      desc:
+        locale === "zh"
+          ? "LLM 客户端、Prompt 提示词生成器与 AI 对话微前端"
+          : "LLM web clients, Agent prompts, and generative AI micro-apps",
+    },
+    {
       id: "tools",
       label: t.categories.tools,
       icon: Wrench,
@@ -26,6 +36,16 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
         locale === "zh"
           ? "计算器、文本转换、正则与日常开发小工具"
           : "Calculators, text converters, formatters, and utilities",
+    },
+    {
+      id: "creative",
+      label: t.categories.creative,
+      icon: Palette,
+      count: projects.filter((p) => p.category === "creative").length,
+      desc:
+        locale === "zh"
+          ? "Three.js、Canvas 实验、着色器 Shader 与交互设计探索"
+          : "Three.js, Canvas experiments, shaders, and 3D visual designs",
     },
     {
       id: "games",
@@ -86,7 +106,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
       </div>
 
       {/* Category Hub Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
         {categoryCards.map((cat) => {
           const Icon = cat.icon;
           const isSelected = selectedCategory === cat.id;
@@ -133,7 +153,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
       <div className="p-5 rounded-xl border border-border bg-muted/20 mb-14">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <Sparkles className="w-3.5 h-3.5 text-foreground" />
             <span>{t.explore.popularTags}</span>
           </span>
           <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground hover:text-foreground">

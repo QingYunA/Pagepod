@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, asc, and, sql } from "drizzle-orm";
 import * as schema from "./schema";
 import type {
   Project,
@@ -79,6 +79,11 @@ function readLocalData(): LocalData {
     const data = JSON.parse(raw) as LocalData;
     data.projects = (data.projects || []).map((p) => ({
       ...p,
+      isPinned: p.isPinned ?? false,
+      pinnedAt: p.pinnedAt ? new Date(p.pinnedAt) : null,
+      isGlobalPinned: p.isGlobalPinned ?? (p.isPinned ?? false),
+      globalPinnedAt: p.globalPinnedAt ? new Date(p.globalPinnedAt) : (p.isPinned ? new Date(p.createdAt) : null),
+      language: p.language ?? "zh",
       screenshotUrl: p.screenshotUrl ?? null,
       keyMode: p.keyMode ?? "legacy-server",
       kdfSalt: p.kdfSalt ?? null,
@@ -153,6 +158,10 @@ const SQL_PROJECTS = `
     storage_prefix TEXT NOT NULL,
     visibility TEXT NOT NULL DEFAULT 'public',
     is_pinned BOOLEAN NOT NULL DEFAULT false,
+    pinned_at TIMESTAMPTZ,
+    is_global_pinned BOOLEAN NOT NULL DEFAULT false,
+    global_pinned_at TIMESTAMPTZ,
+    language TEXT NOT NULL DEFAULT 'zh',
     view_count INTEGER NOT NULL DEFAULT 0,
     screenshot_url TEXT,
     is_encrypted BOOLEAN NOT NULL DEFAULT false,
@@ -177,7 +186,14 @@ const SQL_PROJECTS_MIGRATIONS = [
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS encryption_iv TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS file_size INTEGER DEFAULT 0;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS plan_tier TEXT DEFAULT 'free';`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS pinned_at TIMESTAMPTZ;`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_global_pinned BOOLEAN NOT NULL DEFAULT false;`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS global_pinned_at TIMESTAMPTZ;`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT 'zh';`,
   `CREATE INDEX IF NOT EXISTS projects_user_id_idx ON projects (user_id);`,
+  `CREATE INDEX IF NOT EXISTS projects_global_pinned_idx ON projects (is_global_pinned, global_pinned_at);`,
+  `CREATE INDEX IF NOT EXISTS projects_language_idx ON projects (language);`,
+  `UPDATE projects SET is_global_pinned = true, global_pinned_at = created_at WHERE is_pinned = true AND is_global_pinned = false;`,
 ];
 
 const SQL_SETTINGS = `
@@ -275,16 +291,23 @@ async function withTableFallback<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
+export type ProjectSortOption = "trending" | "newest" | "views" | "alpha";
+
 export async function getAllProjects(options?: {
   userId?: string;
   includePrivate?: boolean;
   category?: string;
+  language?: string;
   tag?: string;
   search?: string;
+  sortBy?: ProjectSortOption;
 }): Promise<Project[]> {
   const db = getDatabase();
   let list: Project[] = [];
   let isFilteredInSql = false;
+
+  const isPublicMode = !options?.userId;
+  const sortBy: ProjectSortOption = options?.sortBy || (isPublicMode ? "trending" : "newest");
 
   if (db) {
     try {
@@ -301,13 +324,65 @@ export async function getAllProjects(options?: {
           conditions.push(eq(schema.projects.category, options.category));
         }
 
+        if (options?.language && options.language !== "all") {
+          conditions.push(eq(schema.projects.language, options.language));
+        }
+
         const baseQuery = db.select().from(schema.projects);
         const queryWithWhere = conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
 
-        return await queryWithWhere.orderBy(
-          desc(schema.projects.isPinned),
-          desc(schema.projects.createdAt)
-        );
+        if (isPublicMode) {
+          if (sortBy === "trending") {
+            return await queryWithWhere.orderBy(
+              desc(schema.projects.isGlobalPinned),
+              desc(schema.projects.globalPinnedAt),
+              sql`(${schema.projects.viewCount} + 1) / POWER(EXTRACT(EPOCH FROM (NOW() - ${schema.projects.createdAt})) / 3600.0 + 2.0, 1.5) DESC`,
+              desc(schema.projects.createdAt)
+            );
+          } else if (sortBy === "views") {
+            return await queryWithWhere.orderBy(
+              desc(schema.projects.isGlobalPinned),
+              desc(schema.projects.globalPinnedAt),
+              desc(schema.projects.viewCount),
+              desc(schema.projects.createdAt)
+            );
+          } else if (sortBy === "alpha") {
+            return await queryWithWhere.orderBy(
+              desc(schema.projects.isGlobalPinned),
+              desc(schema.projects.globalPinnedAt),
+              asc(schema.projects.title),
+              desc(schema.projects.createdAt)
+            );
+          } else {
+            return await queryWithWhere.orderBy(
+              desc(schema.projects.isGlobalPinned),
+              desc(schema.projects.globalPinnedAt),
+              desc(schema.projects.createdAt)
+            );
+          }
+        } else {
+          if (sortBy === "views") {
+            return await queryWithWhere.orderBy(
+              desc(schema.projects.isPinned),
+              desc(schema.projects.pinnedAt),
+              desc(schema.projects.viewCount),
+              desc(schema.projects.createdAt)
+            );
+          } else if (sortBy === "alpha") {
+            return await queryWithWhere.orderBy(
+              desc(schema.projects.isPinned),
+              desc(schema.projects.pinnedAt),
+              asc(schema.projects.title),
+              desc(schema.projects.createdAt)
+            );
+          } else {
+            return await queryWithWhere.orderBy(
+              desc(schema.projects.isPinned),
+              desc(schema.projects.pinnedAt),
+              desc(schema.projects.createdAt)
+            );
+          }
+        }
       });
       isFilteredInSql = true;
     } catch (err) {
@@ -332,8 +407,42 @@ export async function getAllProjects(options?: {
       list = list.filter((p) => p.category === options.category);
     }
 
+    if (options?.language && options.language !== "all") {
+      list = list.filter((p) => (p.language || "zh") === options.language);
+    }
+
+    const now = Date.now();
+    const getTrendingScore = (p: Project) => {
+      const ageHours = Math.max(0, (now - p.createdAt.getTime()) / (1000 * 60 * 60));
+      return (p.viewCount + 1) / Math.pow(ageHours + 2, 1.5);
+    };
+
     list.sort((a, b) => {
-      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+      if (isPublicMode) {
+        if (a.isGlobalPinned !== b.isGlobalPinned) return a.isGlobalPinned ? -1 : 1;
+        if (a.isGlobalPinned && b.isGlobalPinned) {
+          const aTime = a.globalPinnedAt ? a.globalPinnedAt.getTime() : a.createdAt.getTime();
+          const bTime = b.globalPinnedAt ? b.globalPinnedAt.getTime() : b.createdAt.getTime();
+          return bTime - aTime;
+        }
+      } else {
+        if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+        if (a.isPinned && b.isPinned) {
+          const aTime = a.pinnedAt ? a.pinnedAt.getTime() : a.createdAt.getTime();
+          const bTime = b.pinnedAt ? b.pinnedAt.getTime() : b.createdAt.getTime();
+          return bTime - aTime;
+        }
+      }
+
+      if (sortBy === "trending") {
+        return getTrendingScore(b) - getTrendingScore(a);
+      }
+      if (sortBy === "views") {
+        return (b.viewCount || 0) - (a.viewCount || 0);
+      }
+      if (sortBy === "alpha") {
+        return a.title.localeCompare(b.title);
+      }
       return b.createdAt.getTime() - a.createdAt.getTime();
     });
   }
@@ -416,6 +525,10 @@ export async function createProject(data: NewProject): Promise<Project> {
     storagePrefix: data.storagePrefix,
     visibility: data.visibility ?? "public",
     isPinned: data.isPinned ?? false,
+    pinnedAt: data.pinnedAt ?? (data.isPinned ? now : null),
+    isGlobalPinned: data.isGlobalPinned ?? false,
+    globalPinnedAt: data.globalPinnedAt ?? (data.isGlobalPinned ? now : null),
+    language: data.language ?? "zh",
     viewCount: data.viewCount ?? 0,
     screenshotUrl: data.screenshotUrl ?? null,
     isEncrypted: data.isEncrypted ?? false,
@@ -453,13 +566,20 @@ export async function createProject(data: NewProject): Promise<Project> {
 export async function updateProject(id: string, updates: Partial<NewProject>): Promise<Project | null> {
   const db = getDatabase();
   const now = new Date();
+  const patch: Partial<NewProject> = { ...updates };
+  if (updates.isPinned !== undefined && updates.pinnedAt === undefined) {
+    patch.pinnedAt = updates.isPinned ? now : null;
+  }
+  if (updates.isGlobalPinned !== undefined && updates.globalPinnedAt === undefined) {
+    patch.globalPinnedAt = updates.isGlobalPinned ? now : null;
+  }
 
   if (db) {
     try {
       const updated = await withTableFallback(() =>
         db
           .update(schema.projects)
-          .set({ ...updates, updatedAt: now })
+          .set({ ...patch, updatedAt: now })
           .where(eq(schema.projects.id, id))
           .returning()
       );
@@ -475,8 +595,8 @@ export async function updateProject(id: string, updates: Partial<NewProject>): P
     const existing = local.projects[index];
     const updatedRecord: Project = {
       ...existing,
-      ...updates,
-      tags: updates.tags ? (updates.tags as string[]) : existing.tags,
+      ...patch,
+      tags: patch.tags ? (patch.tags as string[]) : existing.tags,
       updatedAt: now,
     };
     local.projects[index] = updatedRecord;

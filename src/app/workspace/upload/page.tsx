@@ -22,6 +22,8 @@ import {
   Copy,
   Check,
   Loader2,
+  Bot,
+  Palette,
 } from "lucide-react";
 import { handleUploadAction } from "@/app/actions/upload";
 import { Button } from "@/components/ui/button";
@@ -40,7 +42,9 @@ import { sandboxPool } from "@/lib/sandbox-pool";
 
 const CATEGORIES = [
   { id: "tools", label: "实用工具", icon: Wrench },
+  { id: "ai", label: "AI 应用", icon: Bot },
   { id: "games", label: "互动游戏", icon: Gamepad2 },
+  { id: "creative", label: "创意与 3D", icon: Palette },
   { id: "visualization", label: "数据可视化", icon: BarChart3 },
   { id: "prototypes", label: "页面原型", icon: Smartphone },
   { id: "animations", label: "动效演示", icon: Sparkles },
@@ -61,6 +65,7 @@ export default function WorkspaceUploadPage() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("tools");
+  const [language, setLanguage] = useState<string>("zh");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
@@ -217,6 +222,7 @@ export default function WorkspaceUploadPage() {
         formData.append("slug", finalSlug);
         formData.append("description", description);
         formData.append("category", category);
+        formData.append("language", language);
         formData.append("tags", tags.join(","));
         formData.append("visibility", targetVisibility);
         formData.append("isPinned", String(isPinned));
@@ -248,6 +254,7 @@ export default function WorkspaceUploadPage() {
             apiFormData.append("slug", finalSlug);
             apiFormData.append("description", description);
             apiFormData.append("category", category);
+            apiFormData.append("language", language);
             apiFormData.append("tags", tags.join(","));
             apiFormData.append("visibility", targetVisibility);
             apiFormData.append("isPinned", String(isPinned));
@@ -574,7 +581,7 @@ export default function WorkspaceUploadPage() {
                   <label className="block text-xs font-medium text-foreground mb-1.5">
                     所属分类
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {CATEGORIES.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.id;
@@ -594,6 +601,28 @@ export default function WorkspaceUploadPage() {
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* Language Selection */}
+                <div>
+                  <label htmlFor="upload-language" className="block text-xs font-medium text-foreground mb-1.5">
+                    主要语言 (Language)
+                  </label>
+                  <div className="flex items-center gap-2.5">
+                    <Select
+                      id="upload-language"
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value)}
+                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-44"
+                    >
+                      <option value="zh">中文 (Chinese)</option>
+                      <option value="en">英文 (English)</option>
+                      <option value="other">其他 (Other)</option>
+                    </Select>
+                    <span className="text-[11px] text-muted-foreground">
+                      用于正交多语言筛选与索引
+                    </span>
                   </div>
                 </div>
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getAllProjects } from "@/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Play, Wrench, Gamepad2, BarChart2, Layers, ArrowLeft } from "lucide-react";
+import { ChevronRight, Play, Wrench, Gamepad2, BarChart2, Layers, ArrowLeft, Bot, Sparkles, Boxes } from "lucide-react";
 
 interface CategoryPageProps {
   params: Promise<{
@@ -29,12 +29,26 @@ const CATEGORY_MAP: Record<
     icon: Wrench,
     keywords: ["AI Tools Online", "Free Calculators", "Web Utilities", "HTML Tools", "Developer Utilities"],
   },
+  ai: {
+    nameEn: "AI & Intelligent Agents",
+    nameZh: "AI 与大模型应用",
+    desc: "Interactive LLM web wrappers, prompt engineering sandboxes, conversational UI mockups, and AI agents.",
+    icon: Bot,
+    keywords: ["AI Web Apps", "LLM Frontend", "Agent Sandbox", "AI Tools Online", "Prompt Studio"],
+  },
   games: {
     nameEn: "Web Mini Games & Canvas",
     nameZh: "网页微游戏与交互",
     desc: "Play fun canvas mini games, puzzles, arcade retro games, and interactive web animations created with AI.",
     icon: Gamepad2,
     keywords: ["Free Web Games", "HTML5 Mini Games", "Canvas Games Sandbox", "AI Generated Games"],
+  },
+  creative: {
+    nameEn: "Creative Coding & 3D",
+    nameZh: "创意编程与 3D",
+    desc: "WebGL experiments, Three.js shaders, generative generative canvas art, and creative visual simulations.",
+    icon: Sparkles,
+    keywords: ["Creative Coding", "WebGL Sandbox", "Three.js Demos", "Generative Art", "Shader Art"],
   },
   visualization: {
     nameEn: "Data Visualizations & Charts",
@@ -49,6 +63,20 @@ const CATEGORY_MAP: Record<
     desc: "Frontend interface prototypes, responsive mockups, landing page designs, and micro-interactions.",
     icon: Layers,
     keywords: ["UI Prototypes", "Web Mockups", "Frontend Demos", "AI Landing Page Prototypes"],
+  },
+  animations: {
+    nameEn: "Motion & Interactive Demos",
+    nameZh: "动效演示与交互设计",
+    desc: "Fluid CSS/SVG animations, micro-interactions, canvas transitions, and UI motion studies.",
+    icon: Sparkles,
+    keywords: ["Web Animations", "CSS Motion", "SVG Effects", "Interactive Demos"],
+  },
+  others: {
+    nameEn: "Showcase Collections",
+    nameZh: "其他精选作品",
+    desc: "Explore miscellaneous creative web applications, experimental single-page tools, and shared sandboxes.",
+    icon: Boxes,
+    keywords: ["HTML Sandbox", "Web Apps", "Static Hosting", "Pagepod Showcase"],
   },
 };
 

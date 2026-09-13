@@ -3,14 +3,19 @@ import type { StorageFile } from "../storage/types";
 import { getContentType } from "../storage/mime";
 import { MAX_ZIP_ENTRIES, MAX_ZIP_EXTRACTED_BYTES } from "../validation";
 
+import { detectHtmlLanguage, type DetectedLanguage } from "./language-detector";
+export { detectHtmlLanguage, type DetectedLanguage };
+
 export interface ExtractedMetadata {
   title: string;
   description: string;
+  language: DetectedLanguage;
 }
 
 export function extractMetadataFromHtml(html: string): ExtractedMetadata {
   let title = "";
   let description = "";
+  const language = detectHtmlLanguage(html);
 
   // Extract <title>...</title>
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
@@ -37,7 +42,7 @@ export function extractMetadataFromHtml(html: string): ExtractedMetadata {
     }
   }
 
-  return { title: title || "Untitled Project", description };
+  return { title: title || "Untitled Project", description, language };
 }
 
 export async function unpackZipBundle(

@@ -12,6 +12,22 @@ export const slugSchema = z
   .regex(/^[a-zA-Z0-9_-]*$/, "Slug may only contain letters, numbers, underscores, and dashes")
   .optional();
 
+export const LANGUAGE_ENUM = ["zh", "en", "other"] as const;
+export type Language = (typeof LANGUAGE_ENUM)[number];
+export const languageSchema = z.enum(LANGUAGE_ENUM).default("zh");
+
+export const CATEGORIES_ENUM = [
+  "tools",
+  "games",
+  "visualization",
+  "prototypes",
+  "animations",
+  "ai",
+  "creative",
+  "others",
+] as const;
+export type Category = (typeof CATEGORIES_ENUM)[number];
+
 export const categorySchema = z.string().trim().max(50).default("tools");
 
 export const tagsSchema = z
@@ -31,9 +47,11 @@ export const uploadPayloadSchema = z.object({
   slug: slugSchema,
   description: z.string().trim().max(2000).optional(),
   category: categorySchema,
+  language: languageSchema.optional(),
   tags: tagsSchema,
   visibility: visibilitySchema.default("public"),
   isPinned: z.boolean().default(false),
+  isGlobalPinned: z.boolean().default(false),
   htmlContent: z.string().max(20_000_000, "HTML content too large (max 20MB)").optional(),
 });
 
@@ -41,9 +59,11 @@ export const updateProjectInputSchema = z.object({
   title: z.string().trim().min(1, "Title cannot be empty").max(200),
   description: z.string().trim().max(2000).default(""),
   category: categorySchema,
+  language: languageSchema.optional(),
   tags: z.array(z.string().trim().max(50)).default([]),
   visibility: visibilitySchema,
   isPinned: z.boolean().default(false),
+  isGlobalPinned: z.boolean().optional(),
   htmlCode: z.string().max(20_000_000).optional(),
 });
 

@@ -25,12 +25,21 @@ import {
   Sparkles,
   Layers,
   Boxes,
+  Bot,
+  Palette,
+  Globe,
+  ArrowUpDown,
   AlertTriangle,
   Loader2,
   X,
 } from "lucide-react";
 import type { Project } from "@/db/schema";
-import { togglePinAction, updateVisibilityAction, deleteProjectAction } from "@/app/actions/manage";
+import {
+  togglePinAction,
+  toggleGlobalPinAction,
+  updateVisibilityAction,
+  deleteProjectAction,
+} from "@/app/actions/manage";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -50,23 +59,28 @@ import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 
 interface AdminTableProps {
   initialProjects: Project[];
+  isAdmin?: boolean;
 }
 
 const CATEGORY_ICONS = {
   all: Layers,
   tools: Wrench,
+  ai: Bot,
   games: Gamepad2,
+  creative: Palette,
   visualization: BarChart3,
   prototypes: Smartphone,
   animations: Sparkles,
   others: Boxes,
 };
 
-export default function AdminTable({ initialProjects }: AdminTableProps) {
+export default function AdminTable({ initialProjects, isAdmin = false }: AdminTableProps) {
   const { t } = useLanguage();
   const [projects, setProjects] = useState(initialProjects);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [languageFilter, setLanguageFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"newest" | "views" | "alpha">("newest");
   const [viewMode, setViewMode] = useState<"grid" | "table">(() => {
     if (typeof window !== "undefined") {
       try {
@@ -132,7 +146,9 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
   const categories = useMemo(() => [
     { id: "all", label: t.categories.all || "全部", icon: CATEGORY_ICONS.all },
     { id: "tools", label: t.categories.tools || "实用工具", icon: CATEGORY_ICONS.tools },
+    { id: "ai", label: t.categories.ai || "AI 应用", icon: CATEGORY_ICONS.ai },
     { id: "games", label: t.categories.games || "互动游戏", icon: CATEGORY_ICONS.games },
+    { id: "creative", label: t.categories.creative || "创意与 3D", icon: CATEGORY_ICONS.creative },
     { id: "visualization", label: t.categories.visualization || "数据可视化", icon: CATEGORY_ICONS.visualization },
     { id: "prototypes", label: t.categories.prototypes || "页面原型", icon: CATEGORY_ICONS.prototypes },
     { id: "animations", label: t.categories.animations || "动效演示", icon: CATEGORY_ICONS.animations },
@@ -151,8 +167,9 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
   }, [projects]);
 
   const filtered = useMemo(() => {
-    return projects.filter((p) => {
+    const list = projects.filter((p) => {
       if (categoryFilter !== "all" && p.category !== categoryFilter) return false;
+      if (languageFilter !== "all" && (p.language || "zh") !== languageFilter) return false;
       if (!search.trim()) return true;
       const q = search.toLowerCase().trim();
       return (
@@ -162,15 +179,82 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
         (Array.isArray(p.tags) && p.tags.some((t) => t.toLowerCase().includes(q)))
       );
     });
-  }, [projects, categoryFilter, search]);
 
+    const pinnedList: Project[] = [];
+    const unpinnedList: Project[] = [];
+
+    list.forEach((p) => {
+      if (p.isPinned) {
+        pinnedList.push(p);
+      } else {
+        unpinnedList.push(p);
+      }
+    });
+
+    pinnedList.sort((a, b) => {
+      const aTime = a.pinnedAt ? new Date(a.pinnedAt).getTime() : new Date(a.createdAt).getTime();
+      const bTime = b.pinnedAt ? new Date(b.pinnedAt).getTime() : new Date(b.createdAt).getTime();
+      return bTime - aTime;
+    });
+
+    unpinnedList.sort((a, b) => {
+      if (sortBy === "views") {
+        return (b.viewCount || 0) - (a.viewCount || 0);
+      }
+      if (sortBy === "alpha") {
+        return a.title.localeCompare(b.title);
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return [...pinnedList, ...unpinnedList];
+  }, [projects, categoryFilter, languageFilter, search, sortBy]);
 
   const handleTogglePin = (id: string, current: boolean) => {
     startTransition(async () => {
-      await togglePinAction(id, current);
-      setProjects((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, isPinned: !current } : p))
-      );
+      try {
+        await togglePinAction(id, current);
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === id
+              ? { ...p, isPinned: !current, pinnedAt: !current ? new Date() : null }
+              : p
+          )
+        );
+        setToastMessage({
+          text: !current ? "已将项目置顶至工作区首行" : "已取消工作区置顶",
+          type: "success",
+        });
+      } catch (err: unknown) {
+        setToastMessage({
+          text: (err as Error)?.message || "置顶操作失败",
+          type: "error",
+        });
+      }
+    });
+  };
+
+  const handleToggleGlobalPin = (id: string, current: boolean) => {
+    startTransition(async () => {
+      try {
+        await toggleGlobalPinAction(id, current);
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === id
+              ? { ...p, isGlobalPinned: !current, globalPinnedAt: !current ? new Date() : null }
+              : p
+          )
+        );
+        setToastMessage({
+          text: !current ? "已将该项目置顶至全站公共首页与探索页！" : "已取消全站置顶",
+          type: "success",
+        });
+      } catch (err: unknown) {
+        setToastMessage({
+          text: (err as Error)?.message || "操作失败，仅管理员可设置全站置顶",
+          type: "error",
+        });
+      }
     });
   };
 
@@ -290,8 +374,8 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
         </div>
       </div>
 
-      {/* Search Input Filter */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+      {/* Search, Language Filter & Sort Controls */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative w-full sm:w-80">
           <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
@@ -301,6 +385,62 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
             aria-label="搜索项目标题、Slug、标签"
             className="pl-8 text-xs bg-muted/20 border-border"
           />
+        </div>
+
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Language toggle pills */}
+          <div className="inline-flex items-center rounded-md border border-border bg-muted/20 p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setLanguageFilter("all")}
+              className={cn(
+                "px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer",
+                languageFilter === "all"
+                  ? "bg-foreground text-background font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.gallery?.languageAll || "全部语言"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguageFilter("zh")}
+              className={cn(
+                "px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer",
+                languageFilter === "zh"
+                  ? "bg-foreground text-background font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.gallery?.languageZh || "中文"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguageFilter("en")}
+              className={cn(
+                "px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer",
+                languageFilter === "en"
+                  ? "bg-foreground text-background font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.gallery?.languageEn || "English"}
+            </button>
+          </div>
+
+          {/* Sort selector */}
+          <div className="flex items-center gap-1.5">
+            <Select
+              aria-label={t.gallery?.sortBy || "排序方式"}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as "newest" | "views" | "alpha")}
+              className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-auto"
+            >
+              <option value="newest">{t.gallery?.sortNewest || "最新发布"}</option>
+              <option value="views">{t.gallery?.sortViews || "最多浏览"}</option>
+              <option value="alpha">{t.gallery?.sortAlpha || "名称 A-Z"}</option>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -344,10 +484,19 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                           <CategoryIcon className="w-3 h-3" />
                           <span>{cat?.label || item.category}</span>
                         </Badge>
+                        <Badge variant="subtle" className="text-[10px] px-1.5 backdrop-blur-md bg-black/70 border-neutral-800 text-neutral-300 font-mono uppercase">
+                          {item.language || "zh"}
+                        </Badge>
                         {item.isPinned && (
-                          <Badge variant="default" className="text-[10px] gap-1 bg-amber-500/90 text-black font-semibold">
-                            <Pin className="w-2.5 h-2.5 fill-black" />
-                            <span>置顶</span>
+                          <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/75 border-neutral-400 text-neutral-100 font-medium">
+                            <Pin className="w-2.5 h-2.5 fill-current" />
+                            <span>工作区置顶</span>
+                          </Badge>
+                        )}
+                        {item.isGlobalPinned && (
+                          <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/75 border-white/20 text-white font-medium">
+                            <Globe className="w-2.5 h-2.5" />
+                            <span>全站推荐</span>
                           </Badge>
                         )}
                         {item.visibility === "private" && (
@@ -433,13 +582,30 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                             onClick={() => handleTogglePin(item.id, item.isPinned)}
                             className={`h-7 w-7 rounded-sm ${
                               item.isPinned
-                                ? "text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300"
+                                ? "text-foreground bg-muted hover:bg-muted/80"
                                 : "text-muted-foreground hover:text-foreground"
                             }`}
-                            title={item.isPinned ? "取消置顶" : "置顶推荐"}
+                            title={item.isPinned ? "取消工作区置顶" : "置顶至工作区首位"}
                           >
                             <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
                           </Button>
+
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={isPending}
+                              onClick={() => handleToggleGlobalPin(item.id, item.isGlobalPinned ?? false)}
+                              className={`h-7 w-7 rounded-sm ${
+                                item.isGlobalPinned
+                                  ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              title={item.isGlobalPinned ? "取消全站置顶 (公共首页推荐)" : "设置全站置顶 (公共首页推荐)"}
+                            >
+                              <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
+                            </Button>
+                          )}
 
                           <Button
                             variant="ghost"
@@ -500,9 +666,10 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
             <thead>
               <tr className="border-b border-border text-[11px] font-medium text-muted-foreground bg-muted/20">
                 <th className="py-2.5 px-3 w-10 text-center">置顶</th>
+                {isAdmin && <th className="py-2.5 px-3 w-10 text-center">全站</th>}
                 <th className="py-2.5 px-3 w-20">预览</th>
                 <th className="py-2.5 px-3">项目</th>
-                <th className="py-2.5 px-3">分类与格式</th>
+                <th className="py-2.5 px-3">分类与语言</th>
                 <th className="py-2.5 px-3">访问量</th>
                 <th className="py-2.5 px-3">可见性</th>
                 <th className="py-2.5 px-3">创建时间</th>
@@ -512,7 +679,7 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
             <tbody className="divide-y divide-border text-xs">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={isAdmin ? 9 : 8} className="py-12 text-center text-muted-foreground">
                     暂无匹配的 HTML 项目。
                   </td>
                 </tr>
@@ -529,7 +696,7 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                         deletingId === item.id && "opacity-40 pointer-events-none"
                       )}
                     >
-                      {/* Pin toggle */}
+                      {/* Workspace Pin toggle */}
                       <td className="py-3 px-3 text-center">
                         <Button
                           variant="ghost"
@@ -538,14 +705,34 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                           onClick={() => handleTogglePin(item.id, item.isPinned)}
                           className={`h-7 w-7 rounded-sm ${
                             item.isPinned
-                              ? "text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300"
+                              ? "text-foreground bg-muted hover:bg-muted/80"
                               : "text-muted-foreground hover:text-foreground"
                           }`}
-                          title={item.isPinned ? "取消置顶" : "置顶推荐"}
+                          title={item.isPinned ? "取消工作区置顶" : "置顶至工作区首位"}
                         >
                           <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
                         </Button>
                       </td>
+
+                      {/* Admin Global Pin toggle */}
+                      {isAdmin && (
+                        <td className="py-3 px-3 text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isPending}
+                            onClick={() => handleToggleGlobalPin(item.id, item.isGlobalPinned ?? false)}
+                            className={`h-7 w-7 rounded-sm ${
+                              item.isGlobalPinned
+                                ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            title={item.isGlobalPinned ? "取消全站置顶 (公共首页推荐)" : "设置全站置顶 (公共首页推荐)"}
+                          >
+                            <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
+                          </Button>
+                        </td>
+                      )}
 
                       {/* Hover-to-Activate Sandbox Preview Thumbnail */}
                       <td className="py-3 px-3">
@@ -577,18 +764,21 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                         )}
                       </td>
 
-                      {/* Category and Asset Type */}
+                      {/* Category, Language and Asset Type */}
                       <td className="py-3 px-3">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1 font-normal">
                             <CategoryIcon className="w-2.5 h-2.5 opacity-70" />
                             <span>{cat?.label || item.category}</span>
                           </Badge>
+                          <Badge variant="subtle" className="text-[10px] px-1.5 py-0 font-mono uppercase text-muted-foreground">
+                            {item.language || "zh"}
+                          </Badge>
                           <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
                             {item.assetType === "single_html" ? (
-                              <FileCode2 className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+                              <FileCode2 className="w-3 h-3 text-muted-foreground" />
                             ) : (
-                              <FolderArchive className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                              <FolderArchive className="w-3 h-3 text-muted-foreground" />
                             )}
                           </span>
                         </div>
