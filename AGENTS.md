@@ -92,7 +92,7 @@
 
 4. **Git Worktree 与 Turbopack 协同避坑 (Worktree Build Discipline)**：
    - Git Worktree 中由于 `node_modules` 软链接特性，Next.js Turbopack 会触发内部 Panic。Worktree 下本地构建测试必须使用 `npx next build --webpack`，或直接切至主仓库目录运行；
-   - 分支合并遵循无冲突流程：Worktree 提 PR 并 squash merge，主仓库 pull，Worktree reset hard 对齐；
+   - 分支合并遵循无冲突流程：Worktree 提 PR 并通过 `gh pr merge <id> --squash` 合并（**严禁携带 `--delete-branch`**，避免 Git 尝试自动检出已被主仓库锁定的 main 分支触发 `fatal: 'main' is already checked out` 错误）。主仓库 `git pull origin main` 后，Worktree 执行 `git reset --hard origin/main` 对齐，远端分支在 Web 界面或主仓库安全清理；
    - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`（避免无效鉴权与漫长安装）。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`。
 
 ---
