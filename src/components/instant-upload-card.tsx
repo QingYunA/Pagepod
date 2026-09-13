@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
-import { UploadCloud, Link as LinkIcon, Check, Copy, ExternalLink, AlertTriangle, ShieldCheck, Loader2 } from "lucide-react";
+import {
+  UploadCloud,
+  Link as LinkIcon,
+  Check,
+  Copy,
+  ExternalLink,
+  AlertTriangle,
+  ShieldCheck,
+  Loader2,
+  Lock,
+  Globe,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { scanForSecrets, type SecretFinding } from "@/lib/security/secret-guard";
@@ -16,11 +27,14 @@ export function InstantUploadCard() {
   const [isDragging, setIsDragging] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [visibility, setVisibility] = useState<"unlisted" | "public">("unlisted");
   const [uploadedResult, setUploadedResult] = useState<{
     slug: string;
     url: string;
     title: string;
     claimToken: string;
+    accessToken?: string;
+    visibility?: "public" | "unlisted";
   } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -44,53 +58,60 @@ export function InstantUploadCard() {
     }
   };
 
-  const processUpload = async (file: File, force = false) => {
-    setErrorMsg(null);
+  const processUpload = useCallback(
+    async (file: File, force = false) => {
+      setErrorMsg(null);
 
-    if (!file.name.toLowerCase().endsWith(".html") && !file.name.toLowerCase().endsWith(".htm")) {
-      setErrorMsg("Guest quick-host only supports single .html files (max 2MB). Please sign in for zip bundles.");
-      return;
-    }
+      if (!file.name.toLowerCase().endsWith(".html") && !file.name.toLowerCase().endsWith(".htm")) {
+        setErrorMsg("Guest quick-host only supports single .html files (max 2MB). Please sign in for zip bundles.");
+        return;
+      }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setErrorMsg("File exceeds 2MB guest limit. Please sign in to upload larger files.");
-      return;
-    }
+      if (file.size > 2 * 1024 * 1024) {
+        setErrorMsg("File exceeds 2MB guest limit. Please sign in to upload larger files.");
+        return;
+      }
 
-    try {
-      const content = await file.text();
+      try {
+        const content = await file.text();
 
-      // Client-side instant pre-flight secret leak scan
-      if (!force) {
-        const finding = scanForSecrets(content);
-        if (finding) {
-          setPendingSecretFile({ content, file, finding });
-          return;
+        // Client-side instant pre-flight secret leak scan
+        if (!force) {
+          const finding = scanForSecrets(content);
+          if (finding) {
+            setPendingSecretFile({ content, file, finding });
+            return;
+          }
         }
-      }
 
-      setIsPending(true);
-      const formData = new FormData();
-      formData.append("file", file);
+        setIsPending(true);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("visibility", visibility);
 
-      const res = await submitGuestUpload(formData, force);
-      if (!res.success) {
-        setErrorMsg(res.error || "Upload failed");
-      } else if (res.slug && res.url && res.claimToken) {
-        setUploadedResult({
-          slug: res.slug,
-          url: res.url,
-          title: res.title || res.slug,
-          claimToken: res.claimToken,
-        });
-        saveClaimToStorage(res.slug, res.claimToken);
+        const res = await submitGuestUpload(formData, force);
+        if (!res.success) {
+          setErrorMsg(res.error || "Upload failed");
+        } else if (res.slug && res.url && res.claimToken) {
+          setUploadedResult({
+            slug: res.slug,
+            url: res.url,
+            title: res.title || res.slug,
+            claimToken: res.claimToken,
+            accessToken: res.accessToken,
+            visibility: res.visibility,
+          });
+          saveClaimToStorage(res.slug, res.claimToken);
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "An unexpected error occurred during upload.";
+        setErrorMsg(msg);
+      } finally {
+        setIsPending(false);
       }
-    } catch (err: any) {
-      setErrorMsg(err?.message || "An unexpected error occurred during upload.");
-    } finally {
-      setIsPending(false);
-    }
-  };
+    },
+    [visibility]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -102,13 +123,16 @@ export function InstantUploadCard() {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processUpload(e.dataTransfer.files[0]);
-    }
-  }, []);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        processUpload(e.dataTransfer.files[0]);
+      }
+    },
+    [processUpload]
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -137,8 +161,16 @@ export function InstantUploadCard() {
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 {isZh
-                  ? `发现 ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet})。游客上传默认向全球公开展示，公开私有密钥可能导致非预期的 API 账单扣费。`
-                  : `Found ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet}). Guest uploads are publicly visible to everyone. Publishing keys may lead to unauthorized API usage.`}
+                  ? `发现 ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet})。${
+                      visibility === "unlisted"
+                        ? "尽管该项目配置为口令保护，仍强烈建议在分享前清除敏感信息，避免密钥泄露。"
+                        : "公开项目将在画廊向全球展示，公开私有密钥可能导致非预期的 API 账单扣费。"
+                    }`
+                  : `Found ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet}). ${
+                      visibility === "unlisted"
+                        ? "Although protected by an access token, it is strongly advised to remove keys before sharing."
+                        : "Guest uploads with public showcase are visible to everyone. Publishing keys may lead to unauthorized API charges."
+                    }`}
               </p>
             </div>
           </div>
@@ -161,7 +193,7 @@ export function InstantUploadCard() {
                 processUpload(f, true);
               }}
             >
-              {isZh ? "我已知晓风险，继续公开" : "I Understand, Publish Anyway"}
+              {isZh ? "我已知晓风险，继续上传" : "I Understand, Upload Anyway"}
             </Button>
           </div>
         </div>
@@ -209,6 +241,34 @@ export function InstantUploadCard() {
               </p>
             </div>
 
+            {/* Visibility Mode Selector */}
+            <div className="flex items-center justify-center p-0.5 rounded-lg border border-border/80 bg-muted/40 text-xs w-fit mx-auto select-none">
+              <button
+                type="button"
+                onClick={() => setVisibility("unlisted")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium cursor-pointer ${
+                  visibility === "unlisted"
+                    ? "bg-background text-foreground shadow-xs border border-border/70"
+                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                }`}
+              >
+                <Lock className="w-3.5 h-3.5 text-emerald-500" />
+                <span>{isZh ? "仅凭链接访问 (口令保护)" : "Unlisted (Token Protected)"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility("public")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium cursor-pointer ${
+                  visibility === "public"
+                    ? "bg-background text-foreground shadow-xs border border-border/70"
+                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5 text-primary" />
+                <span>{isZh ? "公开展示 (画廊收录)" : "Public (Showcase Index)"}</span>
+              </button>
+            </div>
+
             {errorMsg && (
               <p className="text-xs text-destructive font-medium px-2 py-1 rounded bg-destructive/10 border border-destructive/20">
                 {errorMsg}
@@ -236,25 +296,37 @@ export function InstantUploadCard() {
               </Button>
             </div>
 
-            <div className="pt-2 flex items-center gap-3 text-[11px] text-muted-foreground/80">
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[11px] text-muted-foreground/80">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-500" />
                 {isZh ? "严格 CSP 物理隔离" : "Hardened CSP Isolation"}
               </span>
               <span>·</span>
-              <span>{isZh ? "默认公开画廊" : "Public by Default"}</span>
+              <span>
+                {visibility === "unlisted"
+                  ? isZh ? "默认口令保护防探测" : "Token Protected (NoIndex)"
+                  : isZh ? "公开画廊聚合收录" : "Public Showcase Index"}
+              </span>
               <span>·</span>
-              <span>{isZh ? "永久访问链接" : "Instant Share URL"}</span>
+              <span>{isZh ? "免配置即时分享" : "Zero-Config Instant Link"}</span>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5 border-emerald-500/30 text-emerald-500 bg-emerald-500/5">
-                  LIVE & SANDBOXED
-                </Badge>
-                <span className="text-xs font-medium text-foreground truncate max-w-[200px]">
+                {uploadedResult.visibility === "unlisted" ? (
+                  <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5 border-emerald-500/30 text-emerald-500 bg-emerald-500/5 flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    <span>UNLISTED · PROTECTED</span>
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5 border-blue-500/30 text-blue-500 bg-blue-500/5 flex items-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    <span>PUBLIC SHOWCASE</span>
+                  </Badge>
+                )}
+                <span className="text-xs font-medium text-foreground truncate max-w-[180px]">
                   {uploadedResult.title}
                 </span>
               </div>
@@ -297,16 +369,20 @@ export function InstantUploadCard() {
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <p className="text-[11px] text-muted-foreground">
-                {isZh
-                  ? "管理凭据已保存在本机，随时登录即可认领合并。"
-                  : "Ownership token stored in browser. Sign in anytime to manage."}
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                {uploadedResult.visibility === "unlisted"
+                  ? isZh
+                    ? "已生成专属访问口令，未在公开画廊展示。随时登录可认领管理。"
+                    : "Protected by access token and excluded from showcase. Sign in anytime to manage."
+                  : isZh
+                  ? "已在公共画廊上线展示。管理凭据已保存在本机。"
+                  : "Live on public showcase. Ownership token stored in browser."}
               </p>
               <a
                 href={uploadedResult.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium shrink-0 ml-2"
               >
                 {isZh ? "在线运行" : "Run Online"}
                 <ExternalLink className="w-3 h-3" />

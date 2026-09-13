@@ -1,11 +1,9 @@
 import { z } from "zod";
 
-export const VISIBILITY_ENUM = ["public", "private"] as const;
+export const VISIBILITY_ENUM = ["public", "unlisted", "private"] as const;
 export type Visibility = (typeof VISIBILITY_ENUM)[number];
 
-export const visibilitySchema = z.enum(["public", "unlisted", "private"]).transform((val) => {
-  return (val === "unlisted" ? "private" : val) as Visibility;
-});
+export const visibilitySchema = z.enum(VISIBILITY_ENUM);
 
 export const slugSchema = z
   .string()
