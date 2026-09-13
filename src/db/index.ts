@@ -256,6 +256,11 @@ const SQL_NOTIFICATIONS = `
 `;
 
 let legacyProjectsApproved = false;
+let lastDbError: string | null = null;
+
+export function getLastDbError(): string | null {
+  return lastDbError;
+}
 
 export async function autoApproveLegacyProjects() {
   if (legacyProjectsApproved || !dbUrl) return;
@@ -273,7 +278,8 @@ export async function autoApproveLegacyProjects() {
     `);
     legacyProjectsApproved = true;
     console.log("[DB] Legacy projects successfully grandfathered to approved status.");
-  } catch (err) {
+  } catch (err: any) {
+    lastDbError = `autoApprove: ${err?.message || String(err)}`;
     console.warn("[DB] autoApproveLegacyProjects notice:", err);
   }
 }
@@ -379,7 +385,8 @@ export async function getAllProjects(options?: {
         );
       });
       isFilteredInSql = true;
-    } catch (err) {
+    } catch (err: any) {
+      lastDbError = `getAllProjects: ${err?.message || String(err)}`;
       console.error("Database query failed, falling back to local data:", err);
       const local = readLocalData();
       list = [...local.projects];
