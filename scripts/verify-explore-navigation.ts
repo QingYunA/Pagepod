@@ -57,6 +57,26 @@ async function runFeedbackLoop() {
   const hasHoverEffect = /group-hover:translate-x/.test(content);
   assert(hasHoverEffect, "Category card contains responsive hover micro-motion on arrow indicator");
 
+  // 6. Category detail page must be fully static ISR (No searchParams de-opt)
+  const hasSearchParamsDeOpt = /searchParams/.test(categoryPageContent);
+  assert(!hasSearchParamsDeOpt, "/explore/[category]/page.tsx must NOT access searchParams (preserves Static/ISR caching)",
+    hasSearchParamsDeOpt ? "Found searchParams in page.tsx which forces dynamic SSR and bypasses CDN caching." : undefined);
+
+  const hasGenerateStaticParams = /export\s+function\s+generateStaticParams/.test(categoryPageContent);
+  assert(hasGenerateStaticParams, "/explore/[category]/page.tsx exports generateStaticParams for SSG");
+
+  const hasRevalidate = /export\s+const\s+revalidate\s*=\s*60/.test(categoryPageContent);
+  assert(hasRevalidate, "/explore/[category]/page.tsx exports revalidate = 60 for ISR");
+
+  // 7. DB Cold Start Guard: autoApproveLegacyProjects must not run proactive ensurePostgresTables()
+  const dbIndexContent = fs.readFileSync(path.resolve(__dirname, "../src/db/index.ts"), "utf-8");
+  const autoApproveStart = dbIndexContent.indexOf("export async function autoApproveLegacyProjects");
+  const autoApproveEnd = dbIndexContent.indexOf("async function ensurePostgresTables");
+  const autoApproveChunk = dbIndexContent.slice(autoApproveStart, autoApproveEnd);
+  const hasColdStartDDLInAutoApprove = /await\s+ensurePostgresTables\(\)/.test(autoApproveChunk);
+  assert(!hasColdStartDDLInAutoApprove, "autoApproveLegacyProjects must NOT proactively execute ensurePostgresTables() (0 Cold Start DDL)",
+    hasColdStartDDLInAutoApprove ? "Found await ensurePostgresTables() call in autoApproveLegacyProjects, which blocks cold start." : undefined);
+
   console.log(`\nFeedback loop test summary: ${passed} passed, ${failed} failed\n`);
   if (failed > 0) {
     process.exit(1);
