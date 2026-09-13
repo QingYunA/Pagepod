@@ -85,6 +85,14 @@
    - **优先轻量 HTTP / API 探针**：生产环境部署后验证首选 `curl`、API 端点（`/api/projects`）或 SSR HTML 关键字符串 grep 进行秒级、高确定性的断言；
    - **按需唤起重型浏览器**：仅在验证复杂拖拽交互、多重动效过渡或 Canvas/WebGL 本地渲染时才调用无头浏览器，避免无谓的超时与算力开销。
 
+7. **全链路实体字段渗透审计准则 (Full-Path Schema Ingestion Invariant)**：
+   - 任何新增或扩充业务实体元数据字段（如 `language`、`isGlobalPinned`、`review_status` 等），必须严格闭环以下五层链路，严禁遗漏无头 REST 路径：
+     1. `src/db/schema.ts`（ORM 列定义、默认值与迁移脚本）；
+     2. `src/lib/validation.ts`（Zod 强类型模式与严格 Enum，消灭基础类型偏执）；
+     3. `src/lib/services/project-service.ts`（领域服务防线、入参解构与 Seam 处 RBAC 鉴权）；
+     4. `src/app/actions/*` 与 `src/app/api/upload/route.ts`（Server Action 与 REST API 的 JSON/Multipart 分支双通道透传）；
+     5. 客户端表单交互层（`upload/page.tsx`、`editor-client.tsx` 表单回显与受控状态绑定）。
+
 
 ---
 
@@ -106,6 +114,7 @@
 
 4. **Git Worktree 与 Turbopack 协同避坑 (Worktree Build Discipline)**：
    - Git Worktree 中由于 `node_modules` 软链接特性，Next.js Turbopack 会触发内部 Panic。Worktree 下本地构建测试必须使用 `npx next build --webpack`，或直接切至主仓库目录运行；
+   - **Worktree 冲突合并防伪冲突原则 (Worktree Merge Over Interactive Rebase)**：当远端主分支（`origin/main`）发生并发更新时，Worktree 特性分支拉取最新主分支更新**优先采用 `git merge origin/main`**（或前置将分支历史本地 commit squash 为单一提交后再 rebase）；严禁在包含多阶段迭代提交的分支上执行逐个 commit 交互式 rebase，彻底杜绝历史废弃提交引发的重复伪冲突。
    - 分支合并遵循无冲突流程：Worktree 提 PR 并通过 `gh pr merge <id> --squash` 合并（**严禁携带 `--delete-branch`**，避免 Git 尝试自动检出已被主仓库锁定的 main 分支触发 `fatal: 'main' is already checked out` 错误）。主仓库 `git pull origin main` 后，Worktree 执行 `git reset --hard origin/main` 对齐，远端分支在 Web 界面或主仓库安全清理；
    - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`（避免无效鉴权与漫长安装）。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`。
 
