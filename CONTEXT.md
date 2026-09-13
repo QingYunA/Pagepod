@@ -34,6 +34,11 @@ This file is the single source of truth for the domain glossary and architectura
 - **Sovereign Admin (`selfhost-admin`)**: The root owner of a self-hosted instance possessing unmetered project creation quotas, global showcase pin authority, and complete system autonomy without external SaaS billing dependencies.
 - **Commercial Decoupling**: The strict architectural invariant ensuring billing routes (`/pricing`), upgrade prompts, payment SDKs, and subscription banners are completely silenced and bypassed in self-hosted deployments.
 - **Dual-Personality Portal**: The adaptive front-door routing of self-hosted instances: presenting an uncommercialized, branded public project portfolio to anonymous visitors, providing seamless dashboard access to the authenticated owner, and supporting `PRIVATE_INSTANCE=true` for fully private intranets.
+- **Guest Ingestion (Instant Upload)**: Zero-friction ingestion channel allowing unauthenticated visitors to drag-and-drop single HTML files directly on the home hero to receive a live preview URL, bound by strict $\le 2\text{MB}$ size caps and IP rate limits.
+- **Claim Token**: A cryptographic credential generated during guest ingestion and stored in the visitor's `localStorage`, granting ephemeral edit/deletion authority and enabling one-click project claim upon subsequent account sign-in.
+- **Secret Leak Guard**: Client-side and server-side heuristic scanners detecting accidentally exposed credentials (OpenAI, Anthropic, AWS, GitHub PATs, private keys) before public publication, enforcing soft-gating or privacy downgrade.
+- **Curated Hub (Pillar & Cluster)**: Purpose-built topical showcase routes (e.g. `/explore/tools`, `/explore/games`) organizing public micro-apps by intent rather than abstract tech stacks, adhering to an 80% card grid / 20% concise technical spec ratio.
+- **Anti-Bounce Drawer**: An unobtrusive collapsible info-and-recommendation layer on `/p/[slug]` presenting creator metadata, 3~4 related showcase projects, and source inspection to maximize user engagement and session depth.
 
 ---
 
@@ -50,3 +55,5 @@ This file is the single source of truth for the domain glossary and architectura
 9. **Decoupled Rendering Port**: `ScreenshotRenderer` does not touch databases or issue Next.js cache revalidations. It returns raw image buffers to orchestrators.
 10. **Typed Domain Exceptions**: Failures within domain layers are signaled by explicit typed errors (`NotFoundError`, `ForbiddenError`, `ValidationError`, `PayloadTooLargeError`), which are translated into appropriate HTTP or Action responses by caller adapters.
 11. **Compliance Seam Isolation**: Content moderation executes asynchronously post-commit via dual-core multimodal inspection (HTML DOM text extraction + rendered headless poster audit), preventing illegal content leakage into public discovery feeds without stalling upload latency.
+12. **Guest Quota & Ingestion Boundary**: Guest ingestion is strictly limited to single HTML files $\le 2\text{MB}$, enforces IP rate limiting (10 uploads/hour per IP), and requires automated moderation before public listing.
+13. **Public Exposure Consent & Secret Guard**: Public publication requires clear user disclosure. If client-side or server-side secret guards detect exposed private API keys or certificates, the project is gated with an explicit confirmation dialog or automatically downgraded to `private`.

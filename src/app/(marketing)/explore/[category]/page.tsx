@@ -185,6 +185,39 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
           projects={publicProjects}
         />
 
+        {/* Compact Pillar Technical Spec & FAQ (SEO Semantic Depth) */}
+        <div className="mb-14 p-5 sm:p-6 rounded-xl border border-border/70 bg-muted/15">
+          <h3 className="text-xs font-semibold uppercase tracking-wider font-mono text-muted-foreground mb-4">
+            Curated Pillar Specifications & Sandbox Standards
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-6 text-xs leading-relaxed text-muted-foreground">
+            <div className="space-y-1.5">
+              <h4 className="font-medium text-foreground">Zero-Installation Client Execution</h4>
+              <p>
+                Every application in this collection executes client-side within an isolated, hardened iframe sandbox. Zero server round-trips and instant startup.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <h4 className="font-medium text-foreground">Hardened CSP Sandboxing</h4>
+              <p>
+                Enforces strict Content Security Policy without <code>allow-same-origin</code> privileges to physically protect visitor data and prevent cross-site leakage.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <h4 className="font-medium text-foreground">Instant Shareable Permanent URLs</h4>
+              <p>
+                Each published application receives a permanent canonical link. Ideal for documentation embeds, interactive prototypes, and quick client previews.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <h4 className="font-medium text-foreground">Public Curation & Provenance</h4>
+              <p>
+                Community-contributed single-file HTML tools and prototypes, preserved with permissive open-source licenses and author attribution.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Other Categories Cross-linking (Internal Links Powerhouse) */}
         <div className="pt-8 border-t border-border">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 font-mono">
