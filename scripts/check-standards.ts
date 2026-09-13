@@ -92,6 +92,58 @@ function scanFile(filePath: string) {
       }
     }
   });
+
+  // Whole-file multi-line checks for TSX/JSX
+  if (filePath.endsWith(".tsx") || filePath.endsWith(".jsx")) {
+    // 3. Check illegal nested interactive elements: <button> containing <Link> or <a>
+    const buttonRegex = /<button\b[^>]*>([\s\S]*?)<\/button>/g;
+    let buttonMatch: RegExpExecArray | null;
+    while ((buttonMatch = buttonRegex.exec(content)) !== null) {
+      const inner = buttonMatch[1];
+      if (/<(Link|a)\b[^>]*>/.test(inner)) {
+        const lineNum = content.slice(0, buttonMatch.index).split("\n").length;
+        violations.push({
+          file: relPath,
+          line: lineNum,
+          rule: "AGENTS.md 1.2 (Card-Level Full Navigation Invariant & DOM Nesting)",
+          match: buttonMatch[0].slice(0, 100).replace(/\s+/g, " ") + "...",
+          message: "Illegal nested interactive control: <button> contains <Link> or <a>, which traps clicks and violates HTML specification.",
+        });
+      }
+    }
+  }
+
+  // 4. Check Static ISR in Marketing Server Components: no searchParams allowed in page.tsx
+  const isMarketingPage = relPath.replace(/\\/g, "/").includes("src/app/(marketing)") && relPath.endsWith("page.tsx");
+  if (isMarketingPage) {
+    const searchParamsMatch = content.match(/\bsearchParams\b/);
+    if (searchParamsMatch && searchParamsMatch.index !== undefined) {
+      const lineNum = content.slice(0, searchParamsMatch.index).split("\n").length;
+      violations.push({
+        file: relPath,
+        line: lineNum,
+        rule: "AGENTS.md 2.9 (Static ISR & Zero Cold-Start DDL Invariant)",
+        match: "searchParams",
+        message: "Public marketing page Server Component must NOT consume searchParams directly as it de-opts page to dynamic SSR. Offload to Client Component.",
+      });
+    }
+  }
+
+  // 5. Check Cold-Start Zero DDL: ensurePostgresTables() must not be called in request paths
+  const isRequestPath = relPath.replace(/\\/g, "/").startsWith("src/app") || relPath.replace(/\\/g, "/").startsWith("src/lib/services");
+  if (isRequestPath) {
+    const ddlMatch = content.match(/\bensurePostgresTables\s*\(/);
+    if (ddlMatch && ddlMatch.index !== undefined) {
+      const lineNum = content.slice(0, ddlMatch.index).split("\n").length;
+      violations.push({
+        file: relPath,
+        line: lineNum,
+        rule: "AGENTS.md 2.9 (Cold-Start Zero DDL Invariant)",
+        match: "ensurePostgresTables()",
+        message: "Direct call to ensurePostgresTables() detected in runtime request path. DDL must be gated in withTableFallback or migrations.",
+      });
+    }
+  }
 }
 
 function walkDir(dir: string) {
