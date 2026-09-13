@@ -82,6 +82,7 @@ function readLocalData(): LocalData {
     const data = JSON.parse(raw) as LocalData;
     data.projects = (data.projects || []).map((p) => ({
       ...p,
+      visibility: (p.visibility as string) === "unlisted" ? "private" : p.visibility,
       reviewStatus: p.reviewStatus ?? "approved",
       moderationCategory: p.moderationCategory ?? null,
       moderationSummary: p.moderationSummary ?? null,
@@ -191,6 +192,7 @@ const SQL_PROJECTS_MIGRATIONS = [
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_category TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_summary TEXT;`,
   `CREATE INDEX IF NOT EXISTS projects_user_id_idx ON projects (user_id);`,
+  `UPDATE projects SET visibility = 'private' WHERE visibility = 'unlisted';`,
 ];
 
 const SQL_SETTINGS = `

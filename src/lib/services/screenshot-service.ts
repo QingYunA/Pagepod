@@ -200,9 +200,11 @@ function revalidateProjectViews(slug: string) {
 }
 
 /**
- * Convenience orchestrator for capturing and committing a project screenshot by slug.
+ * Convenience orchestrator for capturing, committing, and returning image buffer.
  */
-export async function captureProjectScreenshot(slug: string): Promise<string | null> {
+export async function captureProjectScreenshotWithBuffer(
+  slug: string
+): Promise<{ screenshotUrl: string; imageBuffer: Buffer } | null> {
   const project = await getProjectBySlug(slug);
   if (!project) {
     console.warn(`[ScreenshotService] Project not found for slug: ${slug}`);
@@ -235,7 +237,12 @@ export async function captureProjectScreenshot(slug: string): Promise<string | n
 
   await updateProject(project.id, { screenshotUrl: newScreenshotUrl });
   revalidateProjectViews(project.slug);
-  return newScreenshotUrl;
+  return { screenshotUrl: newScreenshotUrl, imageBuffer };
+}
+
+export async function captureProjectScreenshot(slug: string): Promise<string | null> {
+  const result = await captureProjectScreenshotWithBuffer(slug);
+  return result?.screenshotUrl ?? null;
 }
 
 /**

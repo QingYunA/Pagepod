@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProjectBySlug, incrementViewCount } from "@/db";
 import { getProjectStorage } from "@/lib/storage";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isExactProjectCreator } from "@/lib/auth";
 
 interface RouteParams {
   params: Promise<{
@@ -40,12 +40,7 @@ export async function GET(request: Request, context: RouteParams) {
   let isExactCreator = false;
   if (isProtected || isPending) {
     const currentUser = await getCurrentUser();
-    isExactCreator = Boolean(
-      currentUser &&
-        (project.userId
-          ? currentUser.id === project.userId
-          : currentUser.id === "selfhost-admin")
-    );
+    isExactCreator = isExactProjectCreator(currentUser, project);
   }
 
   // 3. Pending Moderation Gate:

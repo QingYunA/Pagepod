@@ -8,9 +8,13 @@ import {
 } from "@/db";
 import { getProjectStorage, getStorageType } from "@/lib/storage";
 import { extractMetadataFromHtml, unpackZipBundle } from "@/lib/parser";
-import { renderProjectScreenshot, captureProjectScreenshot } from "@/lib/services/screenshot-service";
+import {
+  renderProjectScreenshot,
+  captureProjectScreenshot,
+  captureProjectScreenshotWithBuffer,
+} from "@/lib/services/screenshot-service";
 import { assertCanCreateProject } from "@/lib/services/billing-service";
-import { assertCanManageProject, type CurrentUser } from "@/lib/auth";
+import { assertCanManageProject, isExactProjectCreator, type CurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import type { Project } from "@/db/schema";
@@ -57,7 +61,19 @@ export class ProjectPayloadTooLargeError extends ProjectDomainError {
 
 // --- Interfaces & Types ---
 
-export type ProjectVisibility = "public" | "unlisted" | "private";
+export type ProjectVisibility = "public" | "private";
+
+export function assertCanSetVisibility(
+  actor: CurrentUser,
+  project: { reviewStatus?: string | null },
+  nextVisibility: ProjectVisibility
+): void {
+  if (nextVisibility === "public" && project.reviewStatus === "flagged" && actor.role !== "admin") {
+    throw new ProjectValidationError(
+      "Controversial or flagged projects cannot be made public without administrator appeal / 争议标记项目未经申诉复核无法设为公开"
+    );
+  }
+}
 
 export interface ProjectServiceOptions {
   skipRevalidate?: boolean;
@@ -254,31 +270,42 @@ export async function createProject(
 
   // 5. Post-commit Asynchronous Content Moderation
   if (initialHtml) {
-    scheduleAsyncModeration(
-      project.id,
-      project.slug,
-      project.title,
-      initialHtml,
-      imgBuffer,
-      projectUserId
-    );
+    scheduleAsyncModeration({
+      projectId: project.id,
+      slug: project.slug,
+      title: project.title,
+      html: initialHtml,
+      screenshotBuffer: imgBuffer,
+      creatorUserId: projectUserId,
+    });
   }
 
-  // 6. Post-commit Asynchronous Poster Ingestion
+  // 6. Post-commit Asynchronous Poster Ingestion & Visual Audit Stream
   // If screenshot was not generated synchronously (e.g. headless Chrome absent in serverless runtime),
   // trigger background capture now that the project is committed and publicly accessible at /raw/:slug.
-  // Wrap in Next.js after() to keep the serverless worker alive until capture completes.
+  // When capture succeeds, re-feed into visual moderation audit.
   if (!screenshotUrl && project.visibility === "public") {
-    try {
-      after(async () => {
-        await captureProjectScreenshot(project.slug).catch((err) => {
-          console.warn(`[ProjectService] Post-commit cloud screenshot capture skipped for ${project.slug}:`, err);
-        });
-      });
-    } catch {
-      captureProjectScreenshot(project.slug).catch((err) => {
+    const runCapture = async () => {
+      try {
+        const captured = await captureProjectScreenshotWithBuffer(project.slug);
+        if (captured && initialHtml) {
+          scheduleAsyncModeration({
+            projectId: project.id,
+            slug: project.slug,
+            title: project.title,
+            html: initialHtml,
+            screenshotBuffer: captured.imageBuffer,
+            creatorUserId: projectUserId,
+          });
+        }
+      } catch (err) {
         console.warn(`[ProjectService] Post-commit cloud screenshot capture skipped for ${project.slug}:`, err);
-      });
+      }
+    };
+    try {
+      after(runCapture);
+    } catch {
+      runCapture();
     }
   }
 
@@ -294,22 +321,22 @@ export async function applyModerationRemediation(
   result: ModerationResult,
   creatorUserId?: string | null
 ): Promise<Project | null> {
+  const targetUserId = creatorUserId || "selfhost-admin";
+
   if (result.action === "critical_block") {
     const updated = await dbUpdateProject(projectId, {
       reviewStatus: "rejected",
       moderationCategory: result.category,
       moderationSummary: result.reason,
     });
-    if (creatorUserId && creatorUserId !== "selfhost-admin") {
-      await createNotification({
-        id: nanoid(12),
-        userId: creatorUserId,
-        projectId,
-        type: "moderation_rejected",
-        title: "Project Removed / 项目违规下架通知",
-        message: `Your project [${slug}] was removed due to content policy violations (${result.category || "Prohibited Content"}). Contact admin to appeal. / 您的项目 [${slug}] 因违反平台内容合规准则（${result.category || "违规内容"}）已被下架封禁。如有异议可联系管理员申诉。`,
-      }).catch((e) => console.warn("[ProjectService] Failed to create rejection notification:", e));
-    }
+    await createNotification({
+      id: nanoid(12),
+      userId: targetUserId,
+      projectId,
+      type: "moderation_rejected",
+      title: "Project Removed / 项目违规下架通知",
+      message: `Your project [${slug}] was removed due to content policy violations (${result.category || "Prohibited Content"}). Contact admin (support@pagepod.dev) to appeal. / 您的项目 [${slug}] 因违反平台内容合规准则（${result.category || "违规内容"}）已被下架封禁。如有异议可联系管理员申诉。`,
+    }).catch((e) => console.warn("[ProjectService] Failed to create rejection notification:", e));
     revalidateProjectPaths(slug);
     return updated;
   }
@@ -322,16 +349,14 @@ export async function applyModerationRemediation(
       moderationCategory: result.category,
       moderationSummary: result.reason,
     });
-    if (creatorUserId && creatorUserId !== "selfhost-admin") {
-      await createNotification({
-        id: nanoid(12),
-        userId: creatorUserId,
-        projectId,
-        type: "moderation_downgrade",
-        title: "Project Changed to Private / 项目已自动转为私有模式",
-        message: `Your project [${slug}] contains sensitive or geopolitical controversy and has been set to private mode for compliance. / 您的项目 [${slug}] 涉及政治或地缘敏感争议，为保障合规安全，系统已自动将其转为仅您个人可见的私有模式，外部公共链接已受限。`,
-      }).catch((e) => console.warn("[ProjectService] Failed to create downgrade notification:", e));
-    }
+    await createNotification({
+      id: nanoid(12),
+      userId: targetUserId,
+      projectId,
+      type: "moderation_downgrade",
+      title: "Project Changed to Private / 项目已自动转为私有模式",
+      message: `Your project [${slug}] contains sensitive or geopolitical controversy and has been set to private mode for compliance. Contact admin to appeal if this is in error. / 您的项目 [${slug}] 涉及政治或地缘敏感争议，为保障合规安全，系统已自动将其转为仅您个人可见的私有模式，外部公共链接已受限。如有异议可联系管理员申诉。`,
+    }).catch((e) => console.warn("[ProjectService] Failed to create downgrade notification:", e));
     revalidateProjectPaths(slug);
     return updated;
   }
@@ -346,17 +371,21 @@ export async function applyModerationRemediation(
   return updated;
 }
 
+export interface ScheduleAsyncModerationParams {
+  projectId: string;
+  slug: string;
+  title: string;
+  html: string;
+  screenshotBuffer?: Buffer | null;
+  creatorUserId?: string | null;
+}
+
 /**
  * Non-blocking task scheduler for asynchronous content moderation.
  */
-export function scheduleAsyncModeration(
-  projectId: string,
-  slug: string,
-  title: string,
-  html: string,
-  screenshotBuffer?: Buffer | null,
-  creatorUserId?: string | null
-) {
+export function scheduleAsyncModeration(params: ScheduleAsyncModerationParams) {
+  const { projectId, slug, title, html, screenshotBuffer, creatorUserId } = params;
+
   const task = async () => {
     try {
       const result = await moderateProjectContent({
@@ -403,8 +432,8 @@ export async function updateProject(
   assertCanManageProject(actor, project);
 
   // Guard: Flagged controversial project cannot be turned public directly without admin appeal
-  if (input.visibility === "public" && project.reviewStatus === "flagged" && actor.role !== "admin") {
-    throw new ProjectValidationError("Controversial or flagged projects cannot be made public without administrator appeal / 争议标记项目未经申诉复核无法设为公开");
+  if (input.visibility !== undefined) {
+    assertCanSetVisibility(actor, project, input.visibility);
   }
 
   const projectStorage = getProjectStorage(project.slug);
@@ -454,14 +483,14 @@ export async function updateProject(
   }
 
   if (codeChanged && input.htmlCode) {
-    scheduleAsyncModeration(
-      project.id,
-      project.slug,
-      patch.title || project.title,
-      input.htmlCode,
-      imgBuffer,
-      project.userId
-    );
+    scheduleAsyncModeration({
+      projectId: project.id,
+      slug: project.slug,
+      title: patch.title || project.title,
+      html: input.htmlCode,
+      screenshotBuffer: imgBuffer,
+      creatorUserId: project.userId,
+    });
   }
 
   return result;
@@ -540,10 +569,7 @@ export async function updateVisibility(
   }
 
   assertCanManageProject(actor, project);
-
-  if (visibility === "public" && project.reviewStatus === "flagged" && actor.role !== "admin") {
-    throw new ProjectValidationError("Controversial or flagged projects cannot be made public without administrator appeal / 争议标记项目未经申诉复核无法设为公开");
-  }
+  assertCanSetVisibility(actor, project, visibility);
 
   const updated = await dbUpdateProject(id, { visibility });
   const result = updated || project;
@@ -557,6 +583,7 @@ export async function updateVisibility(
 
 /**
  * Reads project source HTML with strict creator privacy enforcement for private resources.
+ * Platform administrators CANNOT peek at other users' private projects.
  */
 export async function getProjectSource(
   idOrSlug: string,
@@ -570,13 +597,7 @@ export async function getProjectSource(
     throw new ProjectNotFoundError();
   }
 
-  const isExactCreator = Boolean(
-    actor &&
-      (actor.role === "admin" ||
-        (project.userId
-          ? actor.id === project.userId
-          : actor.id === "selfhost-admin"))
-  );
+  const isExactCreator = isExactProjectCreator(actor, project);
 
   if (project.reviewStatus === "rejected" && !isExactCreator) {
     throw new ProjectForbiddenError("451 Unavailable For Legal Reasons: This project was removed due to platform policy violations.");

@@ -29,6 +29,7 @@ import {
   ShieldAlert,
   Loader2,
   X,
+  HelpCircle,
 } from "lucide-react";
 import type { Project } from "@/db/schema";
 import { togglePinAction, updateVisibilityAction, deleteProjectAction } from "@/app/actions/manage";
@@ -238,7 +239,7 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
     });
   };
 
-  const handleUpdateVisibility = (id: string, next: "public" | "unlisted" | "private") => {
+  const handleUpdateVisibility = (id: string, next: "public" | "private") => {
     startTransition(async () => {
       await updateVisibilityAction(id, next);
       setProjects((prev) =>
@@ -487,12 +488,28 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                         >
                           <option value="public">公开 (Public)</option>
                           <option value="private">私有 (Private)</option>
-                          {item.visibility === "unlisted" && (
-                            <option value="unlisted">仅链接 (已弃用)</option>
-                          )}
                         </Select>
 
                         <div className="flex items-center gap-0.5">
+                          {(item.reviewStatus === "rejected" || item.reviewStatus === "flagged") && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              asChild
+                              className="h-7 w-7 text-amber-500 hover:text-amber-600"
+                              title="Appeal Review / 申诉复核"
+                            >
+                              <a
+                                href={`mailto:support@pagepod.dev?subject=${encodeURIComponent(
+                                  `[Appeal] Review request for project ${item.slug}`
+                                )}&body=${encodeURIComponent(
+                                  `Hello Pagepod Admin,\n\nI would like to request an appeal review for my project:\n- Project ID: ${item.id}\n- Slug: ${item.slug}\n- Title: ${item.title}\n- Current Status: ${item.reviewStatus}\n- Reason/Notes:\n`
+                                )}`}
+                              >
+                                <HelpCircle className="w-3.5 h-3.5" />
+                              </a>
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
@@ -686,9 +703,6 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                         >
                           <option value="public">公开 (Public)</option>
                           <option value="private">私有 (Private)</option>
-                          {item.visibility === "unlisted" && (
-                            <option value="unlisted">仅链接 (已弃用)</option>
-                          )}
                         </Select>
                       </td>
 
@@ -703,6 +717,25 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                       {/* Action buttons */}
                       <td className="py-3 px-3 text-right">
                         <div className="inline-flex items-center gap-1">
+                          {(item.reviewStatus === "rejected" || item.reviewStatus === "flagged") && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              asChild
+                              className="h-7 w-7 text-amber-500 hover:text-amber-600"
+                              title="Appeal Review / 申诉复核"
+                            >
+                              <a
+                                href={`mailto:support@pagepod.dev?subject=${encodeURIComponent(
+                                  `[Appeal] Review request for project ${item.slug}`
+                                )}&body=${encodeURIComponent(
+                                  `Hello Pagepod Admin,\n\nI would like to request an appeal review for my project:\n- Project ID: ${item.id}\n- Slug: ${item.slug}\n- Title: ${item.title}\n- Current Status: ${item.reviewStatus}\n- Reason/Notes:\n`
+                                )}`}
+                              >
+                                <HelpCircle className="w-3.5 h-3.5" />
+                              </a>
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" asChild>
                             <Link href={`/p/${item.slug}`} target="_blank" title="在新标签页运行">
                               <ExternalLink className="w-3.5 h-3.5" />

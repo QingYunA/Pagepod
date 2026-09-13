@@ -4,7 +4,7 @@ import { after } from "next/server";
 import { getProjectBySlugCached } from "@/lib/db-cache";
 import { incrementViewCount, getAllProjects } from "@/db";
 import { getStorage } from "@/lib/storage";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isExactProjectCreator } from "@/lib/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import RunnerClient from "./runner-client";
@@ -32,7 +32,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // If private or not yet approved, disallow search engine indexing
   if (project.visibility === "private" || project.reviewStatus === "rejected" || project.reviewStatus === "pending") {
     return {
-      title: project.reviewStatus === "rejected" ? "项目已下架 - Pagepod" : "Private Project - Pagepod",
+      title:
+        project.reviewStatus === "rejected"
+          ? "Project Removed / 项目已违规下架 - Pagepod"
+          : "Private Project / 私有保护项目 - Pagepod",
       description: "Content is not publicly available on Pagepod.",
       robots: { index: false, follow: false },
     };
@@ -88,12 +91,7 @@ export default async function ProjectRunnerPage({ params }: PageProps) {
 
   // Strict Ownership: Platform admins DO NOT have permission to decrypt or peek at another user's private/encrypted project.
   // Only the exact user who created the project is granted owner rights!
-  const isExactCreator = Boolean(
-    currentUser &&
-      (project.userId
-        ? currentUser.id === project.userId
-        : currentUser.id === "selfhost-admin")
-  );
+  const isExactCreator = isExactProjectCreator(currentUser, project);
 
   // Record the view only after the response is sent, and never for unauthorized
   // requests to a private project. This keeps a non-critical write off the render path.
@@ -121,6 +119,17 @@ export default async function ProjectRunnerPage({ params }: PageProps) {
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" asChild>
             <Link href="/">Back to Showcase / 返回画廊</Link>
+          </Button>
+          <Button variant="default" size="sm" asChild>
+            <a
+              href={`mailto:support@pagepod.dev?subject=${encodeURIComponent(
+                `[Appeal] Review request for project ${project.slug}`
+              )}&body=${encodeURIComponent(
+                `Hello Pagepod Admin,\n\nI would like to appeal the takedown decision for project:\n- Project ID: ${project.id}\n- Slug: ${project.slug}\n- Title: ${project.title}\n\nNotes:\n`
+              )}`}
+            >
+              Appeal / 申诉复核
+            </a>
           </Button>
         </div>
       </div>

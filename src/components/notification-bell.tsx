@@ -84,7 +84,7 @@ export function NotificationBell() {
           variant="ghost"
           size="icon"
           className="relative h-8 w-8 rounded-md text-muted-foreground hover:text-foreground border border-border/50"
-          title={t.notifications?.title || "系统通知"}
+          title={t.notifications?.title || "Notifications"}
         >
           <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
@@ -101,10 +101,10 @@ export function NotificationBell() {
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold">{t.notifications?.title || "系统通知"}</span>
+            <span className="text-xs font-semibold">{t.notifications?.title || "Notifications"}</span>
             {unreadCount > 0 && (
               <Badge variant="outline" className="px-1.5 py-0 text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/20 font-medium">
-                {unreadCount} {t.notifications?.unreadBadge || "条未读"}
+                {unreadCount} {t.notifications?.unreadBadge || "unread"}
               </Badge>
             )}
           </div>
@@ -114,14 +114,14 @@ export function NotificationBell() {
               size="sm"
               onClick={handleMarkAllAsRead}
               disabled={isLoading}
-              className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1"
+              className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground"
             >
               {isLoading ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
               ) : (
-                <CheckCheck className="w-3 h-3" />
+                <CheckCheck className="w-3 h-3 mr-1" />
               )}
-              {t.notifications?.markAllRead || "全部已读"}
+              {t.notifications?.markAllRead || "Mark all read"}
             </Button>
           )}
         </div>
@@ -129,7 +129,7 @@ export function NotificationBell() {
         <div className="max-h-[360px] overflow-y-auto divide-y divide-border/40">
           {notifications.length === 0 ? (
             <div className="py-8 text-center text-xs text-muted-foreground">
-              {t.notifications?.empty || "暂无系统通知"}
+              {t.notifications?.empty || "No notifications"}
             </div>
           ) : (
             notifications.map((notif) => {

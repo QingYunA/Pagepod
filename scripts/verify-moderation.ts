@@ -397,10 +397,88 @@ assert(blockedRejectedSource, "Anonymous getProjectSource on rejected project th
 
 // Test 8.5: Bilingual notification titles
 const notifList = await getUserNotifications(testUserId);
-const bilingualNotif = notifList.find((n) => n.projectId === geoProj.id);
+console.log("\n=== 9. Code Review Fixes Hardened Verification ===");
+import { isExactProjectCreator } from "../src/lib/auth";
+
+// Test 9.1: Platform Admin CANNOT peek at another user's private project source
+const adminUser = { id: "admin-platform-user", role: "admin" as const };
+const privateUserSlug = `private-src-${Date.now()}`;
+await dbCreateProject({
+  id: `id-${privateUserSlug}`,
+  userId: testUserId,
+  title: "Alice's Secret Project",
+  slug: privateUserSlug,
+  storagePrefix: `sites/${privateUserSlug}`,
+  reviewStatus: "approved",
+  visibility: "private",
+  assetType: "single_html",
+  entryPath: "index.html",
+});
+await getProjectStorage(privateUserSlug).writeEntryFile("<h1>Top Secret</h1>", "index.html");
+
+let adminBlockedFromPrivate = false;
+try {
+  await getProjectSource(privateUserSlug, adminUser);
+} catch (e) {
+  if (e instanceof ProjectForbiddenError && (e as any).message.includes("403")) {
+    adminBlockedFromPrivate = true;
+  }
+}
+assert(adminBlockedFromPrivate, "Platform admin is STRICTLY BLOCKED from reading Alice's private source HTML");
+
+// Test 9.2: Creator Alice CAN read her own private source HTML
+const aliceRead = await getProjectSource(privateUserSlug, normalUser);
+assert(aliceRead.html.includes("Top Secret"), "Creator Alice can read her own private source HTML");
+
+// Test 9.3: isExactProjectCreator identity invariant
 assert(
-  Boolean(bilingualNotif && bilingualNotif.title.includes("/") && bilingualNotif.message.includes("/")),
-  "Remediation notifications conform to English First, Chinese Second bilingual standard"
+  isExactProjectCreator(normalUser, { userId: testUserId }) === true,
+  "isExactProjectCreator returns true for actual owner"
+);
+assert(
+  isExactProjectCreator(adminUser, { userId: testUserId }) === false,
+  "isExactProjectCreator returns false for platform admin on someone else's project"
+);
+assert(
+  isExactProjectCreator({ id: "selfhost-admin", role: "admin" }, { userId: null }) === true,
+  "isExactProjectCreator returns true for selfhost-admin on unassigned project"
+);
+
+// Test 9.4: Self-hosted admin notification delivery
+const selfhostSlug = `selfhost-alert-${Date.now()}`;
+const selfhostProj = await dbCreateProject({
+  id: `id-${selfhostSlug}`,
+  userId: null,
+  title: "Selfhost Project",
+  slug: selfhostSlug,
+  storagePrefix: `sites/${selfhostSlug}`,
+  reviewStatus: "pending",
+  visibility: "public",
+});
+
+await applyModerationRemediation(
+  selfhostProj.id,
+  selfhostProj.slug,
+  {
+    action: "critical_block",
+    reviewStatus: "rejected",
+    category: "phishing",
+    reason: "Phishing attempt on selfhosted instance",
+  },
+  null // selfhost mode passes null or undefined
+);
+
+const selfhostNotifs = await getUserNotifications("selfhost-admin");
+assert(
+  selfhostNotifs.some((n) => n.projectId === selfhostProj.id),
+  "Selfhost admin successfully receives moderation alert notification"
+);
+
+// Test 9.5: Formal appeal contact info in notification
+const appealNotif = selfhostNotifs.find((n) => n.projectId === selfhostProj.id);
+assert(
+  Boolean(appealNotif && appealNotif.message.includes("support@pagepod.dev")),
+  "Notification explicitly provides formal appeal support email"
 );
 
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);

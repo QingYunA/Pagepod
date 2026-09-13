@@ -203,6 +203,21 @@ export function assertCanManageProject(
   }
 }
 
+/**
+ * Strict creator identity verification for private resources and pending review content.
+ * Platform administrators CANNOT peek at other users' private projects.
+ */
+export function isExactProjectCreator(
+  user: CurrentUser | null | undefined,
+  project: { userId?: string | null }
+): boolean {
+  if (!user) return false;
+  if (project.userId) {
+    return user.id === project.userId;
+  }
+  return user.id === "selfhost-admin";
+}
+
 export async function verifyAdminTokenFromRequest(request: Request): Promise<boolean> {
   try {
     // 1. Bearer Token check

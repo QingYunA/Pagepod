@@ -55,21 +55,29 @@ export async function checkOpenAIModeration(
     const categories = result.categories || {};
     const flaggedCategories: string[] = Object.keys(categories).filter((k) => categories[k]);
 
-    // Map OpenAI categories to domain categories
+    // Map OpenAI categories to domain categories and severities according to ADR 0003:
+    // S-Tier (critical_block): CSAM, extreme sexual, graphic violence
+    // A-Tier (warning_remedial): hate, controversy, self-harm
     let domainCategory: ModerationFinding["category"] = "other";
+    let severity: ModerationFinding["severity"] = "critical_block";
+
     if (categories.sexual || categories["sexual/minors"]) {
       domainCategory = "sexual";
+      severity = "critical_block";
     } else if (categories.violence || categories["violence/graphic"]) {
       domainCategory = "violence";
+      severity = "critical_block";
     } else if (categories.hate || categories["hate/threatening"]) {
       domainCategory = "hate";
+      severity = "warning_remedial";
     } else if (categories["self-harm"] || categories["self-harm/intent"] || categories["self-harm/instructions"]) {
       domainCategory = "self_harm";
+      severity = "warning_remedial";
     }
 
     return {
       category: domainCategory,
-      severity: "critical_block",
+      severity,
       reason: `Flagged by automated AI safety policy: ${flaggedCategories.join(", ")}`,
       matchedKeywords: flaggedCategories,
     };
