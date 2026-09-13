@@ -17,7 +17,7 @@ import {
   Menu,
 } from "lucide-react";
 import type { CurrentUser } from "@/lib/auth";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { createSupabaseClient, isClientCloudMode } from "@/lib/supabase/client";
 import { UserDropdown } from "@/components/user-dropdown";
 import { NotificationBell } from "@/components/notification-bell";
 import {
@@ -41,32 +41,11 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
   const [user, setUser] = React.useState<CurrentUser | null>(currentUser ?? null);
 
   React.useEffect(() => {
-    if (currentUser !== undefined && currentUser !== null) {
-      setUser(currentUser);
-      if (!currentUser.planTier) {
-        fetch("/api/user/me")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.authenticated && data?.user) {
-              setUser(data.user);
-            }
-          })
-          .catch(() => {});
-      }
-      return;
-    }
+    setUser(currentUser ?? null);
+  }, [currentUser]);
 
-    // Unified client-side session resolution
-    fetch("/api/user/me")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.authenticated && data?.user) {
-          setUser(data.user);
-        }
-      })
-      .catch(() => {});
-
-    // Listen to Supabase auth events if configured
+  // Sync auth state in cloud mode via Supabase auth state change listener
+  React.useEffect(() => {
     const supabase = createSupabaseClient();
     if (supabase) {
       const {
@@ -74,10 +53,10 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
       } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
           fetch("/api/user/me")
-            .then((res) => res.json())
-            .then((data) => {
-              if (data?.authenticated && data?.user) {
-                setUser(data.user);
+            .then((res) => (res.ok ? res.json() : null))
+            .then((userData) => {
+              if (userData && userData.user) {
+                setUser(userData.user);
               }
             })
             .catch(() => {});
@@ -90,10 +69,12 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
     }
   }, [currentUser]);
 
+  const isCloud = isClientCloudMode();
+
   const navItems = [
     { href: "/", label: t.nav.showcase, icon: Sparkles, exact: true },
     { href: "/explore", label: t.nav.explore, icon: Compass, exact: false },
-    { href: "/pricing", label: t.nav.pricing, icon: CreditCard, exact: false },
+    ...(isCloud ? [{ href: "/pricing", label: t.nav.pricing, icon: CreditCard, exact: false }] : []),
     {
       href: "/workspace",
       label: user?.role === "admin" ? t.nav.console : t.nav.workspace,
@@ -113,7 +94,9 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
             className="flex items-center gap-2 font-semibold tracking-tight text-sm text-foreground group shrink-0"
           >
             <BrandLogo size={24} className="w-6 h-6 shrink-0" />
-            <span className="font-semibold text-sm">Pagepod</span>
+            <span className="font-semibold text-sm">
+              {process.env.NEXT_PUBLIC_SITE_NAME || "Pagepod"}
+            </span>
           </Link>
 
           {/* Desktop Primary Navigation Links */}

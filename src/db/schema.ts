@@ -16,6 +16,10 @@ export const projects = pgTable(
     storagePrefix: text("storage_prefix").notNull(),
     visibility: text("visibility").notNull().default("public"), // 'public' | 'unlisted' | 'private'
     isPinned: boolean("is_pinned").notNull().default(false),
+    pinnedAt: timestamp("pinned_at", { withTimezone: true }),
+    isGlobalPinned: boolean("is_global_pinned").notNull().default(false),
+    globalPinnedAt: timestamp("global_pinned_at", { withTimezone: true }),
+    language: text("language").notNull().default("zh"), // 'zh' | 'en' | 'other'
     viewCount: integer("view_count").notNull().default(0),
     screenshotUrl: text("screenshot_url"),
 
@@ -38,6 +42,8 @@ export const projects = pgTable(
   },
   (table) => [
     index("projects_user_id_idx").on(table.userId),
+    index("projects_global_pinned_idx").on(table.isGlobalPinned, table.globalPinnedAt),
+    index("projects_language_idx").on(table.language),
   ]
 );
 

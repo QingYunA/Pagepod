@@ -4,11 +4,14 @@ import Link from "next/link";
 import { getAllProjects } from "@/db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Play, Wrench, Gamepad2, BarChart2, Layers, ArrowLeft } from "lucide-react";
+import { ChevronRight, Play, Wrench, Gamepad2, BarChart2, Layers, ArrowLeft, Bot, Sparkles, Boxes } from "lucide-react";
 
 interface CategoryPageProps {
   params: Promise<{
     category: string;
+  }>;
+  searchParams?: Promise<{
+    lang?: string;
   }>;
 }
 
@@ -29,12 +32,26 @@ const CATEGORY_MAP: Record<
     icon: Wrench,
     keywords: ["AI Tools Online", "Free Calculators", "Web Utilities", "HTML Tools", "Developer Utilities"],
   },
+  ai: {
+    nameEn: "AI & Intelligent Agents",
+    nameZh: "AI 与大模型应用",
+    desc: "Interactive LLM web wrappers, prompt engineering sandboxes, conversational UI mockups, and AI agents.",
+    icon: Bot,
+    keywords: ["AI Web Apps", "LLM Frontend", "Agent Sandbox", "AI Tools Online", "Prompt Studio"],
+  },
   games: {
     nameEn: "Web Mini Games & Canvas",
     nameZh: "网页微游戏与交互",
     desc: "Play fun canvas mini games, puzzles, arcade retro games, and interactive web animations created with AI.",
     icon: Gamepad2,
     keywords: ["Free Web Games", "HTML5 Mini Games", "Canvas Games Sandbox", "AI Generated Games"],
+  },
+  creative: {
+    nameEn: "Creative Coding & 3D",
+    nameZh: "创意编程与 3D",
+    desc: "WebGL experiments, Three.js shaders, generative generative canvas art, and creative visual simulations.",
+    icon: Sparkles,
+    keywords: ["Creative Coding", "WebGL Sandbox", "Three.js Demos", "Generative Art", "Shader Art"],
   },
   visualization: {
     nameEn: "Data Visualizations & Charts",
@@ -49,6 +66,20 @@ const CATEGORY_MAP: Record<
     desc: "Frontend interface prototypes, responsive mockups, landing page designs, and micro-interactions.",
     icon: Layers,
     keywords: ["UI Prototypes", "Web Mockups", "Frontend Demos", "AI Landing Page Prototypes"],
+  },
+  animations: {
+    nameEn: "Motion & Interactive Demos",
+    nameZh: "动效演示与交互设计",
+    desc: "Fluid CSS/SVG animations, micro-interactions, canvas transitions, and UI motion studies.",
+    icon: Sparkles,
+    keywords: ["Web Animations", "CSS Motion", "SVG Effects", "Interactive Demos"],
+  },
+  others: {
+    nameEn: "Showcase Collections",
+    nameZh: "其他精选作品",
+    desc: "Explore miscellaneous creative web applications, experimental single-page tools, and shared sandboxes.",
+    icon: Boxes,
+    keywords: ["HTML Sandbox", "Web Apps", "Static Hosting", "Pagepod Showcase"],
   },
 };
 
@@ -97,8 +128,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export const revalidate = 60;
 
-export default async function CategoryDetailPage({ params }: CategoryPageProps) {
+export default async function CategoryDetailPage({ params, searchParams }: CategoryPageProps) {
   const { category } = await params;
+  const { lang } = (await searchParams) || {};
   const catInfo = CATEGORY_MAP[category];
 
   if (!catInfo) {
@@ -106,7 +138,10 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
   }
 
   const allProjects = await getAllProjects({ includePrivate: false, category });
-  const publicProjects = allProjects.filter((p) => p.visibility === "public");
+  let publicProjects = allProjects.filter((p) => p.visibility === "public");
+  if (lang && ["zh", "en", "other"].includes(lang)) {
+    publicProjects = publicProjects.filter((p) => (p.language || "zh") === lang);
+  }
   const Icon = catInfo.icon;
 
   const otherCategories = Object.entries(CATEGORY_MAP).filter(([k]) => k !== category);
@@ -151,14 +186,63 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
 
         {/* Projects Grid */}
         <div className="mb-14">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-sm font-semibold text-foreground">
-              Featured {catInfo.nameEn} ({publicProjects.length})
-            </h2>
-            <Link href="/explore" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-              <ArrowLeft className="w-3 h-3" />
-              <span>Back to all categories</span>
-            </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-foreground">
+                Featured {catInfo.nameEn} ({publicProjects.length})
+              </h2>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Language filter pills */}
+              <div className="inline-flex items-center rounded-md border border-border bg-muted/30 p-0.5 text-xs">
+                <Link
+                  href={`/explore/${category}`}
+                  className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors ${
+                    !lang || lang === "all"
+                      ? "bg-background text-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  All
+                </Link>
+                <Link
+                  href={`/explore/${category}?lang=zh`}
+                  className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors ${
+                    lang === "zh"
+                      ? "bg-background text-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  中文
+                </Link>
+                <Link
+                  href={`/explore/${category}?lang=en`}
+                  className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors ${
+                    lang === "en"
+                      ? "bg-background text-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  English
+                </Link>
+                <Link
+                  href={`/explore/${category}?lang=other`}
+                  className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors ${
+                    lang === "other"
+                      ? "bg-background text-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Other
+                </Link>
+              </div>
+
+              <Link href="/explore" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                <ArrowLeft className="w-3 h-3" />
+                <span>Back to all categories</span>
+              </Link>
+            </div>
           </div>
 
           {publicProjects.length === 0 ? (

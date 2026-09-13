@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/context";
+import { isClientCloudMode } from "@/lib/supabase/client";
 import ApiTokenGuideModal from "./api-token-guide";
 import type { CurrentUser } from "@/lib/auth";
 
@@ -50,11 +51,13 @@ export default function WorkspaceDashboardHeader({
   totalViews,
 }: WorkspaceDashboardHeaderProps) {
   const { t } = useLanguage();
+  const isCloud = isClientCloudMode();
+  const showPlanBanner = isCloud && currentUser?.id !== "selfhost-admin";
 
   return (
     <div className="space-y-6">
-      {/* Membership Plan Banner */}
-      {currentUser?.planTier === "pro" ? (
+      {/* Membership Plan Banner (Cloud mode only) */}
+      {showPlanBanner && (currentUser?.planTier === "pro" ? (
         <div className="rounded-xl border border-border bg-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-3.5">
             <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center text-foreground shrink-0">
@@ -116,7 +119,7 @@ export default function WorkspaceDashboardHeader({
             </Button>
           </div>
         </div>
-      ) : null}
+      ) : null)}
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -7,7 +7,7 @@ import {
   deleteProject as dbDeleteProject,
 } from "@/db";
 import { getProjectStorage, getStorageType } from "@/lib/storage";
-import { extractMetadataFromHtml, unpackZipBundle } from "@/lib/parser";
+import { extractMetadataFromHtml, unpackZipBundle, detectHtmlLanguage } from "@/lib/parser";
 import {
   renderProjectScreenshot,
   captureProjectScreenshot,
@@ -19,6 +19,7 @@ import { assertCanManageProject, isExactProjectCreator, type CurrentUser } from 
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import type { Project } from "@/db/schema";
+import type { Language } from "@/lib/validation";
 import { moderateProjectContent } from "@/lib/moderation/engine";
 import type { ModerationResult } from "@/lib/moderation/types";
 import { createNotification } from "@/db";
@@ -86,9 +87,11 @@ export interface CreateProjectInput {
   slug?: string;
   description?: string;
   category?: string;
+  language?: Language;
   tags?: string[];
   visibility?: ProjectVisibility;
   isPinned?: boolean;
+  isGlobalPinned?: boolean;
   screenshotUrl?: string;
   htmlContent?: string;
   fileBuffer?: Buffer;
@@ -100,9 +103,11 @@ export interface UpdateProjectInput {
   title?: string;
   description?: string;
   category?: string;
+  language?: Language;
   tags?: string[];
   visibility?: ProjectVisibility;
   isPinned?: boolean;
+  isGlobalPinned?: boolean;
   htmlCode?: string;
 }
 
@@ -241,6 +246,13 @@ export async function createProject(
   }
 
   const projectUserId = actor.id === "selfhost-admin" ? null : actor.id;
+  const declaredLanguage = input.language || (initialHtml ? detectHtmlLanguage(initialHtml) : "zh");
+
+  if (input.isGlobalPinned && actor.role !== "admin" && actor.id !== "selfhost-admin") {
+    throw new ProjectForbiddenError("Forbidden: Only administrators can set global showcase pin");
+  }
+  const isGlobalPinned = Boolean(input.isGlobalPinned);
+  const isPinned = Boolean(input.isPinned);
 
   const project = await dbCreateProject({
     id: nanoid(12),
@@ -249,13 +261,17 @@ export async function createProject(
     slug,
     description,
     category: input.category || "tools",
+    language: declaredLanguage,
     tags: input.tags || [],
     assetType,
     entryPath,
     storageType,
     storagePrefix: projectStorage.storagePrefix,
     visibility: input.visibility || "public",
-    isPinned: Boolean(input.isPinned),
+    isPinned,
+    pinnedAt: isPinned ? new Date() : null,
+    isGlobalPinned,
+    globalPinnedAt: isGlobalPinned ? new Date() : null,
     viewCount: 0,
     screenshotUrl,
     isEncrypted: false,
@@ -469,9 +485,20 @@ export async function updateProject(
   if (input.title !== undefined) patch.title = input.title;
   if (input.description !== undefined) patch.description = input.description;
   if (input.category !== undefined) patch.category = input.category;
+  if (input.language !== undefined) patch.language = input.language;
   if (input.tags !== undefined) patch.tags = input.tags;
   if (input.visibility !== undefined) patch.visibility = input.visibility;
-  if (input.isPinned !== undefined) patch.isPinned = input.isPinned;
+  if (input.isPinned !== undefined) {
+    patch.isPinned = input.isPinned;
+    patch.pinnedAt = input.isPinned ? new Date() : null;
+  }
+  if (input.isGlobalPinned !== undefined) {
+    if (actor.role !== "admin" && actor.id !== "selfhost-admin") {
+      throw new ProjectForbiddenError("Forbidden: Only administrators can toggle global showcase pin");
+    }
+    patch.isGlobalPinned = input.isGlobalPinned;
+    patch.globalPinnedAt = input.isGlobalPinned ? new Date() : null;
+  }
   if (newScreenshotUrl) patch.screenshotUrl = newScreenshotUrl;
 
   if (codeChanged) {
@@ -563,7 +590,7 @@ export async function deleteProject(
 }
 
 /**
- * Toggles a project's pinned status with proper authorization.
+ * Toggles a project's workspace pinned status with proper authorization.
  */
 export async function togglePin(
   actor: CurrentUser,
@@ -577,7 +604,49 @@ export async function togglePin(
 
   assertCanManageProject(actor, project);
 
-  const updated = await dbUpdateProject(id, { isPinned: !project.isPinned });
+  const isOwner =
+    actor.id === "selfhost-admin" ||
+    (project.userId ? project.userId === actor.id : actor.role === "admin");
+  if (!isOwner) {
+    throw new ProjectForbiddenError("Forbidden: Workspace pin is personal and can only be toggled by the project owner");
+  }
+
+  const nextPinned = !project.isPinned;
+  const updated = await dbUpdateProject(id, {
+    isPinned: nextPinned,
+    pinnedAt: nextPinned ? new Date() : null,
+  });
+  const result = updated || project;
+
+  if (!options?.skipRevalidate) {
+    revalidateProjectPaths(project.slug);
+  }
+
+  return result;
+}
+
+/**
+ * Toggles a project's global showcase pinned status (Admin only).
+ */
+export async function toggleGlobalPin(
+  actor: CurrentUser,
+  id: string,
+  options?: ProjectServiceOptions
+): Promise<Project> {
+  if (actor.role !== "admin" && actor.id !== "selfhost-admin") {
+    throw new ProjectForbiddenError("Forbidden: Only administrators can toggle global showcase pin");
+  }
+
+  const project = await dbGetProjectById(id);
+  if (!project) {
+    throw new ProjectNotFoundError();
+  }
+
+  const nextGlobalPinned = !project.isGlobalPinned;
+  const updated = await dbUpdateProject(id, {
+    isGlobalPinned: nextGlobalPinned,
+    globalPinnedAt: nextGlobalPinned ? new Date() : null,
+  });
   const result = updated || project;
 
   if (!options?.skipRevalidate) {

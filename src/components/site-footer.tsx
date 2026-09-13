@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { ShieldCheck, Terminal, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
+import { isClientCloudMode } from "@/lib/supabase/client";
 
 export function SiteFooter() {
   const { t } = useLanguage();
+  const isCloud = isClientCloudMode();
 
   return (
     <footer className="border-t border-border/80 py-8 px-4 sm:px-8 text-xs text-muted-foreground bg-muted/10">
@@ -43,9 +45,11 @@ export function SiteFooter() {
             <Link href="/terms" className="hover:text-foreground transition-colors">
               {t.footer.terms}
             </Link>
-            <Link href="/pricing" className="hover:text-foreground transition-colors">
-              {t.nav.pricing}
-            </Link>
+            {isCloud && (
+              <Link href="/pricing" className="hover:text-foreground transition-colors">
+                {t.nav.pricing}
+              </Link>
+            )}
             <a
               href="mailto:contact@pagepod.dev"
               className="hover:text-foreground transition-colors"

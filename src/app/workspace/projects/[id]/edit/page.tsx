@@ -24,6 +24,7 @@ export default async function ProjectEditPage({ params }: EditPageProps) {
       <ProjectEditorClient
         project={project}
         initialCode={project.assetType === "single_html" ? html : ""}
+        isAdmin={currentUser?.role === "admin" || currentUser?.id === "selfhost-admin"}
       />
     );
   } catch {

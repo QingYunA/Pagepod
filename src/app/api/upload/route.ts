@@ -58,9 +58,11 @@ export async function POST(request: Request) {
         slug: body.slug,
         description: body.description,
         category: body.category,
+        language: body.language,
         tags: body.tags,
         visibility: body.visibility,
         isPinned: body.isPinned,
+        isGlobalPinned: body.isGlobalPinned,
         htmlContent,
       });
     } else if (isMultipart && parsedFormData) {
@@ -71,15 +73,18 @@ export async function POST(request: Request) {
 
       const rawVisibility = formData.get("visibility");
       const rawTags = formData.get("tags");
+      const rawLang = formData.get("language");
 
       const parseResult = uploadPayloadSchema.safeParse({
         title: typeof formData.get("title") === "string" ? (formData.get("title") as string) : undefined,
         slug: typeof formData.get("slug") === "string" ? (formData.get("slug") as string) : undefined,
         description: typeof formData.get("description") === "string" ? (formData.get("description") as string) : undefined,
         category: typeof formData.get("category") === "string" ? (formData.get("category") as string) : undefined,
+        language: typeof rawLang === "string" && rawLang !== "auto" ? rawLang : undefined,
         tags: typeof rawTags === "string" ? rawTags : [],
         visibility: typeof rawVisibility === "string" ? rawVisibility : "public",
         isPinned: formData.get("isPinned") === "true",
+        isGlobalPinned: formData.get("isGlobalPinned") === "true",
       });
 
       if (!parseResult.success) {
@@ -106,9 +111,11 @@ export async function POST(request: Request) {
           slug: body.slug,
           description: body.description,
           category: body.category,
+          language: body.language,
           tags: body.tags,
           visibility: body.visibility,
           isPinned: body.isPinned,
+          isGlobalPinned: body.isGlobalPinned,
           fileBuffer,
           fileName: file.name,
         });
@@ -118,9 +125,11 @@ export async function POST(request: Request) {
           slug: body.slug,
           description: body.description,
           category: body.category,
+          language: body.language,
           tags: body.tags,
           visibility: body.visibility,
           isPinned: body.isPinned,
+          isGlobalPinned: body.isGlobalPinned,
           htmlContent,
         });
       } else {

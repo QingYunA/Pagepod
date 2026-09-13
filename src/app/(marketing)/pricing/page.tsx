@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import PricingClient from "./pricing-client";
+import { isSelfHosted } from "@/lib/supabase/server";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
@@ -30,6 +32,9 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default function PricingPage() {
+  if (isSelfHosted()) {
+    redirect("/workspace");
+  }
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",

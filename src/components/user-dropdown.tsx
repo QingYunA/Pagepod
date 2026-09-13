@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/i18n/context";
 import { logoutAdmin } from "@/app/actions/auth";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { createSupabaseClient, isClientCloudMode } from "@/lib/supabase/client";
 import type { CurrentUser } from "@/lib/auth";
 import {
   LayoutDashboard,
@@ -92,7 +92,8 @@ export function UserDropdown({ currentUser }: UserDropdownProps) {
     }
   };
 
-  const isSelfhostOwner = currentUser.id === "selfhost-admin";
+  const isCloud = isClientCloudMode();
+  const isSelfhostOwner = currentUser.id === "selfhost-admin" || !isCloud;
   const displayName =
     (isSelfhostOwner ? (t.nav.workspaceOwner || "Workspace Owner") : currentUser.fullName) ||
     currentUser.email?.split("@")[0] ||
@@ -169,48 +170,50 @@ export function UserDropdown({ currentUser }: UserDropdownProps) {
           </div>
         </DropdownMenuLabel>
 
-        {/* Membership Perks Showcase */}
-        {currentUser.planTier === "pro" ? (
-          <div className="mx-2 my-1.5 p-2.5 rounded-lg border border-border bg-muted/40 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-foreground flex items-center gap-1 tracking-wide">
-                <Sparkles className="w-3 h-3" />
-                {t.nav.proLifetime}
-              </span>
-              <Badge variant="outline" className="text-[8px] font-mono uppercase px-1 py-0 h-4">
-                {t.nav.lifetimeBadge}
-              </Badge>
+        {/* Membership Perks Showcase (Cloud SaaS only) */}
+        {isCloud && !isSelfhostOwner && (
+          currentUser.planTier === "pro" ? (
+            <div className="mx-2 my-1.5 p-2.5 rounded-lg border border-border bg-muted/40 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-foreground flex items-center gap-1 tracking-wide">
+                  <Sparkles className="w-3 h-3" />
+                  {t.nav.proLifetime}
+                </span>
+                <Badge variant="outline" className="text-[8px] font-mono uppercase px-1 py-0 h-4">
+                  {t.nav.lifetimeBadge}
+                </Badge>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                {t.nav.proLifetimePerks}
+              </p>
             </div>
-            <p className="text-[10px] text-muted-foreground leading-tight">
-              {t.nav.proLifetimePerks}
-            </p>
-          </div>
-        ) : currentUser.planTier === "lite" ? (
-          <div className="mx-2 my-1.5 p-2.5 rounded-lg border border-border bg-muted/40 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-foreground flex items-center gap-1 tracking-wide">
-                <Zap className="w-3 h-3" />
-                {t.nav.liteLifetime}
-              </span>
-              <Badge variant="outline" className="text-[8px] font-mono uppercase px-1 py-0 h-4">
-                {t.nav.lifetimeBadge}
-              </Badge>
+          ) : currentUser.planTier === "lite" ? (
+            <div className="mx-2 my-1.5 p-2.5 rounded-lg border border-border bg-muted/40 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-foreground flex items-center gap-1 tracking-wide">
+                  <Zap className="w-3 h-3" />
+                  {t.nav.liteLifetime}
+                </span>
+                <Badge variant="outline" className="text-[8px] font-mono uppercase px-1 py-0 h-4">
+                  {t.nav.lifetimeBadge}
+                </Badge>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                {t.nav.liteLifetimePerks}
+              </p>
             </div>
-            <p className="text-[10px] text-muted-foreground leading-tight">
-              {t.nav.liteLifetimePerks}
-            </p>
-          </div>
-        ) : (
-          <div className="mx-2 my-1.5 p-2 rounded-lg border border-border bg-muted/40 flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">{t.nav.starterPlan}</span>
-            <Link
-              href="/pricing"
-              className="text-[10px] font-medium text-foreground hover:underline flex items-center gap-0.5"
-            >
-              <span>{t.nav.upgradePlan}</span>
-              <Sparkles className="w-2.5 h-2.5" />
-            </Link>
-          </div>
+          ) : (
+            <div className="mx-2 my-1.5 p-2 rounded-lg border border-border bg-muted/40 flex items-center justify-between">
+              <span className="text-[11px] text-muted-foreground">{t.nav.starterPlan}</span>
+              <Link
+                href="/pricing"
+                className="text-[10px] font-medium text-foreground hover:underline flex items-center gap-0.5"
+              >
+                <span>{t.nav.upgradePlan}</span>
+                <Sparkles className="w-2.5 h-2.5" />
+              </Link>
+            </div>
+          )
         )}
 
         <DropdownMenuSeparator />
