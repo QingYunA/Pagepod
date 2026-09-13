@@ -67,7 +67,9 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
   const [category, setCategory] = useState(project.category);
   const [tags, setTags] = useState<string[]>((project.tags as string[]) || []);
   const [tagInput, setTagInput] = useState("");
-  const [visibility, setVisibility] = useState(project.visibility as "public" | "unlisted" | "private");
+  const [visibility, setVisibility] = useState<"public" | "private">(
+    project.visibility === "private" || (project.visibility as string) === "unlisted" ? "private" : "public"
+  );
   const [isPinned, setIsPinned] = useState(project.isPinned);
 
   const [previewKey, setPreviewKey] = useState(0);
@@ -118,7 +120,7 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
     setTags(tags.filter((item) => item !== t));
   };
 
-  const performSave = (targetVisibility?: "public" | "unlisted" | "private") => {
+  const performSave = (targetVisibility?: "public" | "private") => {
     setErrorMsg("");
     setSavedSuccess(false);
 
@@ -448,12 +450,11 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
                       id="edit-visibility"
                       value={visibility}
                       onChange={(e) => {
-                        setVisibility(e.target.value as "public" | "unlisted" | "private");
+                        setVisibility(e.target.value as "public" | "private");
                         setBypassedRiskCheck(false);
                       }}
                     >
                       <option value="public">公开 (Showcase 展示)</option>
-                      <option value="unlisted">仅链接 (Unlisted)</option>
                       <option value="private">私有 (Private，完全隐蔽)</option>
                     </Select>
                   </div>

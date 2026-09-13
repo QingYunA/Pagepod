@@ -18,24 +18,58 @@ export async function GET(request: Request, context: RouteParams) {
     return new NextResponse("Project not found", { status: 404 });
   }
 
-  // Strict Privacy Enforcement:
-  // If a project is private, ONLY the exact project creator can access raw endpoints.
-  // Platform admins CANNOT inspect or access other users' private projects!
+  // 1. Compliance Hard Gate:
+  // If project is rejected by content moderation, immediately cutoff raw execution
+  if (project.reviewStatus === "rejected") {
+    return new NextResponse(
+      "451 Unavailable For Legal Reasons: This project was removed due to content safety violations.",
+      {
+        status: 451,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "X-Content-Type-Options": "nosniff",
+        },
+      }
+    );
+  }
+
+  // 2. Compute creator ownership once if access is restricted (pending review or private)
   const isProtected = project.visibility === "private";
-  if (isProtected) {
+  const isPending = project.reviewStatus === "pending";
+
+  let isExactCreator = false;
+  if (isProtected || isPending) {
     const currentUser = await getCurrentUser();
-    const isExactCreator = Boolean(
+    isExactCreator = Boolean(
       currentUser &&
         (project.userId
           ? currentUser.id === project.userId
           : currentUser.id === "selfhost-admin")
     );
+  }
 
-    if (!isExactCreator) {
-      return new NextResponse("403 Forbidden: Private Resource. Only the project owner can access this content.", {
+  // 3. Pending Moderation Gate:
+  // While undergoing asynchronous review, only authenticated creators can preview/test
+  if (isPending && !isExactCreator) {
+    return new NextResponse(
+      "403 Forbidden: Content is currently undergoing safety and compliance review.",
+      {
         status: 403,
-      });
-    }
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "X-Content-Type-Options": "nosniff",
+        },
+      }
+    );
+  }
+
+  // 4. Strict Privacy Enforcement:
+  // If a project is private, ONLY the exact project creator can access raw endpoints.
+  // Platform admins CANNOT inspect or access other users' private projects!
+  if (isProtected && !isExactCreator) {
+    return new NextResponse("403 Forbidden: Private Resource. Only the project owner can access this content.", {
+      status: 403,
+    });
   }
 
   const subpath = subPaths && subPaths.length > 0 ? subPaths.join("/") : project.entryPath;

@@ -14,6 +14,8 @@ import type {
   NewOrder,
   UserSubscription,
   NewUserSubscription,
+  Notification,
+  NewNotification,
 } from "./schema";
 
 const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -51,6 +53,7 @@ interface LocalData {
   apiTokens?: ApiToken[];
   orders?: Order[];
   userSubscriptions?: UserSubscription[];
+  notifications?: Notification[];
 }
 
 function readLocalData(): LocalData {
@@ -79,6 +82,9 @@ function readLocalData(): LocalData {
     const data = JSON.parse(raw) as LocalData;
     data.projects = (data.projects || []).map((p) => ({
       ...p,
+      reviewStatus: p.reviewStatus ?? "approved",
+      moderationCategory: p.moderationCategory ?? null,
+      moderationSummary: p.moderationSummary ?? null,
       screenshotUrl: p.screenshotUrl ?? null,
       keyMode: p.keyMode ?? "legacy-server",
       kdfSalt: p.kdfSalt ?? null,
@@ -100,10 +106,14 @@ function readLocalData(): LocalData {
       ...s,
       updatedAt: new Date(s.updatedAt),
     }));
+    data.notifications = (data.notifications || []).map((n) => ({
+      ...n,
+      createdAt: new Date(n.createdAt),
+    }));
     return data;
   } catch (err) {
     console.error("Failed to read local data:", err);
-    return { projects: [], settings: {}, apiTokens: [], orders: [], userSubscriptions: [] };
+    return { projects: [], settings: {}, apiTokens: [], orders: [], userSubscriptions: [], notifications: [] };
   }
 }
 
@@ -177,6 +187,9 @@ const SQL_PROJECTS_MIGRATIONS = [
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS encryption_iv TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS file_size INTEGER DEFAULT 0;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS plan_tier TEXT DEFAULT 'free';`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'pending';`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_category TEXT;`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_summary TEXT;`,
   `CREATE INDEX IF NOT EXISTS projects_user_id_idx ON projects (user_id);`,
 ];
 
@@ -225,6 +238,20 @@ const SQL_USER_SUBSCRIPTIONS = `
   );
 `;
 
+const SQL_NOTIFICATIONS = `
+  CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    project_id TEXT,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+  CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications (user_id);
+`;
+
 async function ensurePostgresTables() {
   if (tablesInitialized || !dbUrl) return;
   try {
@@ -241,6 +268,7 @@ async function ensurePostgresTables() {
       SQL_API_TOKENS,
       SQL_ORDERS,
       SQL_USER_SUBSCRIPTIONS,
+      SQL_NOTIFICATIONS,
       ...SQL_PROJECTS_MIGRATIONS,
     ]) {
       try {
@@ -278,12 +306,14 @@ async function withTableFallback<T>(fn: () => Promise<T>): Promise<T> {
 export async function getAllProjects(options?: {
   userId?: string;
   includePrivate?: boolean;
+  reviewStatus?: string;
   category?: string;
   tag?: string;
   search?: string;
 }): Promise<Project[]> {
   const db = getDatabase();
   let list: Project[] = [];
+  let isLocalFallback = false;
 
   if (db) {
     try {
@@ -294,6 +324,13 @@ export async function getAllProjects(options?: {
           conditions.push(eq(schema.projects.userId, options.userId));
         } else if (!options?.includePrivate) {
           conditions.push(eq(schema.projects.visibility, "public"));
+          if (!options?.reviewStatus) {
+            conditions.push(eq(schema.projects.reviewStatus, "approved"));
+          }
+        }
+
+        if (options?.reviewStatus) {
+          conditions.push(eq(schema.projects.reviewStatus, options.reviewStatus));
         }
 
         if (options?.category && options.category !== "all") {
@@ -312,6 +349,7 @@ export async function getAllProjects(options?: {
       console.error("Database query failed, falling back to local data:", err);
       const local = readLocalData();
       list = [...local.projects];
+      isLocalFallback = true;
     }
   } else {
     const local = readLocalData();
@@ -319,14 +357,24 @@ export async function getAllProjects(options?: {
       if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
       return b.createdAt.getTime() - a.createdAt.getTime();
     });
+    isLocalFallback = true;
   }
 
   // Filter in memory for local fallback mode
-  if (!db) {
+  if (isLocalFallback) {
     if (options?.userId) {
       list = list.filter((p) => p.userId === options.userId);
     } else if (!options?.includePrivate) {
-      list = list.filter((p) => p.visibility === "public");
+      list = list.filter((p) => {
+        const isPublic = p.visibility === "public";
+        if (!isPublic) return false;
+        if (options?.reviewStatus) return p.reviewStatus === options.reviewStatus;
+        return p.reviewStatus === "approved" || !p.reviewStatus;
+      });
+    }
+
+    if (options?.reviewStatus) {
+      list = list.filter((p) => p.reviewStatus === options.reviewStatus);
     }
 
     if (options?.category && options.category !== "all") {
@@ -421,6 +469,9 @@ export async function createProject(data: NewProject): Promise<Project> {
     kdfIterations: data.kdfIterations ?? null,
     fileSize: data.fileSize ?? 0,
     planTier: data.planTier ?? "free",
+    reviewStatus: data.reviewStatus ?? "pending",
+    moderationCategory: data.moderationCategory ?? null,
+    moderationSummary: data.moderationSummary ?? null,
     createdAt: now,
     updatedAt: now,
   };
@@ -942,3 +993,134 @@ export async function getUserOrders(userId: string): Promise<Order[]> {
     .filter((o) => o.userId === userId)
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
+
+export async function createNotification(data: NewNotification): Promise<Notification> {
+  const db = getDatabase();
+  const now = new Date();
+  const newRecord: Notification = {
+    id: data.id,
+    userId: data.userId,
+    projectId: data.projectId ?? null,
+    type: data.type,
+    title: data.title,
+    message: data.message,
+    isRead: data.isRead ?? false,
+    createdAt: now,
+  };
+
+  if (db) {
+    try {
+      const inserted = await withTableFallback(() =>
+        db.insert(schema.notifications).values(newRecord).returning()
+      );
+      return inserted[0];
+    } catch (err) {
+      console.error("createNotification DB insert error, saving to local fallback:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.notifications) local.notifications = [];
+  const existingIdx = local.notifications.findIndex((n) => n.id === newRecord.id);
+  if (existingIdx !== -1) {
+    local.notifications[existingIdx] = newRecord;
+  } else {
+    local.notifications.push(newRecord);
+  }
+  writeLocalData(local);
+  return newRecord;
+}
+
+export async function getUserNotifications(userId: string, limit = 50): Promise<Notification[]> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      return await withTableFallback(() =>
+        db
+          .select()
+          .from(schema.notifications)
+          .where(eq(schema.notifications.userId, userId))
+          .orderBy(desc(schema.notifications.createdAt))
+          .limit(limit)
+      );
+    } catch (err) {
+      console.error("getUserNotifications DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  return (local.notifications || [])
+    .filter((n) => n.userId === userId)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, limit);
+}
+
+export async function getUnreadNotificationsCount(userId: string): Promise<number> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      const result = await withTableFallback(() =>
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(schema.notifications)
+          .where(and(eq(schema.notifications.userId, userId), eq(schema.notifications.isRead, false)))
+      );
+      return Number(result[0]?.count || 0);
+    } catch (err) {
+      console.error("getUnreadNotificationsCount DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  return (local.notifications || []).filter((n) => n.userId === userId && !n.isRead).length;
+}
+
+export async function markNotificationAsRead(id: string, userId: string): Promise<void> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      await withTableFallback(() =>
+        db
+          .update(schema.notifications)
+          .set({ isRead: true })
+          .where(and(eq(schema.notifications.id, id), eq(schema.notifications.userId, userId)))
+      );
+      return;
+    } catch (err) {
+      console.error("markNotificationAsRead DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.notifications) return;
+  const idx = local.notifications.findIndex((n) => n.id === id && n.userId === userId);
+  if (idx !== -1) {
+    local.notifications[idx].isRead = true;
+    writeLocalData(local);
+  }
+}
+
+export async function markAllNotificationsAsRead(userId: string): Promise<void> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      await withTableFallback(() =>
+        db
+          .update(schema.notifications)
+          .set({ isRead: true })
+          .where(eq(schema.notifications.userId, userId))
+      );
+      return;
+    } catch (err) {
+      console.error("markAllNotificationsAsRead DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.notifications) return;
+  local.notifications.forEach((n) => {
+    if (n.userId === userId) n.isRead = true;
+  });
+  writeLocalData(local);
+}
+

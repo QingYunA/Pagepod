@@ -26,6 +26,7 @@ import {
   Layers,
   Boxes,
   AlertTriangle,
+  ShieldAlert,
   Loader2,
   X,
 } from "lucide-react";
@@ -52,6 +53,8 @@ interface AdminTableProps {
   initialProjects: Project[];
 }
 
+import { translations } from "@/lib/i18n/translations";
+
 const CATEGORY_ICONS = {
   all: Layers,
   tools: Wrench,
@@ -61,6 +64,67 @@ const CATEGORY_ICONS = {
   animations: Sparkles,
   others: Boxes,
 };
+
+function ReviewStatusBadge({
+  status,
+  t,
+  isOverlay = false,
+}: {
+  status?: string | null;
+  t: (typeof translations)["zh"];
+  isOverlay?: boolean;
+}) {
+  if (!status || status === "approved") return null;
+
+  if (status === "rejected") {
+    return (
+      <Badge
+        variant="outline"
+        className={
+          isOverlay
+            ? "text-[10px] gap-1 backdrop-blur-md bg-destructive/80 border-destructive text-white font-medium"
+            : "text-[10px] px-1 py-0 bg-destructive/10 border-destructive/30 text-destructive font-normal"
+        }
+      >
+        <ShieldAlert className="w-2.5 h-2.5 mr-0.5" />
+        {t.moderation?.statusRejected || "违规封禁"}
+      </Badge>
+    );
+  }
+
+  if (status === "pending") {
+    return (
+      <Badge
+        variant="outline"
+        className={
+          isOverlay
+            ? "text-[10px] gap-1 backdrop-blur-md bg-amber-500/20 border-amber-500/40 text-amber-300 font-medium"
+            : "text-[10px] px-1 py-0 bg-amber-500/10 border-amber-500/30 text-amber-500 font-normal"
+        }
+      >
+        {t.moderation?.statusPending || "审核中"}
+      </Badge>
+    );
+  }
+
+  if (status === "flagged") {
+    return (
+      <Badge
+        variant="outline"
+        className={
+          isOverlay
+            ? "text-[10px] gap-1 backdrop-blur-md bg-amber-600/20 border-amber-600/40 text-amber-300 font-medium"
+            : "text-[10px] px-1 py-0 bg-amber-600/10 border-amber-600/30 text-amber-600 font-normal"
+        }
+      >
+        <AlertTriangle className="w-2.5 h-2.5 mr-0.5" />
+        {t.moderation?.statusFlagged || "争议受限"}
+      </Badge>
+    );
+  }
+
+  return null;
+}
 
 export default function AdminTable({ initialProjects }: AdminTableProps) {
   const { t } = useLanguage();
@@ -350,6 +414,7 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                             <span>置顶</span>
                           </Badge>
                         )}
+                        <ReviewStatusBadge status={item.reviewStatus} t={t} isOverlay />
                         {item.visibility === "private" && (
                           <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/70 border-red-900/50 text-red-300">
                             私有
@@ -415,14 +480,16 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                           onChange={(e) =>
                             handleUpdateVisibility(
                               item.id,
-                              e.target.value as "public" | "unlisted" | "private"
+                              e.target.value as "public" | "private"
                             )
                           }
                           className="text-[11px] h-7 px-2 py-0.5 max-w-[130px]"
                         >
                           <option value="public">公开 (Public)</option>
-                          <option value="unlisted">仅链接 (Unlisted)</option>
                           <option value="private">私有 (Private)</option>
+                          {item.visibility === "unlisted" && (
+                            <option value="unlisted">仅链接 (已弃用)</option>
+                          )}
                         </Select>
 
                         <div className="flex items-center gap-0.5">
@@ -563,7 +630,10 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
 
                       {/* Title, slug & description */}
                       <td className="py-3 px-3 max-w-xs">
-                        <div className="font-medium text-foreground truncate">{item.title}</div>
+                        <div className="font-medium text-foreground truncate flex items-center gap-1.5">
+                          <span>{item.title}</span>
+                          <ReviewStatusBadge status={item.reviewStatus} t={t} />
+                        </div>
                         <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1 mt-0.5">
                           <span>/p/{item.slug}</span>
                           <Link href={`/p/${item.slug}`} target="_blank" className="hover:text-foreground">
@@ -609,14 +679,16 @@ export default function AdminTable({ initialProjects }: AdminTableProps) {
                           onChange={(e) =>
                             handleUpdateVisibility(
                               item.id,
-                              e.target.value as "public" | "unlisted" | "private"
+                              e.target.value as "public" | "private"
                             )
                           }
                           className="text-[11px] h-auto px-2 py-1"
                         >
                           <option value="public">公开 (Public)</option>
-                          <option value="unlisted">仅链接 (Unlisted)</option>
                           <option value="private">私有 (Private)</option>
+                          {item.visibility === "unlisted" && (
+                            <option value="unlisted">仅链接 (已弃用)</option>
+                          )}
                         </Select>
                       </td>
 

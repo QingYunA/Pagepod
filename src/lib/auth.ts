@@ -147,20 +147,24 @@ export async function getCurrentUser(request?: Request): Promise<CurrentUser | n
   }
 
   // 3. Fallback / Self-hosted check
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (token) {
-    const isValid = await verifyAdminSessionToken(token);
-    if (isValid) {
-      const planTier = await getUserPlanTier("selfhost-admin");
-      return {
-        id: "selfhost-admin",
-        email: "owner@workspace.local",
-        fullName: "Workspace Owner",
-        role: "admin",
-        planTier,
-      };
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(COOKIE_NAME)?.value;
+    if (token) {
+      const isValid = await verifyAdminSessionToken(token);
+      if (isValid) {
+        const planTier = await getUserPlanTier("selfhost-admin");
+        return {
+          id: "selfhost-admin",
+          email: "owner@workspace.local",
+          fullName: "Workspace Owner",
+          role: "admin",
+          planTier,
+        };
+      }
     }
+  } catch {
+    // Outside of request scope or cookies unavailable
   }
 
   return null;
