@@ -8,8 +8,8 @@
 
 # Pagepod
 
-<p><strong>An open-source & self-hostable showcase, hardened sandbox, and hosting platform for HTML.</strong><br>
-Host, run, and share your interactive HTML files, web tools, games, and prototypes on your own infrastructure — with zero build steps, physical sandbox isolation, and zero egress fees.</p>
+<p><strong>A simple, self-hostable space to run and share HTML files.</strong><br>
+Drop in standalone HTML files or zip packages, run them safely in an isolated sandbox, and share with a clean link. No build step, no subscription limits, and zero egress fees.</p>
 
 <p>
   <a href="https://github.com/QingYunA/html-manager/releases"><img src="https://img.shields.io/badge/version-1.0.0-18181b?style=flat" alt="Version"></a>
@@ -33,21 +33,18 @@ Host, run, and share your interactive HTML files, web tools, games, and prototyp
 
 ---
 
-## About the Project
+## Why Pagepod?
 
-Pagepod is an open-source, self-hostable platform designed to host, run, and share HTML files and single-page web applications.
+When you build an HTML utility, a canvas experiment, or an exported UI prototype, sharing it should take seconds. In practice, it usually comes with annoying friction:
 
-Whether it is a standalone HTML utility, an interactive Canvas game, a data visualization dashboard, a frontend UI prototype, or an exported web experiment — self-hosting and sharing a static HTML project usually involves unnecessary friction:
+- **Hosting hassle:** Setting up Nginx configs, reverse proxies, and SSL certificates just to host a couple of static files is tedious.
+- **Main domain risk:** Running untrusted third-party JavaScript directly on your main domain risks exposing session cookies and tokens.
+- **Playground limits:** Online playgrounds often restrict multi-file assets, show ads, or charge monthly subscriptions. Cloud storage buckets add bandwidth egress bills.
 
-1. **Hosting overhead:** Setting up web server configs (Nginx/Caddy), configuring reverse proxies, and managing DNS and SSL certificates just to host a few HTML pages.
-2. **Security hazards on your main domain:** Running untrusted or third-party JavaScript on your primary domain risks exposing sensitive cookies, local storage, and administrator session tokens.
-3. **Platform limits and storage costs:** Pastebins and playgrounds restrict multi-file assets or charge monthly subscriptions; cloud object storage accumulates bandwidth egress fees.
-
-**Pagepod gives you a simple, sovereign home to host and run any HTML:**
-- **No build steps:** Drop a `.html` file or a multi-asset `.zip` archive, and get an instant permanent link with responsive preview.
-- **Hardened iframe sandbox:** Untrusted scripts execute strictly within dedicated sandboxed endpoints (`/raw/[slug]/`) with zero access to your host cookies, local storage, or admin sessions.
-- **No vendor lock-in:** All HTML files, assets, and database records remain on your own server or your own S3/R2 bucket.
-- **Hardware freedom:** Deploy on a $4/month VPS (Hetzner, DigitalOcean), in a Docker container via Coolify/Portainer, on a home lab / Raspberry Pi, or for free on Vercel.
+**Pagepod gives your HTML files a clean, sovereign home:**
+- **Zero build steps:** Drop in a `.html` file or a `.zip` archive with images and CSS. You get a shareable link and a live preview right away.
+- **Hardened sandbox:** Pages run on dedicated `/raw/[slug]/` endpoints with strict CSP and no `allow-same-origin`. Untrusted scripts cannot touch your host cookies or admin sessions.
+- **Your own hardware:** Run it on a $4/month VPS, in Docker or Coolify, on a home lab, or free on Vercel. Store files locally or in S3/R2.
 
 ---
 
@@ -55,43 +52,43 @@ Whether it is a standalone HTML utility, an interactive Canvas game, a data visu
 
 | | Self-Hosted Pagepod (This Repo) | Pagepod Cloud (Managed) |
 | :--- | :--- | :--- |
-| **Pricing** | **100% Free & Open Source (MIT)** | Free & Lifetime Tiers |
-| **Infrastructure** | Your own VPS, Coolify, Docker, or Vercel | Fully managed high-availability cloud |
-| **Data Ownership** | 100% on your hardware or your S3/R2 | Managed cloud storage |
-| **Maintenance** | Handled by you | Zero maintenance, automated backups |
-| **Custom Domains** | Unlimited (via reverse proxy / Caddy) | Custom subdomain routing included |
-| **Get Started** | [Follow deployment guide](#deployment) | [Visit pagepod.dev](https://pagepod.dev) |
+| **License & Price** | **100% Free & Open Source (MIT)** | Free & Lifetime Tiers |
+| **Infrastructure** | Your own VPS, Coolify, Docker, or Vercel | Fully managed cloud cluster |
+| **Data Ownership** | 100% on your hardware or S3/R2 bucket | Managed cloud storage |
+| **Maintenance** | Handled by you | Zero maintenance, automatic updates |
+| **Custom Domains** | Unlimited (via reverse proxy / Caddy) | Subdomains and custom routing included |
+| **Get Started** | [Deployment guide](#deployment) | [pagepod.dev](https://pagepod.dev) |
 
 ---
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 HTML Ingestion & Sandboxed Hosting Pipeline                 │
+│                          How Pagepod Works                                  │
 │                                                                             │
-│  Standalone .html / Multi-asset .zip / Web Demos / Tool Exports             │
+│  Single .html / Multi-asset .zip / Code Paste / Tools & Games               │
 │         │                                        │                          │
 │         ▼                                        ▼                          │
-│   Web Console (Drag / Zip / Paste)       POST /api/upload (CLI / PAT Auth)  │
+│   Web Console (Drag / Zip / Paste)       POST /api/upload (CLI / PAT Token) │
 │         │                                        │                          │
 │         └───────────────────┬────────────────────┘                          │
 │                             ▼                                               │
-│                 Pagepod Platform Core (Next.js 16)                          │
+│                 Pagepod Core (Next.js 16)                                   │
 │                             │                                               │
 │    ┌────────────────────────┼────────────────────────┐                      │
 │    ▼                        ▼                        ▼                      │
-│  Pluggable Storage    Drizzle Database       Hardened Sandbox Guard         │
-│  • Local Disk Storage • PostgreSQL (Neon/DB) • CSP: script/form isolated    │
-│  • Cloudflare R2 ($0) • Supabase SSR Auth    • Zero-leak memory storage     │
-│  • Vercel Blob        • Local JSON Fallback  • Host cookie interception     │
+│  Storage Options       Database Layer         Hardened Sandbox Guard        │
+│  • Local Disk Storage  • PostgreSQL (Neon/DB) • Isolated /raw/ origin       │
+│  • Cloudflare R2 ($0)  • Supabase Auth        • Strict CSP: no same-origin  │
+│  • Vercel Blob         • Local JSON Fallback  • Zero host cookie leak       │
 │    │                        │                        │                      │
 │    └────────────────────────┼────────────────────────┘                      │
 │                             ▼                                               │
 │         ┌───────────────────┴───────────────────┐                           │
 │         ▼                                       ▼                           │
-│  Showcase Gallery (/explore)            Interactive Runner (/p/[slug])      │
-│  • Static blueprint dot-matrix poster   • Desktop / Tablet / Mobile toggle  │
-│  • Hover-to-charge (600ms) activation   • Raw sandboxed origin (/raw/)      │
-│  • LRU pool: 6 max active iframes       • Formatted source viewer + copy    │
+│  Public Gallery (/explore)              Runner & Inspector (/p/[slug])      │
+│  • Lightweight static posters           • Desktop / Tablet / Mobile views   │
+│  • Hover or click to preview            • Raw sandboxed runner (/raw/)      │
+│  • Active sandboxes capped at 6         • Formatted source viewer + copy    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -99,39 +96,37 @@ Whether it is a standalone HTML utility, an interactive Canvas game, a data visu
 
 ## Comparison
 
-| Feature | Pagepod (Self-Hosted) | CodePen / JSFiddle | v0 / Bolt Preview | Static S3 / R2 Bucket |
+| Feature | Pagepod (Self-Hosted) | CodePen / JSFiddle | v0 / Bolt Preview | Raw S3 / R2 Bucket |
 | :--- | :---: | :---: | :---: | :---: |
-| **Self-Hostable on Own Hardware** | **Yes (VPS / Docker)** | No (SaaS only) | No (SaaS only) | Yes |
-| **Hardened CSP Sandbox** | **Yes (`/raw/` isolated)** | Partial | Partial | No (Bucket domain risk) |
-| **Multi-File Zip + Asset Mapping** | **Yes (Auto-extract)** | Paid tier only | Limited | Manual upload |
-| **Responsive Viewports (Desktop/Pad/Phone)**| **Yes (1-click switch)**| Manual resize | Yes | No |
-| **CLI & Agent Push API (`/api/upload`)** | **Yes (OpenAPI + PAT)**| No | No | S3 CLI only |
-| **Zero Initial GPU/Memory Load** | **Yes (Poster + LRU 6)** | No (Heavy iframes) | Heavy iframes | N/A |
-| **Client-Side Zero-Knowledge E2EE** | **Yes (AES-GCM)** | No | No | No |
-| **Bandwidth Egress Cost** | **$0 (R2 or local disk)** | Subscription | Subscription | Cloud provider fees |
+| **Self-host on your own hardware** | **Yes (VPS / Docker)** | No (SaaS only) | No (SaaS only) | Yes |
+| **Hardened CSP sandbox** | **Yes (`/raw/` isolated)** | Partial | Partial | No (Same-domain risk) |
+| **Zip archives with relative assets** | **Yes (Auto-extract)** | Paid tier only | Limited | Manual upload |
+| **Multi-device preview (Desktop/Pad/Phone)** | **Yes (1-click switch)** | Manual resize | Yes | No |
+| **CLI & API push (`/api/upload`)** | **Yes (OpenAPI + Token)** | No | No | S3 CLI only |
+| **Gentle on CPU/GPU (No iframe overload)** | **Yes (Poster + LRU 6)** | Heavy iframes | Heavy iframes | N/A |
+| **Client-side encryption (E2EE)** | **Yes (AES-GCM)** | No | No | No |
+| **Bandwidth egress markup** | **$0 (R2 or local disk)** | Subscription | Subscription | Cloud provider fees |
 
 ---
 
 ## Features
 
-- **Hardened security sandbox:** Untrusted HTML executes in dedicated `/raw/[slug]/` origins protected by strict CSP directives (`sandbox allow-scripts allow-forms allow-downloads allow-popups allow-modals; default-src * 'unsafe-inline' 'unsafe-eval' data: blob:`) without `allow-same-origin`, physically isolating host cookies, admin sessions, and local storage.
-- **Static blueprint & dual-action capsule:** Renders low-overhead Zinc dot-matrix posters with category wireframes by default. Launches sandboxes on demand via 1-click or 600ms hover-charge, governed by an LRU pool capped at 6 active iframes to prevent memory exhaustion and GPU spikes.
-- **Resilience shield & size guard:** Micro-badges warn visitors for files exceeding 2MB, while a 6.5-second execution timeout guard automatically halts unresponsive scripts to keep host browsing responsive.
-- **Multi-format ingestion pipeline:** Ingests standalone `.html` files, multi-file `.zip` packages (with automatic relative asset extraction for images, stylesheets, and scripts), direct code pastes with intelligent `<title>`/`<meta>` extraction, and a built-in CodeMirror editor.
-- **Multi-device responsive runner (`/p/[slug]`):** Real-time viewport toggling between Desktop (100%), Tablet (768px), and Mobile (375px), native browser full-screen mode, formatted source inspector with 1-click copying, and permanent shareable links.
-- **OpenAPI 3.1 & Developer CLI automation:** Deploy directly from terminal pipelines, scripts, or coding assistants via `POST /api/upload` using Personal Access Tokens (`pp_live_...`). Interactive Scalar API documentation is served at `/api/docs`.
-- **Zero-lock-in storage & database adapters:** Pluggable `getStorage()` layer detects local disk storage (`.storage/`), Cloudflare R2 (S3-compatible, zero egress), or Vercel Blob. Drizzle ORM supports PostgreSQL (Neon, Supabase, Vercel Postgres) with zero-config local fallback (`.data/db.json`).
-- **Account-level privacy & E2EE:** Granular access control allowing projects to be marked Public for showcase discovery or Private for authenticated owners only. Supports client-side AES-GCM zero-knowledge encryption for sensitive tools.
+- **Hardened security sandbox:** Untrusted HTML runs in an isolated `/raw/[slug]/` endpoint with strict CSP headers. Without `allow-same-origin`, scripts can never access your host cookies, admin tokens, or local storage.
+- **Gentle on your hardware:** Gallery cards show clean static posters by default. Sandboxes only boot when you click or hover. A pool limit caps active iframes at 6, keeping memory low and fans quiet.
+- **Large file and loop protection:** Visual warnings for files over 2MB, plus an automatic 6.5s timeout guard that stops runaway scripts from freezing your tab.
+- **Drop in files or zips:** Upload single `.html` files, `.zip` packages with images and CSS, or paste raw code directly. Page titles and meta descriptions are parsed automatically.
+- **Responsive viewports (`/p/[slug]`):** Switch between Desktop (100%), Tablet (768px), and Mobile (375px) with one click. Includes full-screen mode and formatted source viewing.
+- **CLI and API uploads:** Push files directly from terminal scripts, CI/CD, or coding agents using `POST /api/upload` with personal access tokens (`pp_live_...`). Interactive docs live at `/api/docs`.
+- **Flexible storage & database:** Store files on your local drive, Cloudflare R2 ($0 egress fees), or Vercel Blob. Works with PostgreSQL in production, or a zero-config local JSON file for dev.
+- **Public showcase or private tools:** Keep experiments private for your own account, or publish them to the community showcase.
 
 ---
 
 ## Deployment
 
-Choose the deployment method that fits your infrastructure:
+### 1. Docker Compose (Recommended)
 
-### 1. Docker Compose (Recommended for Self-Hosters)
-
-Deploy on any Linux VPS (Ubuntu, Debian, Hetzner, DigitalOcean) with a single command:
+Run on any Linux VPS (Hetzner, DigitalOcean, Debian, Ubuntu) with one command:
 
 ```bash
 # 1. Download docker-compose.yml
@@ -144,50 +139,47 @@ sed -i 's/change_me_to_a_secure_password/your_real_password/' docker-compose.yml
 docker compose up -d
 ```
 
-Pagepod is now running at `http://YOUR_SERVER_IP:3000`. Persistent files are stored in `./storage` and `./data`.
+Pagepod is now running at `http://YOUR_SERVER_IP:3000`. Files and data persist in `./storage` and `./data`.
 
 ### 2. Deploy on Coolify
 
-Deploy Pagepod inside your existing Coolify instance:
-
-1. In the Coolify dashboard, click **+ Create New Resource** → **Public Repository**.
+1. In Coolify, click **+ Create New Resource** → **Public Repository**.
 2. Enter the repository URL: `https://github.com/QingYunA/html-manager`.
-3. Coolify will detect the included `Dockerfile`. Set the internal container port to `3000`.
+3. Coolify will detect the `Dockerfile`. Set the internal container port to `3000`.
 4. In **Environment Variables**, add:
    ```env
    ADMIN_PASSWORD=your_secure_password
    NODE_ENV=production
    ```
-5. Click **Deploy**. Coolify provisions SSL certificates and mounts the application automatically.
+5. Click **Deploy**. Coolify provisions SSL and starts the container.
 
-### 3. Deploy with Vercel (1-Click Cloud)
+### 3. Deploy on Vercel (1-Click)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FQingYunA%2Fhtml-manager&env=ADMIN_PASSWORD&envDescription=Set%20a%20master%20password%20for%20accessing%20the%20admin%20dashboard&stores=%5B%7B%22type%22%3A%22postgres%22%7D%2C%7B%22type%22%3A%22blob%22%7D%5D)
 
-1. Click the button above to clone the repository into your GitHub account.
-2. Link free **Vercel Postgres** and **Vercel Blob** stores in the setup wizard.
-3. Configure `ADMIN_PASSWORD` for console access and deploy.
+1. Click the button above to clone to your GitHub account.
+2. Link free **Vercel Postgres** and **Vercel Blob** stores in the wizard.
+3. Set `ADMIN_PASSWORD` and deploy.
 
-### 4. Run from Source (Local or Bare Metal)
+### 4. Run Locally from Source
 
-Zero-config fallback: no external database or S3 service required.
+No database or external services required for local development:
 
 ```bash
-# 1. Clone repository
+# 1. Clone repo
 git clone https://github.com/QingYunA/html-manager.git
 cd html-manager
 
 # 2. Install dependencies (bun, pnpm, or npm)
 bun install
 
-# 3. Start development server
+# 3. Start dev server
 bun run dev
 ```
 
-Visit `http://localhost:3000` to browse the public gallery. Access `/login` with password `admin888` for the workspace.
+Open `http://localhost:3000` to view the showcase. Visit `/login` with password `admin888` to open the workspace.
 
-To run for production on bare metal:
-
+For production bare-metal:
 ```bash
 bun run build
 bun run start
@@ -195,16 +187,14 @@ bun run start
 
 ---
 
-## API & CLI Automation
+## API & CLI Uploads
 
-Pagepod includes a RESTful API and a lightweight CLI tool so that terminal scripts, build tools, and automated pipelines can deploy HTML files directly.
+Push HTML files programmatically from scripts, GitHub Actions, or AI agents.
 
-- **Interactive API Documentation:** Available at `/api/docs` (rendered with Scalar).
+- **Interactive API Docs:** Available at `/api/docs` (Scalar).
 - **OpenAPI 3.1 Spec:** Available at `/api/openapi.json`.
 
-### CLI Uploader Script
-
-Upload an HTML file directly from your terminal:
+### CLI Upload Script
 
 ```bash
 node scripts/upload-cli.js ./matrix-rain.html \
@@ -214,7 +204,7 @@ node scripts/upload-cli.js ./matrix-rain.html \
   --endpoint "http://localhost:3000"
 ```
 
-### Direct cURL File Upload
+### Upload via cURL (File)
 
 ```bash
 curl -X POST https://your-domain.com/api/upload \
@@ -225,7 +215,7 @@ curl -X POST https://your-domain.com/api/upload \
   -F "tags=Canvas,Physics"
 ```
 
-### Direct cURL JSON Code Push
+### Push Raw HTML Code via cURL (JSON)
 
 ```bash
 curl -X POST https://your-domain.com/api/upload \
@@ -239,7 +229,7 @@ curl -X POST https://your-domain.com/api/upload \
   }'
 ```
 
-**JSON Response:**
+**Response:**
 
 ```json
 {
@@ -258,7 +248,7 @@ curl -X POST https://your-domain.com/api/upload \
 
 ## Environment Variables
 
-Configure these keys in your `.env.local` or container environment:
+Configure these in `.env.local` or your container environment:
 
 | Variable | Required | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -269,26 +259,10 @@ Configure these keys in your `.env.local` or container environment:
 | `R2_ACCESS_KEY_ID` | Optional | None | Cloudflare R2 Access Key ID. |
 | `R2_SECRET_ACCESS_KEY` | Optional | None | Cloudflare R2 Secret Access Key. |
 | `R2_BUCKET_NAME` | Optional | `html-manager` | Cloudflare R2 bucket name. |
-| `API_TOKEN` | Optional | Inherits `ADMIN_PASSWORD` | Dedicated token for programmatic upload authentication. |
-| `SESSION_SECRET` | Optional | Fallback to password | Secret string (≥16 chars) for signing session JWT tokens. |
-| `NEXT_PUBLIC_SUPABASE_URL` | Optional | None | Supabase URL for multi-user Google OAuth and Email OTP. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | None | Supabase Anonymous Key for public client authentication. |
-
-### Cloudflare R2 CORS Configuration
-
-If using Cloudflare R2 for zero-egress object storage with direct browser uploads, add this policy in **R2 → Bucket → Settings → CORS Policy**:
-
-```json
-[
-  {
-    "AllowedOrigins": ["https://your-domain.com"],
-    "AllowedMethods": ["PUT", "GET", "HEAD"],
-    "AllowedHeaders": ["*"],
-    "ExposeHeaders": ["ETag"],
-    "MaxAgeSeconds": 3600
-  }
-]
-```
+| `API_TOKEN` | Optional | Inherits `ADMIN_PASSWORD` | Dedicated token for API upload authentication. |
+| `SESSION_SECRET` | Optional | Fallback to password | Secret key for signing session JWTs (≥16 chars). |
+| `NEXT_PUBLIC_SUPABASE_URL` | Optional | None | Supabase URL for Google OAuth and Email OTP. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | None | Supabase Anonymous Key for public client auth. |
 
 ---
 
@@ -298,40 +272,29 @@ If using Cloudflare R2 for zero-egress object storage with direct browser upload
 html-manager/
 ├── Dockerfile                     # Multi-stage production container image
 ├── docker-compose.yml             # 1-command container deployment recipe
-├── public/
-│   ├── brand/                     # SVG & PNG branding assets
-│   └── examples/                  # Sample HTML artifacts
+├── public/                        # Static assets, branding, and examples
 ├── src/
 │   ├── app/
-│   │   ├── (marketing)/           # Public gallery, explore, about, privacy routes
-│   │   ├── api/
-│   │   │   ├── docs/              # Scalar interactive API documentation
-│   │   │   ├── openapi.json/      # OpenAPI 3.1 specification endpoint
-│   │   │   └── upload/            # REST API upload and presign handlers
+│   │   ├── (marketing)/           # Public gallery, explore, about, and privacy pages
+│   │   ├── api/                   # Upload endpoints, OpenAPI spec, and docs
 │   │   ├── p/[slug]/              # Multi-viewport interactive runner
-│   │   ├── raw/[slug]/[[...path]] # Isolated CSP sandbox and static proxy
-│   │   └── workspace/             # Authenticated workspace, upload & project tables
-│   ├── components/
-│   │   ├── hover-sandbox-preview  # Dot-matrix poster & dual-action capsule
-│   │   ├── showcase-gallery.tsx   # Gallery grid with tag and category filters
-│   │   └── ui/                    # shadcn/ui & Radix UI primitives
-│   ├── db/                        # Drizzle schema, SQLite & Postgres drivers
-│   └── lib/
-│       ├── parser/                # HTML title extraction & Zip unarchiver
-│       ├── storage/               # Unified storage adapter (Local / R2 / Blob)
-│       └── services/              # Business logic pipelines
+│   │   ├── raw/[slug]/[[...path]] # Isolated CSP sandbox endpoint
+│   │   └── workspace/             # Authenticated dashboard and file uploads
+│   ├── components/                # UI primitives (shadcn) and preview components
+│   ├── db/                        # Drizzle schema and database drivers
+│   └── lib/                       # Storage adapters, parser, and business logic
 ├── drizzle.config.ts              # Drizzle ORM configuration
 └── next.config.ts                 # Next.js build and routing configuration
 ```
 
 ---
 
-## Community & Contributing
+## Contributing
 
-Contributions are welcome. Please open an issue or pull request to discuss proposed changes:
+Contributions are welcome! Please open an issue or submit a pull request.
 
 1. Fork the repository.
-2. Create your feature branch (`git checkout -b feature/my-feature`).
+2. Create your branch (`git checkout -b feature/my-feature`).
 3. Commit your changes (`git commit -m 'feat: add my feature'`).
 4. Push to the branch (`git push origin feature/my-feature`).
 5. Open a Pull Request.
@@ -340,4 +303,5 @@ Contributions are welcome. Please open an issue or pull request to discuss propo
 
 ## License
 
-Pagepod is released under the [MIT License](LICENSE).
+Pagepod is open-source under the [MIT License](LICENSE).
+
