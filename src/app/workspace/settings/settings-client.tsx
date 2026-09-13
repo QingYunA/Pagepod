@@ -412,9 +412,10 @@ export default function SettingsClient({
         </CardContent>
       </Card>
 
-      {/* 2. Membership & Plan Details Card */}
-      <Card>
-        <CardHeader className="p-5 pb-4 border-b border-border/50 bg-muted/20">
+      {/* 2. Membership & Plan Details Card (Cloud mode only) */}
+      {isCloud && (
+        <Card>
+          <CardHeader className="p-5 pb-4 border-b border-border/50 bg-muted/20">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               {user.planTier === "pro" ? (
@@ -511,6 +512,7 @@ export default function SettingsClient({
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* 3. Connected Accounts Card (Supabase OAuth Linking) */}
       <Card>

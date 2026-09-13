@@ -17,7 +17,7 @@ import {
   Menu,
 } from "lucide-react";
 import type { CurrentUser } from "@/lib/auth";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { createSupabaseClient, isClientCloudMode } from "@/lib/supabase/client";
 import { UserDropdown } from "@/components/user-dropdown";
 import {
   DropdownMenu,
@@ -40,32 +40,11 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
   const [user, setUser] = React.useState<CurrentUser | null>(currentUser ?? null);
 
   React.useEffect(() => {
-    if (currentUser !== undefined && currentUser !== null) {
-      setUser(currentUser);
-      if (!currentUser.planTier) {
-        fetch("/api/user/me")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.authenticated && data?.user) {
-              setUser(data.user);
-            }
-          })
-          .catch(() => {});
-      }
-      return;
-    }
+    setUser(currentUser ?? null);
+  }, [currentUser]);
 
-    // Unified client-side session resolution
-    fetch("/api/user/me")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.authenticated && data?.user) {
-          setUser(data.user);
-        }
-      })
-      .catch(() => {});
-
-    // Listen to Supabase auth events if configured
+  // Sync auth state in cloud mode via Supabase auth state change listener
+  React.useEffect(() => {
     const supabase = createSupabaseClient();
     if (supabase) {
       const {
@@ -73,10 +52,10 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
       } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
           fetch("/api/user/me")
-            .then((res) => res.json())
-            .then((data) => {
-              if (data?.authenticated && data?.user) {
-                setUser(data.user);
+            .then((res) => (res.ok ? res.json() : null))
+            .then((userData) => {
+              if (userData && userData.user) {
+                setUser(userData.user);
               }
             })
             .catch(() => {});
@@ -89,10 +68,12 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
     }
   }, [currentUser]);
 
+  const isCloud = isClientCloudMode();
+
   const navItems = [
     { href: "/", label: t.nav.showcase, icon: Sparkles, exact: true },
     { href: "/explore", label: t.nav.explore, icon: Compass, exact: false },
-    { href: "/pricing", label: t.nav.pricing, icon: CreditCard, exact: false },
+    ...(isCloud ? [{ href: "/pricing", label: t.nav.pricing, icon: CreditCard, exact: false }] : []),
     {
       href: "/workspace",
       label: user?.role === "admin" ? t.nav.console : t.nav.workspace,

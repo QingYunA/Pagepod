@@ -29,6 +29,7 @@ export const translations = {
       badge: "HTML Runtime & Gallery",
       title: "保存、运行并分享你的 HTML",
       desc: "无需配置服务器与构建流水线。上传 HTML 文件或资源包，即刻获得受安全沙箱保护的永久链接与展示舞台。",
+      selfhostDesc: "私有化自托管的 HTML 应用展台与作品集，零构建安全沙箱运行。",
     },
     categories: {
       all: "全部",
@@ -508,6 +509,7 @@ export const translations = {
       badge: "HTML Runtime & Gallery",
       title: "Save, run, and share your HTML",
       desc: "No server configuration or build pipelines required. Turn HTML files and zip bundles into sandboxed web experiences with shareable links.",
+      selfhostDesc: "Self-hosted HTML applications and portfolio showcase, sandboxed and ready to run.",
     },
     categories: {
       all: "All",

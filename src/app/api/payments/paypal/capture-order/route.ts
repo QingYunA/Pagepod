@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { captureCheckoutOrder } from "@/lib/services/billing-service";
 import { ProjectDomainError } from "@/lib/services/project-service";
+import { isSelfHosted } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
+  if (isSelfHosted()) {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
+  }
+
   try {
     const user = await getCurrentUser(req);
     if (!user) {
