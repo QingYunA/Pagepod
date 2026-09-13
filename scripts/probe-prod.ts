@@ -49,8 +49,8 @@ async function probe() {
       const first = json.projects[0];
       sampleSlug = first.slug || sampleSlug;
       assert(
-        Boolean(first.id && first.title && first.slug && first.reviewStatus === "approved"),
-        `First project has valid structure and reviewStatus === 'approved' (${first.slug})`
+        Boolean(first.id && first.title && first.slug && first.visibility === "public"),
+        `First project has valid structure and visibility === 'public' (${first.slug})`
       );
     }
   } catch (err: any) {
