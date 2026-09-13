@@ -20,23 +20,32 @@ export default async function WorkspacePage() {
   let projects: Project[] = [];
 
   if (currentUser?.id === "selfhost-admin") {
-    projects = await getAllProjects({ includePrivate: true, allowAllReviewStatuses: true });
+    projects = await getAllProjects({ includePrivate: true, isWorkspace: true, allowAllReviewStatuses: true });
   } else if (currentUser?.id) {
     if (currentUser.role === "admin") {
       // Platform admin also sees public items from everyone for moderation (including pending & rejected), but NEVER others' private items!
       const [myProjects, publicProjects] = await Promise.all([
-        getAllProjects({ userId: currentUser.id }),
-        getAllProjects({ includePrivate: false, allowAllReviewStatuses: true }),
+        getAllProjects({ userId: currentUser.id, isWorkspace: true, allowAllReviewStatuses: true }),
+        getAllProjects({ includePrivate: false, isWorkspace: false, allowAllReviewStatuses: true }),
       ]);
       const map = new Map<string, Project>();
-      [...myProjects, ...publicProjects].forEach((p) => map.set(p.id, p));
+      myProjects.forEach((p) => map.set(p.id, p));
+      publicProjects.forEach((p) => {
+        if (!map.has(p.id)) {
+          if (p.userId && p.userId !== currentUser.id) {
+            map.set(p.id, { ...p, isPinned: false, pinnedAt: null });
+          } else {
+            map.set(p.id, p);
+          }
+        }
+      });
       projects = Array.from(map.values());
     } else {
       // User sees their own projects (including their own private ones)
-      projects = await getAllProjects({ userId: currentUser.id });
+      projects = await getAllProjects({ userId: currentUser.id, isWorkspace: true, allowAllReviewStatuses: true });
     }
   } else {
-    projects = await getAllProjects({ includePrivate: false });
+    projects = await getAllProjects({ includePrivate: false, isWorkspace: true, allowAllReviewStatuses: true });
   }
 
   const totalViews = projects.reduce((sum, p) => sum + (p.viewCount || 0), 0);
@@ -60,7 +69,11 @@ export default async function WorkspacePage() {
         />
 
         {/* Projects Management Table */}
-        <AdminTable initialProjects={projects} />
+        <AdminTable
+          initialProjects={projects}
+          isAdmin={currentUser?.role === "admin" || currentUser?.id === "selfhost-admin"}
+          currentUserId={currentUser?.id}
+        />
       </main>
     </div>
   );

@@ -38,8 +38,14 @@ export async function createSupabaseServerClient() {
 }
 
 export function isCloudMode(): boolean {
-  return (
-    process.env.NEXT_PUBLIC_APP_MODE === "cloud" ||
-    Boolean(cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL) && cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY))
+  const mode = cleanEnv(process.env.APP_MODE || process.env.NEXT_PUBLIC_APP_MODE);
+  const hasSupabase = Boolean(
+    cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
   );
+  return mode === "cloud" && hasSupabase;
+}
+
+export function isSelfHosted(): boolean {
+  return !isCloudMode();
 }

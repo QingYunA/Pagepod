@@ -18,6 +18,10 @@ import {
   ProjectValidationError,
   ProjectNotFoundError,
 } from "./project-service";
+import { isSelfHosted } from "@/lib/supabase/server";
+
+export const MAX_SELFHOST_UPLOAD_BYTES =
+  Number(process.env.MAX_UPLOAD_SIZE) || 100 * 1024 * 1024; // 100MB default for selfhost
 
 export interface PlanEntitlement {
   tier: "free" | "lite" | "pro";
@@ -55,7 +59,17 @@ export async function assertCanCreateProject(
   user: CurrentUser,
   fileSizeBytes?: number
 ): Promise<void> {
-  const isAdmin = user.role === "admin" || user.id === "selfhost-admin";
+  // In self-hosted mode, users possess sovereign unconstrained limits
+  if (isSelfHosted() || user.id === "selfhost-admin" || user.role === "admin") {
+    if (fileSizeBytes !== undefined && fileSizeBytes > MAX_SELFHOST_UPLOAD_BYTES) {
+      const maxMb = Math.round(MAX_SELFHOST_UPLOAD_BYTES / (1024 * 1024));
+      throw new ProjectPayloadTooLargeError(
+        `File size exceeds maximum server limit (${maxMb}MB).`
+      );
+    }
+    return;
+  }
+
   const tier = user.planTier || "free";
   const entitlement = PLAN_ENTITLEMENTS[tier] || PLAN_ENTITLEMENTS.free;
 
@@ -66,9 +80,6 @@ export async function assertCanCreateProject(
       `File size exceeds your plan limit (${maxMb}MB for ${entitlement.name} tier). Please upgrade to upload larger files.`
     );
   }
-
-  // Admins bypass project count limits
-  if (isAdmin) return;
 
   // 2. Project count limit
   const currentCount = await getUserProjectsCount(user.id);
@@ -86,6 +97,10 @@ export async function createCheckoutOrder(
   user: CurrentUser,
   planTier: string
 ): Promise<{ orderId: string; planTier: PlanTier; amount: string }> {
+  if (isSelfHosted()) {
+    throw new ProjectForbiddenError("Commercial payment is disabled in self-hosted mode");
+  }
+
   if (!user || !user.id) {
     throw new ProjectForbiddenError("Authentication required to initiate checkout");
   }
@@ -127,6 +142,10 @@ export async function captureCheckoutOrder(
   user: CurrentUser,
   orderId: string
 ): Promise<{ success: boolean; orderId: string; captureId?: string; planTier: string; alreadyCompleted?: boolean }> {
+  if (isSelfHosted()) {
+    throw new ProjectForbiddenError("Commercial payment is disabled in self-hosted mode");
+  }
+
   if (!user || !user.id) {
     throw new ProjectForbiddenError("Authentication required to capture payment");
   }

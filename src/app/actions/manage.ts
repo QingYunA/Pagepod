@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import {
   togglePin,
+  toggleGlobalPin,
   updateVisibility,
   deleteProject,
   updateProject,
@@ -20,6 +21,11 @@ async function requireUser() {
 export async function togglePinAction(id: string, _currentPinned?: boolean) {
   const user = await requireUser();
   await togglePin(user, id);
+}
+
+export async function toggleGlobalPinAction(id: string, _currentPinned?: boolean) {
+  const user = await requireUser();
+  await toggleGlobalPin(user, id);
 }
 
 export async function updateVisibilityAction(id: string, visibility: "public" | "private") {

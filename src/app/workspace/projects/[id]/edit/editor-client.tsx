@@ -21,8 +21,12 @@ import {
   Loader2,
   RotateCw,
   Camera,
+  Bot,
+  Palette,
+  Globe,
 } from "lucide-react";
 import type { Project } from "@/db/schema";
+import { useLanguage } from "@/lib/i18n/context";
 
 // CodeMirror (+ @codemirror/lang-html) is large. Load the whole editor only when the
 // code tab actually renders, keeping it out of the route's initial client bundle.
@@ -48,29 +52,35 @@ import { PublicRiskDialog } from "@/components/public-risk-dialog";
 interface EditorClientProps {
   project: Project;
   initialCode: string;
+  isAdmin?: boolean;
 }
 
 const CATEGORIES = [
   { id: "tools", label: "实用工具", icon: Wrench },
+  { id: "ai", label: "AI 应用", icon: Bot },
   { id: "games", label: "互动游戏", icon: Gamepad2 },
+  { id: "creative", label: "创意与 3D", icon: Palette },
   { id: "visualization", label: "数据可视化", icon: BarChart3 },
   { id: "prototypes", label: "页面原型", icon: Smartphone },
   { id: "animations", label: "动效演示", icon: Sparkles },
   { id: "others", label: "其他", icon: Layers },
 ];
 
-export default function ProjectEditorClient({ project, initialCode }: EditorClientProps) {
+export default function ProjectEditorClient({ project, initialCode, isAdmin = false }: EditorClientProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"code" | "settings">("code");
   const [code, setCode] = useState(initialCode);
   const [title, setTitle] = useState(project.title);
   const [description, setDescription] = useState(project.description || "");
   const [category, setCategory] = useState(project.category);
+  const [language, setLanguage] = useState<"zh" | "en" | "other">((project.language as "zh" | "en" | "other") || "zh");
   const [tags, setTags] = useState<string[]>((project.tags as string[]) || []);
   const [tagInput, setTagInput] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">(
     project.visibility === "private" || (project.visibility as string) === "unlisted" ? "private" : "public"
   );
   const [isPinned, setIsPinned] = useState(project.isPinned);
+  const [isGlobalPinned, setIsGlobalPinned] = useState(Boolean(project.isGlobalPinned));
 
   const [previewKey, setPreviewKey] = useState(0);
   const [previewLoading, setPreviewLoading] = useState(true);
@@ -130,9 +140,11 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
           title,
           description,
           category,
+          language,
           tags,
           visibility: targetVisibility || visibility,
           isPinned,
+          isGlobalPinned: isAdmin ? isGlobalPinned : undefined,
           htmlCode: project.assetType === "single_html" ? code : undefined,
         });
         setSavedSuccess(true);
@@ -379,7 +391,7 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
 
                 <div>
                   <label className="block text-xs font-medium text-foreground mb-1.5">所属分类</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {CATEGORIES.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.id;
@@ -399,6 +411,27 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="edit-language" className="block text-xs font-medium text-foreground mb-1.5">
+                    {t.workspace?.languageLabel || "主要语言 (Language)"}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      id="edit-language"
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value as "zh" | "en" | "other")}
+                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-44"
+                    >
+                      <option value="zh">{t.workspace?.langZh || "中文 (Chinese)"}</option>
+                      <option value="en">{t.workspace?.langEn || "英文 (English)"}</option>
+                      <option value="other">{t.workspace?.langOther || "其他 (Other)"}</option>
+                    </Select>
+                    <span className="text-[11px] text-muted-foreground">
+                      {t.workspace?.languageHint || "用于正交多语言筛选与索引"}
+                    </span>
                   </div>
                 </div>
 
@@ -459,14 +492,29 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
                     </Select>
                   </div>
 
-                  <div className="flex flex-col justify-end">
+                  <div className="flex flex-col justify-end gap-2">
                     <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
                       <Checkbox
                         checked={isPinned}
                         onChange={(e) => setIsPinned(e.target.checked)}
                       />
-                      <span className="text-xs text-foreground font-medium">置顶到画廊前列</span>
+                      <span className="text-xs text-foreground font-medium">
+                        {t.workspace?.workspacePinLabel || "置顶到个人工作区"}
+                      </span>
                     </label>
+
+                    {isAdmin && (
+                      <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
+                        <Checkbox
+                          checked={isGlobalPinned}
+                          onChange={(e) => setIsGlobalPinned(e.target.checked)}
+                        />
+                        <span className="text-xs text-foreground font-medium flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5 text-foreground" />
+                          <span>{t.workspace?.globalPinLabel || "全站展台首屏置顶 (Admin)"}</span>
+                        </span>
+                      </label>
+                    )}
                   </div>
                 </div>
               </CardContent>

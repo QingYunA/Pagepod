@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Compass, Wrench, Gamepad2, BarChart2, Layers, Sparkles, ArrowRight, ExternalLink, Play } from "lucide-react";
+import { Compass, Wrench, Gamepad2, BarChart2, Layers, Sparkles, ArrowRight, ExternalLink, Play, Bot, Palette } from "lucide-react";
 import type { Project } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +15,19 @@ interface ExploreClientProps {
 export default function ExploreClient({ projects }: ExploreClientProps) {
   const { t, locale } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedLanguage, setSelectedLanguage] = useState<"all" | "zh" | "en" | "other">("all");
 
   const categoryCards = [
+    {
+      id: "ai",
+      label: t.categories.ai,
+      icon: Bot,
+      count: projects.filter((p) => p.category === "ai").length,
+      desc:
+        locale === "zh"
+          ? "LLM 客户端、Prompt 提示词生成器与 AI 对话微前端"
+          : "LLM web clients, Agent prompts, and generative AI micro-apps",
+    },
     {
       id: "tools",
       label: t.categories.tools,
@@ -26,6 +37,16 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
         locale === "zh"
           ? "计算器、文本转换、正则与日常开发小工具"
           : "Calculators, text converters, formatters, and utilities",
+    },
+    {
+      id: "creative",
+      label: t.categories.creative,
+      icon: Palette,
+      count: projects.filter((p) => p.category === "creative").length,
+      desc:
+        locale === "zh"
+          ? "Three.js、Canvas 实验、着色器 Shader 与交互设计探索"
+          : "Three.js, Canvas experiments, shaders, and 3D visual designs",
     },
     {
       id: "games",
@@ -68,10 +89,11 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
     { label: "Three.js / WebGL", query: "3d" },
   ];
 
-  const filteredProjects =
-    selectedCategory === "all"
-      ? projects
-      : projects.filter((p) => p.category === selectedCategory);
+  const filteredProjects = projects.filter((p) => {
+    if (selectedCategory !== "all" && p.category !== selectedCategory) return false;
+    if (selectedLanguage !== "all" && (p.language || "zh") !== selectedLanguage) return false;
+    return true;
+  });
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12 md:py-16">
@@ -86,7 +108,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
       </div>
 
       {/* Category Hub Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
         {categoryCards.map((cat) => {
           const Icon = cat.icon;
           const isSelected = selectedCategory === cat.id;
@@ -133,7 +155,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
       <div className="p-5 rounded-xl border border-border bg-muted/20 mb-14">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <Sparkles className="w-3.5 h-3.5 text-foreground" />
             <span>{t.explore.popularTags}</span>
           </span>
           <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground hover:text-foreground">
@@ -158,7 +180,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
 
       {/* Filtered Projects Grid */}
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-foreground">
               {selectedCategory === "all" ? t.categories.all : categoryCards.find((c) => c.id === selectedCategory)?.label}
@@ -168,16 +190,66 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
             </span>
           </div>
 
-          {selectedCategory !== "all" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedCategory("all")}
-              className="h-7 text-xs text-muted-foreground hover:text-foreground"
-            >
-              {locale === "zh" ? "显示全部专题" : "View all topics"}
-            </Button>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Language Orthogonal Filter Pills */}
+            <div className="inline-flex items-center rounded-md border border-border bg-muted/30 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setSelectedLanguage("all")}
+                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                  selectedLanguage === "all"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.gallery?.languageAll || "全部语言"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLanguage("zh")}
+                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                  selectedLanguage === "zh"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.gallery?.languageZh || "中文"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLanguage("en")}
+                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                  selectedLanguage === "en"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.gallery?.languageEn || "English"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLanguage("other")}
+                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                  selectedLanguage === "other"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.gallery?.languageOther || "Other"}
+              </button>
+            </div>
+
+            {selectedCategory !== "all" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedCategory("all")}
+                className="h-7 text-xs text-muted-foreground hover:text-foreground"
+              >
+                {locale === "zh" ? "显示全部专题" : "View all topics"}
+              </Button>
+            )}
+          </div>
         </div>
 
         {filteredProjects.length === 0 ? (
