@@ -71,6 +71,12 @@ function extractSubdomain(hostHeader: string | null): string | null {
   return null;
 }
 
+function redirectToLogin(request: NextRequest, pathname: string) {
+  const loginUrl = new URL("/login", request.url);
+  loginUrl.searchParams.set("from", pathname);
+  return NextResponse.redirect(loginUrl);
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
@@ -139,9 +145,7 @@ export async function proxy(request: NextRequest) {
 
     // Fast path: if neither Supabase session cookies nor self-hosted admin cookie exist, redirect immediately
     if (!hasSupabaseCookie && !hasAdminCookie) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectToLogin(request, pathname);
     }
 
     let isValid = false;
@@ -172,9 +176,7 @@ export async function proxy(request: NextRequest) {
     }
 
     if (!isValid) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectToLogin(request, pathname);
     }
 
     return finalResponse;

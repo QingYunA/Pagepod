@@ -1,11 +1,5 @@
-/**
- * Workspace Performance Regression Test
- * Asserts that the /workspace critical path has zero proactive DDL overhead,
- * uses SQL-level filtering for getAllProjects, and avoids redundant remote calls.
- * Run with: bun run scripts/diagnose-workspace-perf.ts
- */
-
 import fs from "node:fs";
+import { getAllProjects } from "../src/db";
 
 let passed = 0;
 let failed = 0;
@@ -38,19 +32,40 @@ async function run() {
   assert(hasCatchFallback, "withTableFallback preserves on-demand catch fallback for missing tables/columns");
 
   // Test 3: SQL-level WHERE pushdown in getAllProjects
-  const hasSqlWhereUserId = dbIndexContent.includes("eq(schema.projects.userId, options.userId)") ||
-                           dbIndexContent.includes("eq(schema.projects.userId, options.userId)");
-  assert(hasSqlWhereUserId, "getAllProjects pushes WHERE user_id down to SQL query");
+  const hasSqlWhereUserId = dbIndexContent.includes("eq(schema.projects.userId, options.userId)") &&
+                           dbIndexContent.includes("eq(schema.projects.visibility, \"public\")");
+  assert(hasSqlWhereUserId, "getAllProjects pushes WHERE user_id and visibility down to SQL query");
 
   // Test 4: Database schema indexing on projects.user_id
-  const hasUserIdIndex = schemaContent.includes("projects_user_id_idx") ||
+  const hasUserIdIndex = schemaContent.includes("projects_user_id_idx") &&
                          schemaContent.includes(".on(table.userId)");
   assert(hasUserIdIndex, "schema.ts defines index on projects.user_id");
 
-  // Test 5: Middleware fast-path cookie check before outbound network calls
-  const hasCookiePreCheck = proxyContent.includes("hasSupabaseCookie") ||
+  // Test 5: Fallback isolation guard (isFilteredInSql ensures in-memory filtering runs on error fallback)
+  const hasFallbackIsolation = dbIndexContent.includes("isFilteredInSql") &&
+                              dbIndexContent.includes("if (!isFilteredInSql)");
+  assert(hasFallbackIsolation, "getAllProjects guarantees tenant isolation and visibility filtering in fallback mode");
+
+  // Test 6: Middleware fast-path cookie check before outbound network calls
+  const hasCookiePreCheck = proxyContent.includes("hasSupabaseCookie") &&
                            proxyContent.includes("!hasSupabaseCookie && !hasAdminCookie");
   assert(hasCookiePreCheck, "proxy.ts short-circuits unauthenticated /workspace requests before remote API calls");
+
+  // Test 7: Middleware redirectToLogin helper deduplication
+  const hasRedirectHelper = proxyContent.includes("function redirectToLogin") &&
+                           proxyContent.split("redirectToLogin(").length >= 3;
+  assert(hasRedirectHelper, "proxy.ts deduplicates redirect logic into redirectToLogin helper");
+
+  console.log("\n=== Runtime Data Isolation & Filter Assertions ===");
+
+  // Runtime Test 1: Querying with specific userId never leaks other users' projects
+  const aliceProjects = await getAllProjects({ userId: "mock-alice-id-nonexistent" });
+  assert(aliceProjects.length === 0, "Runtime: Non-existent userId query returns zero projects (no leak)");
+
+  // Runtime Test 2: Public query without includePrivate never returns private or unlisted projects
+  const publicProjects = await getAllProjects({ includePrivate: false });
+  const allPublic = publicProjects.every((p) => p.visibility === "public");
+  assert(allPublic, "Runtime: Public query returns strictly public projects");
 
   console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
   if (failed > 0) {
