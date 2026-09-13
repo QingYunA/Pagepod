@@ -177,6 +177,7 @@ const SQL_PROJECTS_MIGRATIONS = [
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS encryption_iv TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS file_size INTEGER DEFAULT 0;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS plan_tier TEXT DEFAULT 'free';`,
+  `CREATE INDEX IF NOT EXISTS projects_user_id_idx ON projects (user_id);`,
 ];
 
 const SQL_SETTINGS = `
@@ -255,11 +256,6 @@ async function ensurePostgresTables() {
 }
 
 async function withTableFallback<T>(fn: () => Promise<T>): Promise<T> {
-  // Proactively run table and column auto-migrations on cold start when connected to Postgres
-  if (!tablesInitialized && dbUrl) {
-    await ensurePostgresTables();
-  }
-
   try {
     return await fn();
   } catch (err: unknown) {
@@ -291,12 +287,27 @@ export async function getAllProjects(options?: {
 
   if (db) {
     try {
-      list = await withTableFallback(() =>
-        db
-          .select()
-          .from(schema.projects)
-          .orderBy(desc(schema.projects.isPinned), desc(schema.projects.createdAt))
-      );
+      list = await withTableFallback(async () => {
+        const conditions = [];
+
+        if (options?.userId) {
+          conditions.push(eq(schema.projects.userId, options.userId));
+        } else if (!options?.includePrivate) {
+          conditions.push(eq(schema.projects.visibility, "public"));
+        }
+
+        if (options?.category && options.category !== "all") {
+          conditions.push(eq(schema.projects.category, options.category));
+        }
+
+        const baseQuery = db.select().from(schema.projects);
+        const queryWithWhere = conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
+
+        return await queryWithWhere.orderBy(
+          desc(schema.projects.isPinned),
+          desc(schema.projects.createdAt)
+        );
+      });
     } catch (err) {
       console.error("Database query failed, falling back to local data:", err);
       const local = readLocalData();
@@ -310,15 +321,17 @@ export async function getAllProjects(options?: {
     });
   }
 
-  // Filter by user if specified (multi-tenant dashboard)
-  if (options?.userId) {
-    list = list.filter((p) => p.userId === options.userId);
-  } else if (!options?.includePrivate) {
-    list = list.filter((p) => p.visibility === "public");
-  }
+  // Filter in memory for local fallback mode
+  if (!db) {
+    if (options?.userId) {
+      list = list.filter((p) => p.userId === options.userId);
+    } else if (!options?.includePrivate) {
+      list = list.filter((p) => p.visibility === "public");
+    }
 
-  if (options?.category && options.category !== "all") {
-    list = list.filter((p) => p.category === options.category);
+    if (options?.category && options.category !== "all") {
+      list = list.filter((p) => p.category === options.category);
+    }
   }
 
   if (options?.tag) {

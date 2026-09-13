@@ -1,34 +1,40 @@
-import { pgTable, text, boolean, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, integer, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 
-export const projects = pgTable("projects", {
-  id: text("id").primaryKey(),
-  userId: text("user_id"), // Optional Supabase Auth user ID (for multi-tenant cloud mode)
-  title: text("title").notNull(),
-  slug: text("slug").notNull().unique(),
-  description: text("description").default(""),
-  category: text("category").notNull().default("tools"),
-  tags: jsonb("tags").$type<string[]>().default([]),
-  assetType: text("asset_type").notNull().default("single_html"), // 'single_html' | 'zip_bundle'
-  entryPath: text("entry_path").notNull().default("index.html"),
-  storageType: text("storage_type").notNull().default("local"), // 'vercel-blob' | 'cloudflare-r2' | 'local' | 'supabase'
-  storagePrefix: text("storage_prefix").notNull(),
-  visibility: text("visibility").notNull().default("public"), // 'public' | 'unlisted' | 'private'
-  isPinned: boolean("is_pinned").notNull().default(false),
-  viewCount: integer("view_count").notNull().default(0),
-  screenshotUrl: text("screenshot_url"),
-  
-  // End-to-End Encryption fields (zero-knowledge)
-  isEncrypted: boolean("is_encrypted").notNull().default(false),
-  encryptionIv: text("encryption_iv"), // Base64url 12-byte IV for AES-GCM (public)
-  keyMode: text("key_mode").notNull().default("legacy-server"), // 'legacy-server' | 'zk-passphrase' | 'zk-recovery'
-  kdfSalt: text("kdf_salt"), // Base64url PBKDF2 salt (public, only for zk-passphrase)
-  kdfIterations: integer("kdf_iterations"), // PBKDF2 iteration count (public, only for zk-passphrase)
-  fileSize: integer("file_size").default(0), // Bytes (for quota tracking)
-  planTier: text("plan_tier").default("free"), // 'free' | 'pro'
+export const projects = pgTable(
+  "projects",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id"), // Optional Supabase Auth user ID (for multi-tenant cloud mode)
+    title: text("title").notNull(),
+    slug: text("slug").notNull().unique(),
+    description: text("description").default(""),
+    category: text("category").notNull().default("tools"),
+    tags: jsonb("tags").$type<string[]>().default([]),
+    assetType: text("asset_type").notNull().default("single_html"), // 'single_html' | 'zip_bundle'
+    entryPath: text("entry_path").notNull().default("index.html"),
+    storageType: text("storage_type").notNull().default("local"), // 'vercel-blob' | 'cloudflare-r2' | 'local' | 'supabase'
+    storagePrefix: text("storage_prefix").notNull(),
+    visibility: text("visibility").notNull().default("public"), // 'public' | 'unlisted' | 'private'
+    isPinned: boolean("is_pinned").notNull().default(false),
+    viewCount: integer("view_count").notNull().default(0),
+    screenshotUrl: text("screenshot_url"),
 
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+    // End-to-End Encryption fields (zero-knowledge)
+    isEncrypted: boolean("is_encrypted").notNull().default(false),
+    encryptionIv: text("encryption_iv"), // Base64url 12-byte IV for AES-GCM (public)
+    keyMode: text("key_mode").notNull().default("legacy-server"), // 'legacy-server' | 'zk-passphrase' | 'zk-recovery'
+    kdfSalt: text("kdf_salt"), // Base64url PBKDF2 salt (public, only for zk-passphrase)
+    kdfIterations: integer("kdf_iterations"), // PBKDF2 iteration count (public, only for zk-passphrase)
+    fileSize: integer("file_size").default(0), // Bytes (for quota tracking)
+    planTier: text("plan_tier").default("free"), // 'free' | 'pro'
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("projects_user_id_idx").on(table.userId),
+  ]
+);
 
 export const settings = pgTable("settings", {
   key: text("key").primaryKey(),

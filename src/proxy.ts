@@ -134,11 +134,29 @@ export async function proxy(request: NextRequest) {
   // 4. Protect /workspace routes
   // Public pages (/explore, /pricing, /, /login) bypass middleware network checks completely!
   if (pathname.startsWith("/workspace")) {
-    const { supabaseResponse, user } = await updateSession(request);
-    let isValid = Boolean(user);
+    const hasSupabaseCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
+    const hasAdminCookie = Boolean(request.cookies.get(COOKIE_NAME)?.value);
+
+    // Fast path: if neither Supabase session cookies nor self-hosted admin cookie exist, redirect immediately
+    if (!hasSupabaseCookie && !hasAdminCookie) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("from", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    let isValid = false;
+    let finalResponse = NextResponse.next({ request });
+
+    if (hasSupabaseCookie) {
+      const { supabaseResponse, user } = await updateSession(request);
+      if (user) {
+        isValid = true;
+        finalResponse = supabaseResponse;
+      }
+    }
 
     // If not authenticated via Supabase, check Self-hosted Mode: JWT token
-    if (!isValid) {
+    if (!isValid && hasAdminCookie) {
       const token = request.cookies.get(COOKIE_NAME)?.value;
       const secret = getJwtSecret();
       if (token && secret) {
@@ -159,7 +177,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    return supabaseResponse;
+    return finalResponse;
   }
 
   return NextResponse.next();
