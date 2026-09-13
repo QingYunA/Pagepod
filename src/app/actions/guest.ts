@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { handleGuestUpload, claimGuestProjects, type GuestUploadResult } from "@/lib/services/guest-upload";
 import { getCurrentUser } from "@/lib/auth";
+import { categorySchema } from "@/lib/validation";
 
 export async function submitGuestUpload(
   formData: FormData,
@@ -34,7 +35,9 @@ export async function submitGuestUpload(
 
   const title = formData.get("title")?.toString();
   const slug = formData.get("slug")?.toString();
-  const category = formData.get("category")?.toString() || "tools";
+  const categoryRaw = formData.get("category")?.toString() || "tools";
+  const catParsed = categorySchema.safeParse(categoryRaw);
+  const category = catParsed.success ? catParsed.data : "tools";
 
   try {
     return await handleGuestUpload({

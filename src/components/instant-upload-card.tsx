@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { scanForSecrets, type SecretFinding } from "@/lib/security/secret-guard";
 import { submitGuestUpload } from "@/app/actions/guest";
+import { useLanguage } from "@/lib/i18n/context";
 
 const LOCAL_STORAGE_KEY = "pagepod_guest_claims";
 
 export function InstantUploadCard() {
+  const { locale } = useLanguage();
+  const isZh = locale === "zh";
   const [isDragging, setIsDragging] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -130,11 +133,12 @@ export function InstantUploadCard() {
             <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
             <div className="space-y-1 text-xs">
               <p className="font-semibold text-amber-500">
-                Potential Secret Detected / 检测到代码疑似包含私有密钥
+                {isZh ? "检测到代码疑似包含私有密钥" : "Potential Secret Detected in Code"}
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Found {pendingSecretFile.finding.label} (<code className="bg-muted px-1 py-0.5 rounded font-mono">{pendingSecretFile.finding.snippet}</code>).
-                Guest uploads are publicly visible to everyone by default. Publishing keys may lead to unauthorized API usage.
+                {isZh
+                  ? `发现 ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet})。游客上传默认向全球公开展示，公开私有密钥可能导致非预期的 API 账单扣费。`
+                  : `Found ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet}). Guest uploads are publicly visible to everyone. Publishing keys may lead to unauthorized API usage.`}
               </p>
             </div>
           </div>
@@ -145,7 +149,7 @@ export function InstantUploadCard() {
               className="h-7 text-xs border-border/80"
               onClick={() => setPendingSecretFile(null)}
             >
-              Cancel & Clean File
+              {isZh ? "取消并清理文件" : "Cancel & Clean File"}
             </Button>
             <Button
               variant="destructive"
@@ -157,7 +161,7 @@ export function InstantUploadCard() {
                 processUpload(f, true);
               }}
             >
-              I Understand, Publish Anyway
+              {isZh ? "我已知晓风险，继续公开" : "I Understand, Publish Anyway"}
             </Button>
           </div>
         </div>
@@ -194,10 +198,14 @@ export function InstantUploadCard() {
 
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-foreground tracking-tight">
-                Drop your HTML file here to get an instant shareable link
+                {isZh
+                  ? "拖入单文件 HTML 即刻获取分享链接"
+                  : "Drop your HTML file here to get an instant shareable link"}
               </h3>
               <p className="text-xs text-muted-foreground">
-                No sign-up required · Sandboxed runner · Up to 2MB free
+                {isZh
+                  ? "无需登录 · 安全沙箱隔离 · 2MB 免费免配置"
+                  : "No sign-up required · Sandboxed runner · Up to 2MB free"}
               </p>
             </div>
 
@@ -218,8 +226,10 @@ export function InstantUploadCard() {
                 {isPending ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                    Deploying Sandbox...
+                    {isZh ? "正在部署沙箱..." : "Deploying Sandbox..."}
                   </>
+                ) : isZh ? (
+                  "选择 HTML 文件"
                 ) : (
                   "Select HTML File"
                 )}
@@ -229,12 +239,12 @@ export function InstantUploadCard() {
             <div className="pt-2 flex items-center gap-3 text-[11px] text-muted-foreground/80">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                Hardened CSP Isolation
+                {isZh ? "严格 CSP 物理隔离" : "Hardened CSP Isolation"}
               </span>
               <span>·</span>
-              <span>Public by Default</span>
+              <span>{isZh ? "默认公开画廊" : "Public by Default"}</span>
               <span>·</span>
-              <span>Instant Share URL</span>
+              <span>{isZh ? "永久访问链接" : "Instant Share URL"}</span>
             </div>
           </div>
         ) : (
@@ -257,7 +267,7 @@ export function InstantUploadCard() {
                   setErrorMsg(null);
                 }}
               >
-                Upload Another
+                {isZh ? "继续上传" : "Upload Another"}
               </Button>
             </div>
 
@@ -275,12 +285,12 @@ export function InstantUploadCard() {
                 {copied ? (
                   <>
                     <Check className="w-3 h-3 mr-1 text-emerald-500" />
-                    Copied
+                    {isZh ? "已复制" : "Copied"}
                   </>
                 ) : (
                   <>
                     <Copy className="w-3 h-3 mr-1" />
-                    Copy
+                    {isZh ? "复制链接" : "Copy"}
                   </>
                 )}
               </Button>
@@ -288,7 +298,9 @@ export function InstantUploadCard() {
 
             <div className="flex items-center justify-between pt-1">
               <p className="text-[11px] text-muted-foreground">
-                Ownership token stored in browser. Sign in anytime to manage.
+                {isZh
+                  ? "管理凭据已保存在本机，随时登录即可认领合并。"
+                  : "Ownership token stored in browser. Sign in anytime to manage."}
               </p>
               <a
                 href={uploadedResult.url}
@@ -296,7 +308,7 @@ export function InstantUploadCard() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
               >
-                Run Online
+                {isZh ? "在线运行" : "Run Online"}
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>

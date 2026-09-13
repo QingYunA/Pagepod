@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/lib/i18n/context";
+import { AntiBounceDrawer } from "@/components/anti-bounce-drawer";
 import {
   Dialog,
   DialogContent,
@@ -631,6 +632,14 @@ export default function RunnerClient({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Anti-Bounce Drawer for Engagement & Internal Linking */}
+      <AntiBounceDrawer
+        project={project}
+        relatedProjects={relatedProjects}
+        onOpenSourceModal={() => setShowCode(true)}
+        onOpenShareModal={() => setShowEmbed(true)}
+      />
     </div>
   );
 }

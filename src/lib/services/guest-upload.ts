@@ -4,6 +4,8 @@ import { scanForSecrets, type SecretFinding } from "@/lib/security/secret-guard"
 import { detectPhishingHeuristics } from "@/lib/moderation/rules/phishing";
 import { createProject, sanitizeSlug, ProjectValidationError, ProjectPayloadTooLargeError, ProjectForbiddenError } from "./project-service";
 import { getProjectBySlug, updateProject } from "@/db";
+import { categorySchema } from "@/lib/validation";
+import { revalidatePath } from "next/cache";
 import type { CurrentUser } from "@/lib/auth";
 import { nanoid } from "nanoid";
 
@@ -104,18 +106,18 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
     rawTitle = titleMatch && titleMatch[1].trim() ? titleMatch[1].trim() : "Interactive Web App";
   }
 
-  let slug = sanitizeSlug(input.slug || rawTitle);
-  const existing = await getProjectBySlug(slug);
-  if (existing) {
-    slug = `${slug}-${nanoid(4).toLowerCase()}`;
-  }
+  const slug = sanitizeSlug(input.slug || rawTitle);
 
-  // 7. Persist Project via Domain Service
+  // Validate Category with Strict Schema Enum
+  const categoryParsed = categorySchema.safeParse(input.category || "tools");
+  const category = categoryParsed.success ? categoryParsed.data : "tools";
+
+  // 7. Persist Project via Domain Service (handles slug uniqueness internally)
   const project = await createProject(guestActor, {
     title: rawTitle,
     slug,
     description: `Public HTML application shared via Pagepod guest runner.`,
-    category: input.category || "tools",
+    category,
     visibility: "public",
     htmlContent,
     fileSize: payloadSize,
@@ -159,10 +161,24 @@ export async function claimGuestProjects(
         (Array.isArray(project.tags) && project.tags.includes(`claim:${expectedHash}`));
 
       if (isOwner) {
+        const cleanedTags = (project.tags || []).filter(
+          (t) => t !== "guest-upload" && !t.startsWith("claim:")
+        );
+
         await updateProject(project.id, {
           userId: user.id,
+          tags: cleanedTags,
         });
+
         claimedCount++;
+
+        try {
+          revalidatePath("/");
+          revalidatePath("/workspace");
+          revalidatePath(`/p/${project.slug}`);
+        } catch {
+          // Non-fatal outside Next.js request context
+        }
       } else {
         errors.push(`Invalid claim token for project ${item.slug}`);
       }

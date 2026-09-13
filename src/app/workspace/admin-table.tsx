@@ -67,6 +67,7 @@ interface AdminTableProps {
 
 import { translations } from "@/lib/i18n/translations";
 import { createAppealMailtoUrl } from "@/lib/moderation/types";
+import { claimUserGuestProjects } from "@/app/actions/guest";
 
 const CATEGORY_ICONS = {
   all: Layers,
@@ -142,6 +143,28 @@ function ReviewStatusBadge({
 export default function AdminTable({ initialProjects, isAdmin = false, currentUserId }: AdminTableProps) {
   const { t } = useLanguage();
   const [projects, setProjects] = useState(initialProjects);
+
+  // Automatic guest project claim reconciliation upon visiting workspace
+  useEffect(() => {
+    if (!currentUserId) return;
+    try {
+      const stored = localStorage.getItem("pagepod_guest_claims");
+      if (!stored) return;
+      const claims: Array<{ slug: string; claimToken: string }> = JSON.parse(stored);
+      if (Array.isArray(claims) && claims.length > 0) {
+        claimUserGuestProjects(claims)
+          .then((res) => {
+            if (res.success && res.claimedCount > 0) {
+              localStorage.removeItem("pagepod_guest_claims");
+              window.location.reload();
+            }
+          })
+          .catch(() => {});
+      }
+    } catch {
+      // Non-fatal localStorage error
+    }
+  }, [currentUserId]);
 
   const isProjectOwner = (p: Project) => {
     if (!currentUserId || currentUserId === "selfhost-admin") return true;
