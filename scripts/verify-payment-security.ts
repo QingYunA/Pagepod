@@ -5,6 +5,7 @@
 
 import { sanitizeRedirectPath } from "../src/lib/safe-redirect";
 import { PLAN_PRICING, type PlanTier } from "../src/lib/paypal";
+import { PLAN_ENTITLEMENTS } from "../src/lib/services/billing-service";
 
 let passed = 0;
 let failed = 0;
@@ -163,6 +164,10 @@ assert(PLAN_PRICING.pro.currency === "USD", "Pro tier currency is strictly USD")
 
 const validTiers: PlanTier[] = ["lite", "pro"];
 assert(validTiers.includes("lite") && validTiers.includes("pro"), "Only valid tiers are lite and pro");
+
+assert(PLAN_ENTITLEMENTS.free.maxProjects === 20, "Free tier allows 20 projects");
+assert(PLAN_ENTITLEMENTS.lite.maxProjects === 500, "Lite tier allows 500 projects");
+assert(PLAN_ENTITLEMENTS.pro.maxProjects === Infinity, "Pro tier allows unlimited projects");
 
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
 

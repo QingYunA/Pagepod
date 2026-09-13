@@ -30,13 +30,13 @@ export const PLAN_ENTITLEMENTS: Record<"free" | "lite" | "pro", PlanEntitlement>
   free: {
     tier: "free",
     name: "Free",
-    maxProjects: 10,
+    maxProjects: 20,
     maxFileSizeBytes: 2 * 1024 * 1024, // 2MB
   },
   lite: {
     tier: "lite",
     name: "Lite",
-    maxProjects: 50,
+    maxProjects: 500,
     maxFileSizeBytes: 10 * 1024 * 1024, // 10MB
   },
   pro: {

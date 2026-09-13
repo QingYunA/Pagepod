@@ -10,7 +10,7 @@ This file is the single source of truth for the domain glossary and architectura
 - **Actor (`CurrentUser`)**: The authenticated entity performing an operation. Can be a registered user (`userId`), an admin, or the self-hosted default administrator (`selfhost-admin`).
 - **ProjectStorage**: A scoped storage abstraction bounded to `sites/${slug}`. Encapsulates path construction, traversal safety checks, and binary/asset persistence so callers never assemble raw storage keys manually.
 - **ScreenshotRenderer**: A pure rendering port (`render(html) -> Buffer`) decoupling headless browser capture (Chrome CLI args, timeout, virtual time budget, temp file isolation) and cloud fallbacks from domain and database mutations.
-- **BillingService & PlanQuota**: The authority governing user tiers (`free`, `lite`, `pro`) and payment order state transitions. Enforces hard backend limits (e.g. Free: 10 projects, 2MB max upload; Lite: 50 projects, 10MB; Pro: unlimited).
+- **BillingService & PlanQuota**: The authority governing user tiers (`free`, `lite`, `pro`) and payment order state transitions. Enforces hard backend limits (e.g. Free: 20 projects, 2MB max upload; Lite: 500 projects, 10MB; Pro: unlimited).
 - **Entry Path**: The relative file path to the primary HTML document within the project's storage prefix (typically `index.html`).
 - **Visibility**: The discovery and access control tier of a project:
   - `public`: Listed in showcase/explore feeds, indexable by search engines, viewable by anyone.

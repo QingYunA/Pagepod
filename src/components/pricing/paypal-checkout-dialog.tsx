@@ -66,14 +66,14 @@ const PLAN_DETAILS = {
     icon: Zap,
     featuresEn: [
       "10 GB cloud storage quota",
-      "Host up to 100 projects permanently",
+      "Host up to 500 projects permanently",
       "Account-level private protection included",
       "API Tokens for CLI & script automation",
       "One-time payment, lifetime access without recurring fees",
     ],
     featuresZh: [
       "10 GB 存储空间配额",
-      "最多永久托管 100 个项目",
+      "最多永久托管 500 个项目",
       "包含账号级私有项目隔离保护",
       "解锁 API Token 与自动化脚本权限",
       "一次性付款，永久有效无任何续费",
