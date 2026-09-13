@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Compass, Wrench, Gamepad2, BarChart2, Layers, Sparkles, ArrowRight, ExternalLink, Play, Bot, Palette } from "lucide-react";
+import { Compass, Wrench, Gamepad2, BarChart2, Layers, Sparkles, ArrowRight, ArrowUpRight, Play, Bot, Palette } from "lucide-react";
 import type { Project } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,6 @@ interface ExploreClientProps {
 
 export default function ExploreClient({ projects }: ExploreClientProps) {
   const { t, locale } = useLanguage();
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedLanguage, setSelectedLanguage] = useState<"all" | "zh" | "en" | "other">("all");
 
   const categoryCards = [
@@ -90,7 +89,6 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
   ];
 
   const filteredProjects = projects.filter((p) => {
-    if (selectedCategory !== "all" && p.category !== selectedCategory) return false;
     if (selectedLanguage !== "all" && (p.language || "zh") !== selectedLanguage) return false;
     return true;
   });
@@ -111,42 +109,37 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
         {categoryCards.map((cat) => {
           const Icon = cat.icon;
-          const isSelected = selectedCategory === cat.id;
           return (
-            <button
+            <Link
               key={cat.id}
-              onClick={() => setSelectedCategory(isSelected ? "all" : cat.id)}
-              className={`p-5 rounded-xl border text-left transition-all cursor-pointer ${
-                isSelected
-                  ? "border-foreground bg-card shadow-sm"
-                  : "border-border bg-card/60 hover:border-foreground/30 hover:bg-card"
-              }`}
+              href={`/explore/${cat.id}`}
+              className="group p-5 rounded-xl border border-border bg-card/60 hover:border-foreground/30 hover:bg-card hover:shadow-xs text-left transition-all cursor-pointer flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className={`p-2 rounded-lg ${isSelected ? "bg-foreground text-background" : "bg-muted text-foreground"}`}>
-                  <Icon className="w-4 h-4" />
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-2 rounded-lg bg-muted text-foreground group-hover:bg-foreground group-hover:text-background transition-colors">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="secondary" className="text-[11px] font-mono">
+                      {cat.count} {t.explore.itemsCount}
+                    </Badge>
+                    <div
+                      aria-hidden="true"
+                      className="p-1 rounded text-muted-foreground group-hover:text-foreground transition-colors"
+                    >
+                      <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Badge variant="secondary" className="text-[11px] font-mono">
-                    {cat.count} {t.explore.itemsCount}
-                  </Badge>
-                  <Link
-                    href={`/explore/${cat.id}`}
-                    onClick={(e) => e.stopPropagation()}
-                    title="View dedicated page"
-                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                  </Link>
-                </div>
+                <h3 className="text-sm font-semibold text-foreground mb-1 group-hover:text-foreground transition-colors">
+                  {cat.label}
+                </h3>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {cat.desc}
+                </p>
               </div>
-              <h3 className="text-sm font-semibold text-foreground mb-1">
-                {cat.label}
-              </h3>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                {cat.desc}
-              </p>
-            </button>
+            </Link>
           );
         })}
       </div>
@@ -183,7 +176,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-foreground">
-              {selectedCategory === "all" ? t.categories.all : categoryCards.find((c) => c.id === selectedCategory)?.label}
+              {locale === "zh" ? "精选作品" : "Curated Works"}
             </h2>
             <span className="text-xs font-mono text-muted-foreground">
               ({filteredProjects.length})
@@ -238,17 +231,6 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
                 {t.gallery?.languageOther || "Other"}
               </button>
             </div>
-
-            {selectedCategory !== "all" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedCategory("all")}
-                className="h-7 text-xs text-muted-foreground hover:text-foreground"
-              >
-                {locale === "zh" ? "显示全部专题" : "View all topics"}
-              </Button>
-            )}
           </div>
         </div>
 
@@ -256,11 +238,11 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
           <div className="text-center py-16 border border-dashed border-border rounded-xl">
             <Compass className="w-8 h-8 text-muted-foreground/50 mx-auto mb-3" />
             <p className="text-xs text-muted-foreground mb-4">
-              {locale === "zh" ? "该专题下暂无公开项目" : "No public projects under this topic yet"}
+              {locale === "zh" ? "当前暂无公开项目" : "No public projects yet"}
             </p>
             <Button size="sm" asChild className="h-8 text-xs">
               <Link href="/workspace/upload">
-                {locale === "zh" ? "+ 上传首个作品至该专题" : "+ Publish first work here"}
+                {locale === "zh" ? "+ 上传首个作品" : "+ Publish first work"}
               </Link>
             </Button>
           </div>
