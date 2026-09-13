@@ -109,7 +109,19 @@
    - **IDOR 所有权核验**：支付捕获端点（如 `/api/payments/*/capture-order`）必须比对本地订单 `order.userId` 与当前 Session `currentUser.id`（管理员除外），不匹配严禁向支付渠道发起 capture，直接返回 `403 Forbidden`；
    - **本地订单存在性验证**：若本地无此订单直接返回 `404 Not Found`，绝不盲目向上游发起扣款；
    - **短路防重复扣款**：捕获接口必须前置检查本地订单状态，若已为 `completed` 则立即短路返回已有 `captureId`，严禁重复调用上游支付渠道扣款 API；
-   - **建单入库幂等查重**：在创建本地订单记录时必须前置检查外部渠道 `orderId`，防止并发重试插入重复记录。
+ ---
+
+## 🌐 五、交互沟通与技能语言规范 (Language & Skill Communication Standards)
+
+1. **中文母语交互与汇报基准 (Chinese-First Communication Invariant)**：
+   - 除非用户明确要求使用英文，所有与用户的日常交互、阶段性工作汇报、数据分析、排障总结、以及所有 Slash Command 技能的最终答复，**必须一律采用清晰、地道的中文输出**。
+   - 专业技术名词、代码标识符（函数名、变量名、类型）、文件路径、Git Commit SHA、HTTP 状态码及行业标准术语（如 `IDOR`、`CSP`、`Zod`、`PostgreSQL`）保持英文原名，严禁生硬机翻，但解释、论述、问题归类必须全中文。
+
+2. **多 Agent 协作与 Matt Pocock 系列技能语言约束 (Subagent Language Constraints)**：
+   - 在调用任何外部或内置技能（特别是 Matt Pocock 系列技能如 `/code-review`、`/tdd`、`/diagnosing-bugs`、`/research`、`/domain-modeling`、`/to-spec` 等）派发子 Agent（`invoke_subagent`）时，**必须在 subagent prompt 结尾显式追加中文输出约束**：
+     `"Please write the final report in Chinese (中文). Technical terms, standard names, code identifiers, and file paths should remain in English."`
+   - **双轴报告本地化 (Bilingual Review Aggregation)**：
+     - 当技能要求“verbatim or lightly cleaned”呈现子 Agent 报告时，聚合呈现给用户的 `## Standards`（规范轴）与 `## Spec`（需求轴）报告**必须以中文呈现**，坚决禁止将纯英文子 Agent 原始输出直接粘给用户。
 
 
 <!-- BEGIN:nextjs-agent-rules -->
