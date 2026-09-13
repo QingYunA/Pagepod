@@ -6,6 +6,7 @@ import {
   updateProject as dbUpdateProject,
   deleteProject as dbDeleteProject,
 } from "@/db";
+import { getProjectStorage, getStorageType } from "@/lib/storage";
 import { extractMetadataFromHtml, unpackZipBundle, detectHtmlLanguage } from "@/lib/parser";
 import {
   renderProjectScreenshot,
