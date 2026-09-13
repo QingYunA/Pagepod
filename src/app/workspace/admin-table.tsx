@@ -60,6 +60,7 @@ import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 interface AdminTableProps {
   initialProjects: Project[];
   isAdmin?: boolean;
+  currentUserId?: string | null;
 }
 
 const CATEGORY_ICONS = {
@@ -74,9 +75,15 @@ const CATEGORY_ICONS = {
   others: Boxes,
 };
 
-export default function AdminTable({ initialProjects, isAdmin = false }: AdminTableProps) {
+export default function AdminTable({ initialProjects, isAdmin = false, currentUserId }: AdminTableProps) {
   const { t } = useLanguage();
   const [projects, setProjects] = useState(initialProjects);
+
+  const isProjectOwner = (p: Project) => {
+    if (!currentUserId || currentUserId === "selfhost-admin") return true;
+    if (!p.userId) return isAdmin;
+    return p.userId === currentUserId;
+  };
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [languageFilter, setLanguageFilter] = useState<string>("all");
@@ -99,6 +106,7 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [capturingId, setCapturingId] = useState<string | null>(null);
+  const [pendingPinAction, setPendingPinAction] = useState<{ id: string; type: "workspace" | "global" } | null>(null);
   const router = useRouter();
 
   const handleRegenerateScreenshot = async (id: string, e?: React.MouseEvent) => {
@@ -211,6 +219,7 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
   }, [projects, categoryFilter, languageFilter, search, sortBy]);
 
   const handleTogglePin = (id: string, current: boolean) => {
+    setPendingPinAction({ id, type: "workspace" });
     startTransition(async () => {
       try {
         await togglePinAction(id, current);
@@ -232,11 +241,14 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
           text: (err as Error)?.message || t.workspace?.pinFail || "置顶操作失败",
           type: "error",
         });
+      } finally {
+        setPendingPinAction(null);
       }
     });
   };
 
   const handleToggleGlobalPin = (id: string, current: boolean) => {
+    setPendingPinAction({ id, type: "global" });
     startTransition(async () => {
       try {
         await toggleGlobalPinAction(id, current);
@@ -258,6 +270,8 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
           text: (err as Error)?.message || t.workspace?.globalPinForbidden || "操作失败，仅管理员可设置全站置顶",
           type: "error",
         });
+      } finally {
+        setPendingPinAction(null);
       }
     });
   };
@@ -591,45 +605,66 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
                         </Select>
 
                         <div className="flex items-center gap-0.5">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={isPending}
-                            onClick={() => handleTogglePin(item.id, item.isPinned)}
-                            className={`h-7 w-7 rounded-sm ${
-                              item.isPinned
-                                ? "text-foreground bg-muted hover:bg-muted/80"
-                                : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            title={
-                              item.isPinned
-                                ? t.workspace?.unpinWorkspaceTitle || "取消工作区置顶"
-                                : t.workspace?.pinWorkspaceTitle || "置顶至工作区首位"
-                            }
-                          >
-                            <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
-                          </Button>
+                          {(() => {
+                            const isOwner = isProjectOwner(item);
+                            const isPendingThisWorkspace = pendingPinAction?.id === item.id && pendingPinAction?.type === "workspace";
+                            const isPendingThisGlobal = pendingPinAction?.id === item.id && pendingPinAction?.type === "global";
+                            return (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={!isOwner || isPending || isPendingThisWorkspace}
+                                  onClick={() => handleTogglePin(item.id, item.isPinned)}
+                                  className={`h-7 w-7 rounded-sm ${
+                                    !isOwner
+                                      ? "opacity-30 cursor-not-allowed text-muted-foreground"
+                                      : item.isPinned
+                                      ? "text-foreground bg-muted hover:bg-muted/80"
+                                      : "text-muted-foreground hover:text-foreground"
+                                  }`}
+                                  title={
+                                    !isOwner
+                                      ? t.workspace?.onlyOwnerCanPinWorkspace || "仅项目所有者可切换个人工作区置顶"
+                                      : item.isPinned
+                                      ? t.workspace?.unpinWorkspaceTitle || "取消工作区置顶"
+                                      : t.workspace?.pinWorkspaceTitle || "置顶至工作区首位"
+                                  }
+                                >
+                                  {isPendingThisWorkspace ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
+                                  )}
+                                </Button>
 
-                          {isAdmin && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              disabled={isPending}
-                              onClick={() => handleToggleGlobalPin(item.id, item.isGlobalPinned ?? false)}
-                              className={`h-7 w-7 rounded-sm ${
-                                item.isGlobalPinned
-                                  ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
-                                  : "text-muted-foreground hover:text-foreground"
-                              }`}
-                              title={
-                                item.isGlobalPinned
-                                  ? t.workspace?.unpinGlobalTitle || "取消全站置顶 (公共首页推荐)"
-                                  : t.workspace?.pinGlobalTitle || "设置全站置顶 (公共首页推荐)"
-                              }
-                            >
-                              <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
-                            </Button>
-                          )}
+                                {isAdmin && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    disabled={isPending || isPendingThisGlobal}
+                                    onClick={() => handleToggleGlobalPin(item.id, item.isGlobalPinned ?? false)}
+                                    className={`h-7 w-7 rounded-sm ${
+                                      item.isGlobalPinned
+                                        ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
+                                        : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                    title={
+                                      item.isGlobalPinned
+                                        ? t.workspace?.unpinGlobalTitle || "取消全站置顶 (公共首页推荐)"
+                                        : t.workspace?.pinGlobalTitle || "设置全站置顶 (公共首页推荐)"
+                                    }
+                                  >
+                                    {isPendingThisGlobal ? (
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                      <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
+                                    )}
+                                  </Button>
+                                )}
+                              </>
+                            );
+                          })()}
 
                           <Button
                             variant="ghost"
@@ -704,7 +739,7 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={isAdmin ? 9 : 8} className="py-12 text-center text-muted-foreground">
-                    暂无匹配的 HTML 项目。
+                    {t.workspace?.noProjectsFound || "暂无匹配的 HTML 项目。"}
                   </td>
                 </tr>
               ) : (
@@ -722,47 +757,70 @@ export default function AdminTable({ initialProjects, isAdmin = false }: AdminTa
                     >
                       {/* Workspace Pin toggle */}
                       <td className="py-3 px-3 text-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={isPending}
-                          onClick={() => handleTogglePin(item.id, item.isPinned)}
-                          className={`h-7 w-7 rounded-sm ${
-                            item.isPinned
-                              ? "text-foreground bg-muted hover:bg-muted/80"
-                              : "text-muted-foreground hover:text-foreground"
-                          }`}
-                          title={
-                            item.isPinned
-                              ? t.workspace?.unpinWorkspaceTitle || "取消工作区置顶"
-                              : t.workspace?.pinWorkspaceTitle || "置顶至工作区首位"
-                          }
-                        >
-                          <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
-                        </Button>
+                        {(() => {
+                          const isOwner = isProjectOwner(item);
+                          const isPendingThisWorkspace = pendingPinAction?.id === item.id && pendingPinAction?.type === "workspace";
+                          return (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={!isOwner || isPending || isPendingThisWorkspace}
+                              onClick={() => handleTogglePin(item.id, item.isPinned)}
+                              className={`h-7 w-7 rounded-sm ${
+                                !isOwner
+                                  ? "opacity-30 cursor-not-allowed text-muted-foreground"
+                                  : item.isPinned
+                                  ? "text-foreground bg-muted hover:bg-muted/80"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              title={
+                                !isOwner
+                                  ? t.workspace?.onlyOwnerCanPinWorkspace || "仅项目所有者可切换个人工作区置顶"
+                                  : item.isPinned
+                                  ? t.workspace?.unpinWorkspaceTitle || "取消工作区置顶"
+                                  : t.workspace?.pinWorkspaceTitle || "置顶至工作区首位"
+                              }
+                            >
+                              {isPendingThisWorkspace ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
+                              )}
+                            </Button>
+                          );
+                        })()}
                       </td>
 
                       {/* Admin Global Pin toggle */}
                       {isAdmin && (
                         <td className="py-3 px-3 text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={isPending}
-                            onClick={() => handleToggleGlobalPin(item.id, item.isGlobalPinned ?? false)}
-                            className={`h-7 w-7 rounded-sm ${
-                              item.isGlobalPinned
-                                ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
-                                : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            title={
-                              item.isGlobalPinned
-                                ? t.workspace?.unpinGlobalTitle || "取消全站置顶 (公共首页推荐)"
-                                : t.workspace?.pinGlobalTitle || "设置全站置顶 (公共首页推荐)"
-                            }
-                          >
-                            <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
-                          </Button>
+                          {(() => {
+                            const isPendingThisGlobal = pendingPinAction?.id === item.id && pendingPinAction?.type === "global";
+                            return (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={isPending || isPendingThisGlobal}
+                                onClick={() => handleToggleGlobalPin(item.id, item.isGlobalPinned ?? false)}
+                                className={`h-7 w-7 rounded-sm ${
+                                  item.isGlobalPinned
+                                    ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
+                                    : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                title={
+                                  item.isGlobalPinned
+                                    ? t.workspace?.unpinGlobalTitle || "取消全站置顶 (公共首页推荐)"
+                                    : t.workspace?.pinGlobalTitle || "设置全站置顶 (公共首页推荐)"
+                                }
+                              >
+                                {isPendingThisGlobal ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
+                                )}
+                              </Button>
+                            );
+                          })()}
                         </td>
                       )}
 

@@ -23,8 +23,10 @@ import {
   Camera,
   Bot,
   Palette,
+  Globe,
 } from "lucide-react";
 import type { Project } from "@/db/schema";
+import { useLanguage } from "@/lib/i18n/context";
 
 // CodeMirror (+ @codemirror/lang-html) is large. Load the whole editor only when the
 // code tab actually renders, keeping it out of the route's initial client bundle.
@@ -50,6 +52,7 @@ import { PublicRiskDialog } from "@/components/public-risk-dialog";
 interface EditorClientProps {
   project: Project;
   initialCode: string;
+  isAdmin?: boolean;
 }
 
 const CATEGORIES = [
@@ -63,7 +66,8 @@ const CATEGORIES = [
   { id: "others", label: "其他", icon: Layers },
 ];
 
-export default function ProjectEditorClient({ project, initialCode }: EditorClientProps) {
+export default function ProjectEditorClient({ project, initialCode, isAdmin = false }: EditorClientProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"code" | "settings">("code");
   const [code, setCode] = useState(initialCode);
   const [title, setTitle] = useState(project.title);
@@ -74,6 +78,7 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
   const [tagInput, setTagInput] = useState("");
   const [visibility, setVisibility] = useState(project.visibility as "public" | "unlisted" | "private");
   const [isPinned, setIsPinned] = useState(project.isPinned);
+  const [isGlobalPinned, setIsGlobalPinned] = useState(Boolean(project.isGlobalPinned));
 
   const [previewKey, setPreviewKey] = useState(0);
   const [previewLoading, setPreviewLoading] = useState(true);
@@ -137,6 +142,7 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
           tags,
           visibility: targetVisibility || visibility,
           isPinned,
+          isGlobalPinned: isAdmin ? isGlobalPinned : undefined,
           htmlCode: project.assetType === "single_html" ? code : undefined,
         });
         setSavedSuccess(true);
@@ -407,7 +413,9 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
                 </div>
 
                 <div>
-                  <label htmlFor="edit-language" className="block text-xs font-medium text-foreground mb-1.5">主要语言 (Language)</label>
+                  <label htmlFor="edit-language" className="block text-xs font-medium text-foreground mb-1.5">
+                    {t.workspace?.languageLabel || "主要语言 (Language)"}
+                  </label>
                   <div className="flex items-center gap-2">
                     <Select
                       id="edit-language"
@@ -415,12 +423,12 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
                       onChange={(e) => setLanguage(e.target.value as "zh" | "en" | "other")}
                       className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-44"
                     >
-                      <option value="zh">中文 (Chinese)</option>
-                      <option value="en">英文 (English)</option>
-                      <option value="other">其他 (Other)</option>
+                      <option value="zh">{t.workspace?.langZh || "中文 (Chinese)"}</option>
+                      <option value="en">{t.workspace?.langEn || "英文 (English)"}</option>
+                      <option value="other">{t.workspace?.langOther || "其他 (Other)"}</option>
                     </Select>
                     <span className="text-[11px] text-muted-foreground">
-                      用于正交多语言筛选与索引
+                      {t.workspace?.languageHint || "用于正交多语言筛选与索引"}
                     </span>
                   </div>
                 </div>
@@ -483,14 +491,29 @@ export default function ProjectEditorClient({ project, initialCode }: EditorClie
                     </Select>
                   </div>
 
-                  <div className="flex flex-col justify-end">
+                  <div className="flex flex-col justify-end gap-2">
                     <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
                       <Checkbox
                         checked={isPinned}
                         onChange={(e) => setIsPinned(e.target.checked)}
                       />
-                      <span className="text-xs text-foreground font-medium">置顶到画廊前列</span>
+                      <span className="text-xs text-foreground font-medium">
+                        {t.workspace?.workspacePinLabel || "置顶到个人工作区"}
+                      </span>
                     </label>
+
+                    {isAdmin && (
+                      <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
+                        <Checkbox
+                          checked={isGlobalPinned}
+                          onChange={(e) => setIsGlobalPinned(e.target.checked)}
+                        />
+                        <span className="text-xs text-foreground font-medium flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5 text-foreground" />
+                          <span>{t.workspace?.globalPinLabel || "全站展台首屏置顶 (Admin)"}</span>
+                        </span>
+                      </label>
+                    )}
                   </div>
                 </div>
               </CardContent>

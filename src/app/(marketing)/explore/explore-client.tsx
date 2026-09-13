@@ -15,6 +15,7 @@ interface ExploreClientProps {
 export default function ExploreClient({ projects }: ExploreClientProps) {
   const { t, locale } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedLanguage, setSelectedLanguage] = useState<"all" | "zh" | "en" | "other">("all");
 
   const categoryCards = [
     {
@@ -88,10 +89,11 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
     { label: "Three.js / WebGL", query: "3d" },
   ];
 
-  const filteredProjects =
-    selectedCategory === "all"
-      ? projects
-      : projects.filter((p) => p.category === selectedCategory);
+  const filteredProjects = projects.filter((p) => {
+    if (selectedCategory !== "all" && p.category !== selectedCategory) return false;
+    if (selectedLanguage !== "all" && (p.language || "zh") !== selectedLanguage) return false;
+    return true;
+  });
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12 md:py-16">
@@ -178,7 +180,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
 
       {/* Filtered Projects Grid */}
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-foreground">
               {selectedCategory === "all" ? t.categories.all : categoryCards.find((c) => c.id === selectedCategory)?.label}
@@ -188,16 +190,66 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
             </span>
           </div>
 
-          {selectedCategory !== "all" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedCategory("all")}
-              className="h-7 text-xs text-muted-foreground hover:text-foreground"
-            >
-              {locale === "zh" ? "显示全部专题" : "View all topics"}
-            </Button>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Language Orthogonal Filter Pills */}
+            <div className="inline-flex items-center rounded-md border border-border bg-muted/30 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setSelectedLanguage("all")}
+                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                  selectedLanguage === "all"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.gallery?.languageAll || "全部语言"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLanguage("zh")}
+                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                  selectedLanguage === "zh"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.gallery?.languageZh || "中文"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLanguage("en")}
+                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                  selectedLanguage === "en"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.gallery?.languageEn || "English"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLanguage("other")}
+                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                  selectedLanguage === "other"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.gallery?.languageOther || "Other"}
+              </button>
+            </div>
+
+            {selectedCategory !== "all" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedCategory("all")}
+                className="h-7 text-xs text-muted-foreground hover:text-foreground"
+              >
+                {locale === "zh" ? "显示全部专题" : "View all topics"}
+              </Button>
+            )}
+          </div>
         </div>
 
         {filteredProjects.length === 0 ? (

@@ -24,6 +24,7 @@ import {
   Loader2,
   Bot,
   Palette,
+  Globe,
 } from "lucide-react";
 import { handleUploadAction } from "@/app/actions/upload";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ import { PublicRiskDialog } from "@/components/public-risk-dialog";
 import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 import { sandboxPool } from "@/lib/sandbox-pool";
 import { detectHtmlLanguage } from "@/lib/parser/language-detector";
+import { useLanguage } from "@/lib/i18n/context";
 
 const CATEGORIES = [
   { id: "tools", label: "实用工具", icon: Wrench },
@@ -55,6 +57,7 @@ const CATEGORIES = [
 const SUGGESTED_TAGS = ["Canvas", "SVG", "Three.js", "Tailwind", "Vue", "React", "WebAudio", "ECharts"];
 
 export default function WorkspaceUploadPage() {
+  const { t } = useLanguage();
   const [isPending, startTransition] = useTransition();
   const [mode, setMode] = useState<"file" | "paste">("file");
   const [file, setFile] = useState<File | null>(null);
@@ -72,7 +75,20 @@ export default function WorkspaceUploadPage() {
   const [tagInput, setTagInput] = useState("");
   const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
   const [isPinned, setIsPinned] = useState(false);
+  const [isGlobalPinned, setIsGlobalPinned] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/user/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.user && (data.user.role === "admin" || data.user.id === "selfhost-admin")) {
+          setIsAdmin(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Public Risk Dialog & Sensitive Matches
   const [showRiskDialog, setShowRiskDialog] = useState(false);
@@ -233,6 +249,9 @@ export default function WorkspaceUploadPage() {
         formData.append("tags", tags.join(","));
         formData.append("visibility", targetVisibility);
         formData.append("isPinned", String(isPinned));
+        if (isAdmin) {
+          formData.append("isGlobalPinned", String(isGlobalPinned));
+        }
 
         if (mode === "file" && file) {
           formData.append("file", file);
@@ -267,6 +286,9 @@ export default function WorkspaceUploadPage() {
             apiFormData.append("tags", tags.join(","));
             apiFormData.append("visibility", targetVisibility);
             apiFormData.append("isPinned", String(isPinned));
+            if (isAdmin) {
+              apiFormData.append("isGlobalPinned", String(isGlobalPinned));
+            }
 
             const apiRes = await fetch("/api/upload", {
               method: "POST",
@@ -615,9 +637,9 @@ export default function WorkspaceUploadPage() {
 
                 {/* Language Selection */}
                 <div>
-                  <label htmlFor="upload-language" className="block text-xs font-medium text-foreground mb-1.5">
-                    主要语言 (Language)
-                  </label>
+                  <Label htmlFor="upload-language" className="block mb-1.5">
+                    {t.workspace?.languageLabel || "主要语言 (Language)"}
+                  </Label>
                   <div className="flex items-center gap-2.5">
                     <Select
                       id="upload-language"
@@ -626,14 +648,14 @@ export default function WorkspaceUploadPage() {
                       className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-52"
                     >
                       <option value="auto">
-                        自动检测 (Auto){detectedLangHint ? ` → ${detectedLangHint === "zh" ? "中文" : detectedLangHint === "en" ? "English" : "Other"}` : ""}
+                        {t.workspace?.languageAuto || "自动检测 (Auto)"}{detectedLangHint ? ` → ${detectedLangHint === "zh" ? (t.workspace?.langZh || "中文") : detectedLangHint === "en" ? (t.workspace?.langEn || "English") : (t.workspace?.langOther || "Other")}` : ""}
                       </option>
-                      <option value="zh">中文 (Chinese)</option>
-                      <option value="en">英文 (English)</option>
-                      <option value="other">其他 (Other)</option>
+                      <option value="zh">{t.workspace?.langZh || "中文 (Chinese)"}</option>
+                      <option value="en">{t.workspace?.langEn || "英文 (English)"}</option>
+                      <option value="other">{t.workspace?.langOther || "其他 (Other)"}</option>
                     </Select>
                     <span className="text-[11px] text-muted-foreground">
-                      基于 HTML 智能启发式算法自动识别，亦可手动锁定
+                      {t.workspace?.languageHint || "基于 HTML 智能启发式算法自动识别，亦可手动锁定"}
                     </span>
                   </div>
                 </div>
@@ -715,14 +737,29 @@ export default function WorkspaceUploadPage() {
                     </Select>
                   </div>
 
-                  <div className="flex flex-col justify-end">
+                  <div className="flex flex-col justify-end gap-2">
                     <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
                       <Checkbox
                         checked={isPinned}
                         onChange={(e) => setIsPinned(e.target.checked)}
                       />
-                      <span className="text-xs text-foreground font-medium">置顶到画廊前列</span>
+                      <span className="text-xs text-foreground font-medium">
+                        {t.workspace?.workspacePinLabel || "置顶到个人工作区"}
+                      </span>
                     </label>
+
+                    {isAdmin && (
+                      <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
+                        <Checkbox
+                          checked={isGlobalPinned}
+                          onChange={(e) => setIsGlobalPinned(e.target.checked)}
+                        />
+                        <span className="text-xs text-foreground font-medium flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5 text-foreground" />
+                          <span>{t.workspace?.globalPinLabel || "全站展台首屏置顶 (Admin)"}</span>
+                        </span>
+                      </label>
+                    )}
                   </div>
                 </div>
               </CardContent>

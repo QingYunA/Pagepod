@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { detectHtmlLanguage } from "../src/lib/parser/language-detector";
 import { uploadPayloadSchema, updateProjectInputSchema, CATEGORIES_ENUM, LANGUAGE_ENUM } from "../src/lib/validation";
-import { toggleGlobalPin, ProjectForbiddenError } from "../src/lib/services/project-service";
+import { toggleGlobalPin, createProject, ProjectForbiddenError } from "../src/lib/services/project-service";
 import type { CurrentUser } from "../src/lib/auth";
 
 console.log("\n=== 1. Heuristic Language Detection Tests ===");
@@ -61,7 +61,8 @@ const invalidCategory = uploadPayloadSchema.safeParse({
   slug: "invalid-cat",
   category: "unsupported-category",
 });
-// Note: categorySchema allows any string up to 50 chars as fallback, but validation checks known categories
+assert.ok(!invalidCategory.success, "Invalid category should be rejected by categorySchema enum");
+
 const invalidLanguage = updateProjectInputSchema.safeParse({
   title: "更新测试",
   description: "描述",
@@ -121,7 +122,22 @@ assert.ok(regularError instanceof ProjectForbiddenError, "Regular user must be f
 assert.equal((regularError as ProjectForbiddenError).statusCode, 403, "Must return HTTP 403 status code");
 console.log("  ✓ Non-admin users strictly forbidden from setting global pin (HTTP 403)");
 
-// 4.2 Auto language detection preservation in uploadPayloadSchema
+// 4.2 Regular user cannot create project with isGlobalPinned: true
+let createGlobalPinError: unknown = null;
+try {
+  await createProject(regularUser, {
+    title: "Forbidden Global Pin",
+    htmlContent: "<html><body>Hello</body></html>",
+    isGlobalPinned: true,
+  });
+} catch (err) {
+  createGlobalPinError = err;
+}
+assert.ok(createGlobalPinError instanceof ProjectForbiddenError, "Regular user must be forbidden from createProject with isGlobalPinned: true");
+assert.equal((createGlobalPinError as ProjectForbiddenError).statusCode, 403, "Must return HTTP 403 status code");
+console.log("  ✓ Non-admin users strictly forbidden from creating project with isGlobalPinned (HTTP 403)");
+
+// 4.3 Auto language detection preservation in uploadPayloadSchema
 const parsedWithoutLanguage = uploadPayloadSchema.parse({
   category: "tools",
 });

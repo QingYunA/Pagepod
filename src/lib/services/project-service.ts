@@ -226,7 +226,11 @@ export async function createProject(
 
   const projectUserId = actor.id === "selfhost-admin" ? null : actor.id;
   const declaredLanguage = input.language || (initialHtml ? detectHtmlLanguage(initialHtml) : "zh");
-  const isGlobalPinned = (actor.role === "admin" || actor.id === "selfhost-admin") ? Boolean(input.isGlobalPinned) : false;
+
+  if (input.isGlobalPinned && actor.role !== "admin" && actor.id !== "selfhost-admin") {
+    throw new ProjectForbiddenError("Forbidden: Only administrators can set global showcase pin");
+  }
+  const isGlobalPinned = Boolean(input.isGlobalPinned);
   const isPinned = Boolean(input.isPinned);
 
   const project = await dbCreateProject({
@@ -400,6 +404,13 @@ export async function togglePin(
   }
 
   assertCanManageProject(actor, project);
+
+  const isOwner =
+    actor.id === "selfhost-admin" ||
+    (project.userId ? project.userId === actor.id : actor.role === "admin");
+  if (!isOwner) {
+    throw new ProjectForbiddenError("Forbidden: Workspace pin is personal and can only be toggled by the project owner");
+  }
 
   const nextPinned = !project.isPinned;
   const updated = await dbUpdateProject(id, {

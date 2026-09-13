@@ -16,6 +16,7 @@ export async function updateProjectFullAction(
     tags: string[];
     visibility: "public" | "unlisted" | "private";
     isPinned: boolean;
+    isGlobalPinned?: boolean;
     language?: "zh" | "en" | "other";
     htmlCode?: string;
   }

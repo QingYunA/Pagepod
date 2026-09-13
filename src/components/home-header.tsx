@@ -93,7 +93,9 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
             className="flex items-center gap-2 font-semibold tracking-tight text-sm text-foreground group shrink-0"
           >
             <BrandLogo size={24} className="w-6 h-6 shrink-0" />
-            <span className="font-semibold text-sm">Pagepod</span>
+            <span className="font-semibold text-sm">
+              {process.env.NEXT_PUBLIC_SITE_NAME || "Pagepod"}
+            </span>
           </Link>
 
           {/* Desktop Primary Navigation Links */}

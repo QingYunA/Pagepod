@@ -26,10 +26,19 @@ export default async function WorkspacePage() {
       // Platform admin also sees public items from everyone for moderation, but NEVER others' private items!
       const [myProjects, publicProjects] = await Promise.all([
         getAllProjects({ userId: currentUser.id, isWorkspace: true }),
-        getAllProjects({ includePrivate: false, isWorkspace: true }),
+        getAllProjects({ includePrivate: false, isWorkspace: false }),
       ]);
       const map = new Map<string, Project>();
-      [...myProjects, ...publicProjects].forEach((p) => map.set(p.id, p));
+      myProjects.forEach((p) => map.set(p.id, p));
+      publicProjects.forEach((p) => {
+        if (!map.has(p.id)) {
+          if (p.userId && p.userId !== currentUser.id) {
+            map.set(p.id, { ...p, isPinned: false, pinnedAt: null });
+          } else {
+            map.set(p.id, p);
+          }
+        }
+      });
       projects = Array.from(map.values());
     } else {
       // User sees their own projects (including their own private ones)
@@ -63,6 +72,7 @@ export default async function WorkspacePage() {
         <AdminTable
           initialProjects={projects}
           isAdmin={currentUser?.role === "admin" || currentUser?.id === "selfhost-admin"}
+          currentUserId={currentUser?.id}
         />
       </main>
     </div>

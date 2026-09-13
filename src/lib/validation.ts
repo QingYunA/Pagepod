@@ -28,7 +28,7 @@ export const CATEGORIES_ENUM = [
 ] as const;
 export type Category = (typeof CATEGORIES_ENUM)[number];
 
-export const categorySchema = z.string().trim().max(50).default("tools");
+export const categorySchema = z.enum(CATEGORIES_ENUM).default("tools");
 
 export const tagsSchema = z
   .union([
