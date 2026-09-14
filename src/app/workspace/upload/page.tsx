@@ -25,8 +25,11 @@ import {
   Bot,
   Palette,
   Globe,
+  Folder as FolderIcon,
 } from "lucide-react";
 import { handleUploadAction } from "@/app/actions/upload";
+import { getUserFoldersAction } from "@/app/actions/manage";
+import type { Folder } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +43,7 @@ import { scanHtmlForSensitiveData, type SensitiveRiskMatch } from "@/lib/scanner
 import { PublicRiskDialog } from "@/components/public-risk-dialog";
 import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 import { sandboxPool } from "@/lib/sandbox-pool";
+import { buildIndentedFolderList } from "@/lib/utils";
 import { detectHtmlLanguage } from "@/lib/parser/language-detector";
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -70,6 +74,8 @@ export default function WorkspaceUploadPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("tools");
   const [language, setLanguage] = useState<string>("auto");
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [detectedLangHint, setDetectedLangHint] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -94,6 +100,22 @@ export default function WorkspaceUploadPage() {
             setIsPro(true);
           }
         }
+      })
+      .catch(() => {});
+
+    // Context-aware pre-selection from URL query parameter ?folderId=...
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const fid = params.get("folderId");
+      if (fid) {
+        setSelectedFolderId(fid);
+      }
+    }
+
+    // Fetch user folders for dropdown selection
+    getUserFoldersAction()
+      .then((data) => {
+        if (Array.isArray(data)) setFolders(data);
       })
       .catch(() => {});
   }, []);
@@ -254,6 +276,9 @@ export default function WorkspaceUploadPage() {
         if (language !== "auto") {
           formData.append("language", language);
         }
+        if (selectedFolderId) {
+          formData.append("folderId", selectedFolderId);
+        }
         formData.append("tags", tags.join(","));
         formData.append("visibility", targetVisibility);
         formData.append("isPinned", String(isPinned));
@@ -294,6 +319,9 @@ export default function WorkspaceUploadPage() {
             apiFormData.append("category", category);
             if (language !== "auto") {
               apiFormData.append("language", language);
+            }
+            if (selectedFolderId) {
+              apiFormData.append("folderId", selectedFolderId);
             }
             apiFormData.append("tags", tags.join(","));
             apiFormData.append("visibility", targetVisibility);
@@ -650,6 +678,31 @@ export default function WorkspaceUploadPage() {
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* Folder Selection */}
+                <div>
+                  <Label htmlFor="upload-folder" className="block mb-1.5">
+                    {t.workspace?.folders || "所属文件夹"}
+                  </Label>
+                  <div className="flex items-center gap-2.5">
+                    <Select
+                      id="upload-folder"
+                      value={selectedFolderId || ""}
+                      onChange={(e) => setSelectedFolderId(e.target.value ? e.target.value : null)}
+                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-52"
+                    >
+                      <option value="">{t.workspace?.rootFolderOption || "未归类 / 根目录"}</option>
+                      {buildIndentedFolderList(folders).map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {"\u00A0\u00A0".repeat(f.depth)}{f.depth > 0 ? "└─ " : ""}{f.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <span className="text-[11px] text-muted-foreground">
+                      {t.workspace?.selectTargetFolder || "选择存放项目的文件夹，可在左侧目录树随时移动"}
+                    </span>
                   </div>
                 </div>
 

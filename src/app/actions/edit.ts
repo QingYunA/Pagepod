@@ -20,6 +20,7 @@ export async function updateProjectFullAction(
     isWhiteLabel?: boolean;
     customSubdomain?: string | null;
     language?: "zh" | "en" | "other";
+    folderId?: string | null;
     htmlCode?: string;
   }
 ) {

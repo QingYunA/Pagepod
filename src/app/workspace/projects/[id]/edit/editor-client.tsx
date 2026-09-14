@@ -25,8 +25,9 @@ import {
   Palette,
   Globe,
 } from "lucide-react";
-import type { Project } from "@/db/schema";
+import type { Project, Folder } from "@/db/schema";
 import { useLanguage } from "@/lib/i18n/context";
+import { buildIndentedFolderList } from "@/lib/utils";
 
 // CodeMirror (+ @codemirror/lang-html) is large. Load the whole editor only when the
 // code tab actually renders, keeping it out of the route's initial client bundle.
@@ -51,6 +52,7 @@ interface EditorClientProps {
   project: Project;
   initialCode: string;
   isAdmin?: boolean;
+  folders?: Folder[];
 }
 
 const CATEGORIES = [
@@ -64,13 +66,14 @@ const CATEGORIES = [
   { id: "others", label: "其他", icon: Layers },
 ];
 
-export default function ProjectEditorClient({ project, initialCode, isAdmin = false }: EditorClientProps) {
+export default function ProjectEditorClient({ project, initialCode, isAdmin = false, folders = [] }: EditorClientProps) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"code" | "settings">("code");
   const [code, setCode] = useState(initialCode);
   const [title, setTitle] = useState(project.title);
   const [description, setDescription] = useState(project.description || "");
   const [category, setCategory] = useState(project.category);
+  const [folderId, setFolderId] = useState<string | null>(project.folderId ?? null);
   const [language, setLanguage] = useState<"zh" | "en" | "other">((project.language as "zh" | "en" | "other") || "zh");
   const [tags, setTags] = useState<string[]>((project.tags as string[]) || []);
   const [tagInput, setTagInput] = useState("");
@@ -136,6 +139,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
           description,
           category,
           language,
+          folderId,
           tags,
           visibility,
           isPinned,
@@ -395,6 +399,30 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="edit-folder" className="block text-xs font-medium text-foreground mb-1.5">
+                    {t.workspace?.folders || "所属文件夹"}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      id="edit-folder"
+                      value={folderId || ""}
+                      onChange={(e) => setFolderId(e.target.value ? e.target.value : null)}
+                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-52"
+                    >
+                      <option value="">{t.workspace?.rootFolderOption || "未归类 / 根目录"}</option>
+                      {buildIndentedFolderList(folders).map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {"\u00A0\u00A0".repeat(f.depth)}{f.depth > 0 ? "└─ " : ""}{f.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <span className="text-[11px] text-muted-foreground">
+                      {t.workspace?.selectTargetFolder || "修改项目所属文件夹"}
+                    </span>
                   </div>
                 </div>
 

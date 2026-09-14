@@ -9,6 +9,7 @@
 - **独立全屏运行台**：[`src/app/p/[slug]/page.tsx`](src/app/p/[slug]/page.tsx)
 - **安全沙箱隔离端点**：[`src/app/raw/[slug]/[[...path]]/route.ts`](src/app/raw/[slug]/[[...path]]/route.ts)
 - **创作者工作台**：[`src/app/workspace/page.tsx`](src/app/workspace/page.tsx)
+- **项目代码与元数据编辑器 (Project Editor)**：[`src/app/workspace/projects/[id]/edit/editor-client.tsx`](src/app/workspace/projects/[id]/edit/editor-client.tsx)
 - **Edge 中间件与子域名路由网关**：[`src/proxy.ts`](src/proxy.ts)
 - **匿名访客摄入与临时态流转管道**：[`src/lib/services/guest-upload.ts`](src/lib/services/guest-upload.ts)
 - **游客认领与客户端暂存**：[`src/lib/storage/guest-claim.ts`](src/lib/storage/guest-claim.ts)
@@ -128,6 +129,10 @@
     - **GitHub CLI 代理与 REST 接口避坑**：本地存在代理端口（如 `127.0.0.1:10808`）时，执行 `gh` 命令前须显式配置 `https_proxy=http://127.0.0.1:10808 http_proxy=http://127.0.0.1:10808`；PR 合并优先采用稳定 REST API 路径（`gh api -X PUT /repos/QingYunA/Pagepod/pulls/<id>/merge -f merge_method=squash`），避免 GraphQL 连接重置失败；
     - **子进程工具链 PATH 显式保护**：非交互式子 shell 执行命令时确保 PATH 包含 Node 解释器路径（如 `/Users/mac/.nvm/versions/node/v24.14.1/bin`），生产探针使用 `npm run probe:prod`（内部基于 Node `tsx` 原生 Undici 执行，消灭底层 Socket 偶发断联）；
     - **静态工程门禁前置校验**：代码提交前统一运行 `npm run check:standards` 自动校验冲突标记（`<<<<<<<`）、原生 `<a>` 标签违规及反模式文案。
+
+11. **批量操作全等防线准则 (Batch Operation Parity Invariant)**：
+    - **领域与风控断言全等**：任何批量操作（如 `batchDelete`、`batchUpdateVisibility`、`batchMove`）绝非仅是底层数据库执行，必须与单项领域服务保持 100% 语义全等；
+    - **强制逐项校验与副作用闭环**：必须在执行底层变更前对受影响的每个项目逐一执行 Seam RBAC 权限核验（`assertCanManageProject`）与业务合规断言（如 `assertCanSetVisibility` 阻断标记争议项目直接公开），并完整触发物理存储清理等关键生命周期副作用（如 `deleteProjectFiles()` 清除 R2/Blob 孤儿资产），严禁绕过领域服务防线。
 
 ---
 
