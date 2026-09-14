@@ -91,7 +91,7 @@ function readLocalData(): LocalData {
       isWhiteLabel: p.isWhiteLabel ?? false,
       customSubdomain: p.customSubdomain ?? null,
       isGuestTransient: p.isGuestTransient ?? false,
-      visibility: (p.visibility as string) === "unlisted" ? "private" : p.visibility,
+      visibility: p.visibility ?? "public",
       reviewStatus: p.reviewStatus ?? "approved",
       moderationCategory: p.moderationCategory ?? null,
       moderationSummary: p.moderationSummary ?? null,
@@ -222,7 +222,6 @@ const SQL_PROJECTS_MIGRATIONS = [
   `CREATE INDEX IF NOT EXISTS projects_global_pinned_idx ON projects (is_global_pinned, global_pinned_at);`,
   `CREATE INDEX IF NOT EXISTS projects_language_idx ON projects (language);`,
   `UPDATE projects SET is_global_pinned = true, global_pinned_at = created_at WHERE is_pinned = true AND is_global_pinned = false;`,
-  `UPDATE projects SET visibility = 'private' WHERE visibility = 'unlisted';`,
   `UPDATE projects SET review_status = 'approved' WHERE (review_status = 'pending' OR review_status IS NULL) AND moderation_category IS NULL;`,
 ];
 

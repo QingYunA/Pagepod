@@ -209,6 +209,7 @@ const guestResult = await handleGuestUpload({
   clientIp: "127.0.0.1",
   title: "Guest Transient App",
   slug: "guest-transient-" + Date.now(),
+  visibility: "public",
 });
 assert(guestResult.success, "Guest upload succeeds");
 const guestSlug = guestResult.slug!;

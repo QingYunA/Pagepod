@@ -7,7 +7,6 @@ import { getProjectBySlug, updateProject } from "@/db";
 import { categorySchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import type { CurrentUser } from "@/lib/auth";
-import { nanoid } from "nanoid";
 
 export const MAX_GUEST_UPLOAD_BYTES = 2 * 1024 * 1024; // 2MB strict ceiling
 export const GUEST_RATE_LIMIT_PER_HOUR = 10;
@@ -18,6 +17,7 @@ export interface GuestUploadInput {
   title?: string;
   slug?: string;
   category?: string;
+  visibility?: "public" | "unlisted";
   forcePublishWithSecret?: boolean;
 }
 
@@ -25,6 +25,8 @@ export interface GuestUploadResult {
   success: boolean;
   slug?: string;
   claimToken?: string;
+  accessToken?: string;
+  visibility?: "public" | "unlisted";
   title?: string;
   url?: string;
   requiresConfirmation?: boolean;
@@ -39,6 +41,34 @@ export function hashClaimToken(token: string): string {
 
 export function generateClaimToken(): string {
   return crypto.randomBytes(24).toString("hex");
+}
+
+export function generateAccessToken(): string {
+  return `sec_${crypto.randomBytes(8).toString("hex")}`;
+}
+
+export function extractProjectAccessToken(project: { tags?: string[] | null }): string | null {
+  if (!Array.isArray(project.tags)) return null;
+  const found = project.tags.find((t) => typeof t === "string" && t.startsWith("token:"));
+  return found ? found.replace(/^token:/, "") : null;
+}
+
+export function verifyProjectAccessToken(
+  project: { visibility?: string | null; tags?: string[] | null },
+  token?: string | null,
+  isCreator = false
+): boolean {
+  if (isCreator) return true;
+  if (project.visibility === "public") return true;
+  if (project.visibility === "private") return isCreator;
+
+  // Unlisted project token verification
+  const expected = extractProjectAccessToken(project);
+  if (!expected) return true; // Legacy unlisted without token allows link-holders
+  if (!token || typeof token !== "string") return false;
+
+  if (expected.length !== token.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(token));
 }
 
 /**
@@ -112,25 +142,41 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
   const categoryParsed = categorySchema.safeParse(input.category || "tools");
   const category = categoryParsed.success ? categoryParsed.data : "tools";
 
-  // 7. Persist Project via Domain Service (handles slug uniqueness internally)
+  // 7. Persist Project via Domain Service (default: unlisted with secret access token)
+  const visibility = input.visibility === "public" ? "public" : "unlisted";
+  let accessToken: string | undefined;
+  const projectTags: string[] = ["guest-upload", `claim:${tokenHash.slice(0, 24)}`];
+
+  if (visibility === "unlisted") {
+    accessToken = generateAccessToken();
+    projectTags.push(`token:${accessToken}`);
+  }
+
   const project = await createProject(guestActor, {
     title: rawTitle,
     slug,
-    description: `Public HTML application shared via Pagepod guest runner.`,
+    description: `HTML application shared via Pagepod guest runner.`,
     category,
-    visibility: "public",
+    visibility,
     isGuestTransient: true,
     htmlContent,
     fileSize: payloadSize,
-    tags: ["guest-upload", `claim:${tokenHash.slice(0, 24)}`],
+    tags: projectTags,
   });
+
+  const url =
+    visibility === "unlisted" && accessToken
+      ? `/p/${project.slug}?token=${accessToken}`
+      : `/p/${project.slug}`;
 
   return {
     success: true,
     slug: project.slug,
     claimToken,
+    accessToken,
+    visibility,
     title: project.title,
-    url: `/p/${project.slug}`,
+    url,
   };
 }
 
@@ -184,8 +230,9 @@ export async function claimGuestProjects(
       } else {
         errors.push(`Invalid claim token for project ${item.slug}`);
       }
-    } catch (err: any) {
-      errors.push(`Failed to claim ${item.slug}: ${err?.message || "Unknown error"}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      errors.push(`Failed to claim ${item.slug}: ${msg}`);
     }
   }
 

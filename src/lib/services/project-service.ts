@@ -63,7 +63,7 @@ export class ProjectPayloadTooLargeError extends ProjectDomainError {
 
 // --- Interfaces & Types ---
 
-export type ProjectVisibility = "public" | "private";
+export type ProjectVisibility = "public" | "unlisted" | "private";
 
 export function assertCanSetVisibility(
   actor: CurrentUser,

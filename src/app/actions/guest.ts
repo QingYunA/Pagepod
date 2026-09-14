@@ -38,6 +38,7 @@ export async function submitGuestUpload(
   const categoryRaw = formData.get("category")?.toString() || "tools";
   const catParsed = categorySchema.safeParse(categoryRaw);
   const category = catParsed.success ? catParsed.data : "tools";
+  const visibility = formData.get("visibility") === "public" ? "public" : "unlisted";
 
   try {
     return await handleGuestUpload({
@@ -46,6 +47,7 @@ export async function submitGuestUpload(
       title,
       slug,
       category,
+      visibility,
       forcePublishWithSecret,
     });
   } catch (err: any) {
