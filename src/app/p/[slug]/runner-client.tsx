@@ -39,6 +39,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { trackEvent } from "@/lib/analytics";
 
 interface RunnerClientProps {
   project: Project;
@@ -106,6 +107,10 @@ export default function RunnerClient({
       ? `${window.location.origin}/p/${project.slug}?token=${encodeURIComponent(token)}`
       : `${window.location.origin}/p/${project.slug}`;
     navigator.clipboard.writeText(fullUrl);
+    trackEvent("runner_copy_link", {
+      visibility: project.visibility,
+      has_token: Boolean(token),
+    });
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
