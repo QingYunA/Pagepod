@@ -18,7 +18,9 @@
 - **匿名访客摄入与临时态流转管道**：[`src/lib/services/guest-upload.ts`](src/lib/services/guest-upload.ts)
 - **游客认领与客户端暂存**：[`src/lib/storage/guest-claim.ts`](src/lib/storage/guest-claim.ts)
 - **数据访问层与迁移**：[`src/db/index.ts`](src/db/index.ts) 与 [`src/db/schema.ts`](src/db/schema.ts)
+- **根布局、全局元数据与流量统计 (Root & Telemetry)**：[`src/app/layout.tsx`](src/app/layout.tsx)（承载全局字体、主题、JsonLD 结构化数据与 Umami 埋点脚本）
 - **生产健康自动化探针**：[`scripts/probe-prod.ts`](scripts/probe-prod.ts)（`npm run probe:prod`）
+- **大陆物理直连网络探针**：[`scripts/probe-direct.ts`](scripts/probe-direct.ts)（`npm run probe:direct`，强制穿透本地 TUN 代理直连真实物理网卡测速）
 
 ---
 
