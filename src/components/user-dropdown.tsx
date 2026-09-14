@@ -107,10 +107,10 @@ export function UserDropdown({ currentUser }: UserDropdownProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 gap-1.5 px-1.5 sm:px-2 rounded-full border border-border/60 hover:bg-muted/70 transition-colors data-[state=open]:bg-muted shrink-0"
+          className="h-9 gap-2 px-2 rounded-full border border-border/60 hover:bg-muted/70 transition-colors data-[state=open]:bg-muted shrink-0"
         >
           {/* Avatar / Initial badge */}
-          <div className="w-5.5 h-5.5 rounded-full overflow-hidden flex items-center justify-center bg-zinc-900 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 text-[11px] font-semibold tracking-tighter shrink-0 border border-border">
+          <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-zinc-900 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold tracking-tighter shrink-0 border border-border">
             {currentUser.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -123,47 +123,47 @@ export function UserDropdown({ currentUser }: UserDropdownProps) {
             )}
           </div>
 
-          <span className="text-xs font-medium max-w-[120px] truncate hidden sm:inline-block">
+          <span className="text-sm font-medium max-w-[120px] truncate hidden sm:inline-block">
             {displayName}
           </span>
 
           {/* Plan Tier Badge */}
           {currentUser.planTier === "pro" && (
-            <Badge variant="outline" className="px-1.5 py-0 text-[9px] font-mono font-bold tracking-wider gap-0.5 shrink-0">
-              <Sparkles className="w-2.5 h-2.5" />
+            <Badge variant="outline" className="px-2 py-0.5 text-xs font-mono font-bold tracking-wider gap-1 shrink-0">
+              <Sparkles className="w-3 h-3" />
               <span>PRO</span>
             </Badge>
           )}
           {currentUser.planTier === "lite" && (
-            <Badge variant="outline" className="px-1.5 py-0 text-[9px] font-mono font-bold tracking-wider gap-0.5 shrink-0">
-              <Zap className="w-2.5 h-2.5" />
+            <Badge variant="outline" className="px-2 py-0.5 text-xs font-mono font-bold tracking-wider gap-1 shrink-0">
+              <Zap className="w-3 h-3" />
               <span>LITE</span>
             </Badge>
           )}
 
-          <ChevronDown className="w-3 h-3 text-muted-foreground opacity-70 ml-0.5" />
+          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground opacity-70 ml-0.5" />
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-60"
+        className="w-64"
         align="end"
         sideOffset={6}
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         {/* User Identity Header */}
-        <DropdownMenuLabel className="font-normal p-2 pb-1.5">
+        <DropdownMenuLabel className="font-normal p-2.5 pb-2">
           <div className="flex flex-col space-y-1">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-foreground truncate">
+              <span className="text-sm font-semibold text-foreground truncate">
                 {displayName}
               </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded border border-border bg-muted text-muted-foreground uppercase">
+              <span className="text-xs font-mono px-2 py-0.5 rounded border border-border bg-muted text-muted-foreground uppercase">
                 {isSelfhostOwner ? "OWNER" : currentUser.role}
               </span>
             </div>
             {currentUser.email && !isSelfhostOwner && (
-              <p className="text-[11px] text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {currentUser.email}
               </p>
             )}
@@ -175,42 +175,42 @@ export function UserDropdown({ currentUser }: UserDropdownProps) {
           currentUser.planTier === "pro" ? (
             <div className="mx-2 my-1.5 p-2.5 rounded-lg border border-border bg-muted/40 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-foreground flex items-center gap-1 tracking-wide">
-                  <Sparkles className="w-3 h-3" />
+                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 tracking-wide">
+                  <Sparkles className="w-3.5 h-3.5" />
                   {t.nav.proLifetime}
                 </span>
-                <Badge variant="outline" className="text-[8px] font-mono uppercase px-1 py-0 h-4">
+                <Badge variant="outline" className="text-xs font-mono uppercase px-1.5 py-0.5 h-auto">
                   {t.nav.lifetimeBadge}
                 </Badge>
               </div>
-              <p className="text-[10px] text-muted-foreground leading-tight">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {t.nav.proLifetimePerks}
               </p>
             </div>
           ) : currentUser.planTier === "lite" ? (
             <div className="mx-2 my-1.5 p-2.5 rounded-lg border border-border bg-muted/40 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-foreground flex items-center gap-1 tracking-wide">
-                  <Zap className="w-3 h-3" />
+                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5 tracking-wide">
+                  <Zap className="w-3.5 h-3.5" />
                   {t.nav.liteLifetime}
                 </span>
-                <Badge variant="outline" className="text-[8px] font-mono uppercase px-1 py-0 h-4">
+                <Badge variant="outline" className="text-xs font-mono uppercase px-1.5 py-0.5 h-auto">
                   {t.nav.lifetimeBadge}
                 </Badge>
               </div>
-              <p className="text-[10px] text-muted-foreground leading-tight">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {t.nav.liteLifetimePerks}
               </p>
             </div>
           ) : (
-            <div className="mx-2 my-1.5 p-2 rounded-lg border border-border bg-muted/40 flex items-center justify-between">
-              <span className="text-[11px] text-muted-foreground">{t.nav.starterPlan}</span>
+            <div className="mx-2 my-1.5 p-2.5 rounded-lg border border-border bg-muted/40 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{t.nav.starterPlan}</span>
               <Link
                 href="/pricing"
-                className="text-[10px] font-medium text-foreground hover:underline flex items-center gap-0.5"
+                className="text-xs font-medium text-foreground hover:underline flex items-center gap-1"
               >
                 <span>{t.nav.upgradePlan}</span>
-                <Sparkles className="w-2.5 h-2.5" />
+                <Sparkles className="w-3 h-3" />
               </Link>
             </div>
           )

@@ -35,8 +35,10 @@ yarn-error.log*
 !.env.example
 
 # local storage and database fallback
-/.data/
-/.storage/
+/.data
+/.storage
+.data
+.storage
 .zcode/
 
 # vercel

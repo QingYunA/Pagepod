@@ -180,20 +180,20 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             </Link>
           </Button>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-foreground max-w-xs truncate">
+            <span className="text-sm font-semibold text-foreground max-w-xs truncate">
               {title || "编辑项目"}
             </span>
-            <span className="text-[11px] font-mono text-muted-foreground">/p/{project.slug}</span>
+            <span className="text-xs font-mono text-muted-foreground">/p/{project.slug}</span>
           </div>
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex items-center border border-border rounded-md p-0.5 bg-muted/40">
+        <div className="flex items-center border border-border rounded-lg p-0.5 bg-muted/40">
           <Button
             variant={activeTab === "code" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => setActiveTab("code")}
-            className="h-7 px-3 text-xs gap-1.5 rounded-sm"
+            className="h-8 px-3 text-xs font-medium gap-1.5 rounded-md"
           >
             <Code2 className="w-3.5 h-3.5" /> 代码与即时预览
           </Button>
@@ -201,7 +201,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             variant={activeTab === "settings" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => setActiveTab("settings")}
-            className="h-7 px-3 text-xs gap-1.5 rounded-sm"
+            className="h-8 px-3 text-xs font-medium gap-1.5 rounded-md"
           >
             <Settings className="w-3.5 h-3.5" /> 项目元数据
           </Button>
@@ -209,7 +209,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" asChild className="h-7 text-xs">
+          <Button variant="outline" size="sm" asChild className="h-8 px-3 text-xs font-medium">
             <Link href={`/p/${project.slug}`} target="_blank">
               <Eye className="w-3.5 h-3.5 mr-1" />
               <span>运行台</span>
@@ -222,7 +222,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             size="sm"
             onClick={handleManualScreenshot}
             disabled={capturingScreenshot || isPending}
-            className="h-7 text-xs gap-1.5 cursor-pointer"
+            className="h-8 px-3 text-xs font-medium gap-1.5 cursor-pointer"
             title="手动重新截取并更新静态封面图"
           >
             {capturingScreenshot ? (
@@ -273,10 +273,10 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
               {/* Left: CodeMirror Editor */}
               <div className="h-full flex flex-col bg-neutral-950 overflow-hidden">
                 <div className="h-8 px-4 border-b border-border flex items-center justify-between text-xs text-muted-foreground bg-muted/20">
-                  <span className="font-mono flex items-center gap-1.5 text-[11px]">
-                    <Code2 className="w-3 h-3 text-sky-400" /> {project.entryPath}
+                  <span className="font-mono flex items-center gap-1.5 text-xs">
+                    <Code2 className="w-3.5 h-3.5 text-sky-400" /> {project.entryPath}
                   </span>
-                  <span className="text-[11px]">修改后点击右上角保存即可生效</span>
+                  <span className="text-xs">修改后点击右上角保存即可生效</span>
                 </div>
                 <div className="flex-1 overflow-auto">
                   <CodeMirror
@@ -295,17 +295,17 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
               {/* Right: Live Preview */}
               <div className="h-full flex flex-col bg-background overflow-hidden">
                 <div className="h-8 px-4 border-b border-border flex items-center justify-between text-xs text-muted-foreground bg-muted/20">
-                  <span className="text-[11px]">沙箱隔离实时预览</span>
+                  <span className="text-xs">沙箱隔离实时预览</span>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 px-2 text-[11px] gap-1"
+                    className="h-7 px-2.5 text-xs gap-1.5"
                     onClick={() => {
                       setPreviewLoading(true);
                       setPreviewKey((k) => k + 1);
                     }}
                   >
-                    <RotateCw className={`w-3 h-3 ${previewLoading ? "animate-spin" : ""}`} />
+                    <RotateCw className={`w-3.5 h-3.5 ${previewLoading ? "animate-spin" : ""}`} />
                     <span>刷新预览</span>
                   </Button>
                 </div>
@@ -325,7 +325,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   >
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card/90 shadow-xs">
                       <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-                      <span className="text-[11px] font-mono text-muted-foreground">正在初始化安全沙箱预览...</span>
+                      <span className="text-xs font-mono text-muted-foreground">正在初始化安全沙箱预览...</span>
                     </div>
                   </div>
 
@@ -367,31 +367,31 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
           /* Settings Tab */
           <div className="h-full overflow-y-auto p-6 sm:p-8 max-w-2xl mx-auto space-y-6">
             <Card>
-              <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-xs font-semibold text-foreground">
+              <CardHeader className="p-5 pb-2">
+                <CardTitle className="text-base font-semibold text-foreground">
                   基本信息与展示属性
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="p-5 space-y-4">
                 <div>
-                  <label htmlFor="edit-title" className="block text-xs font-medium text-foreground mb-1.5">项目标题</label>
-                  <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <label htmlFor="edit-title" className="block text-sm font-medium text-foreground mb-1.5">项目标题</label>
+                  <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} className="h-9 text-sm" />
                 </div>
 
                 <div>
-                  <label htmlFor="edit-description" className="block text-xs font-medium text-foreground mb-1.5">简介描述</label>
+                  <label htmlFor="edit-description" className="block text-sm font-medium text-foreground mb-1.5">简介描述</label>
                   <Textarea
                     id="edit-description"
                     rows={3}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-transparent border border-input rounded-md p-2.5 text-xs text-foreground outline-none resize-none focus:border-ring"
+                    className="w-full bg-transparent border border-input rounded-md p-3 text-sm text-foreground outline-none resize-none focus:border-ring"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-foreground mb-1.5">所属分类</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <label className="block text-sm font-medium text-foreground mb-1.5">所属分类</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {CATEGORIES.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.id;
@@ -400,13 +400,13 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                           key={cat.id}
                           type="button"
                           onClick={() => setCategory(cat.id)}
-                          className={`flex items-center justify-center gap-1.5 p-2 rounded-md border text-xs transition-colors cursor-pointer ${
+                          className={`flex items-center justify-center gap-1.5 p-2.5 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${
                             isSelected
                               ? "bg-foreground text-background font-semibold border-foreground"
                               : "bg-muted/20 border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
                           }`}
                         >
-                          <Icon className="w-3.5 h-3.5" />
+                          <Icon className="w-4 h-4" />
                           <span>{cat.label}</span>
                         </button>
                       );
@@ -415,7 +415,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                 </div>
 
                 <div>
-                  <label htmlFor="edit-language" className="block text-xs font-medium text-foreground mb-1.5">
+                  <label htmlFor="edit-language" className="block text-sm font-medium text-foreground mb-1.5">
                     {t.workspace?.languageLabel || "主要语言 (Language)"}
                   </label>
                   <div className="flex items-center gap-2">
@@ -423,23 +423,23 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       id="edit-language"
                       value={language}
                       onChange={(e) => setLanguage(e.target.value as "zh" | "en" | "other")}
-                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-44"
+                      className="text-sm h-9 px-3 py-1 bg-muted/20 border-border w-48"
                     >
                       <option value="zh">{t.workspace?.langZh || "中文 (Chinese)"}</option>
                       <option value="en">{t.workspace?.langEn || "英文 (English)"}</option>
                       <option value="other">{t.workspace?.langOther || "其他 (Other)"}</option>
                     </Select>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {t.workspace?.languageHint || "用于正交多语言筛选与索引"}
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-foreground mb-1.5">标签管理</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">标签管理</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {tags.map((t) => (
-                      <Badge key={t} variant="secondary" className="text-[11px] gap-1 px-2 py-0.5">
+                      <Badge key={t} variant="secondary" className="text-xs gap-1 px-2.5 py-1">
                         <span>{t}</span>
                         <button
                           type="button"
@@ -462,14 +462,14 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         }
                       }}
                       placeholder="输入标签按回车..."
-                      className="text-xs"
+                      className="h-9 text-sm"
                     />
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => handleAddTag(tagInput)}
-                      className="text-xs shrink-0"
+                      className="h-9 px-3 text-sm shrink-0"
                     >
                       添加
                     </Button>
@@ -478,7 +478,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-border">
                   <div>
-                    <label htmlFor="edit-visibility" className="block text-xs font-medium text-foreground mb-1.5">公开状态</label>
+                    <label htmlFor="edit-visibility" className="block text-sm font-medium text-foreground mb-1.5">公开状态</label>
                     <Select
                       id="edit-visibility"
                       value={visibility}
@@ -486,6 +486,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         setVisibility(e.target.value as "public" | "private");
                         setBypassedRiskCheck(false);
                       }}
+                      className="h-9 text-sm"
                     >
                       <option value="public">公开 (Showcase 展示)</option>
                       <option value="private">私有 (Private，完全隐蔽)</option>
@@ -493,24 +494,24 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   </div>
 
                   <div className="flex flex-col justify-end gap-2">
-                    <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
+                    <label className="flex items-center gap-2.5 h-9 cursor-pointer select-none">
                       <Checkbox
                         checked={isPinned}
                         onChange={(e) => setIsPinned(e.target.checked)}
                       />
-                      <span className="text-xs text-foreground font-medium">
+                      <span className="text-sm text-foreground font-medium">
                         {t.workspace?.workspacePinLabel || "置顶到个人工作区"}
                       </span>
                     </label>
 
                     {isAdmin && (
-                      <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
+                      <label className="flex items-center gap-2.5 h-9 cursor-pointer select-none">
                         <Checkbox
                           checked={isGlobalPinned}
                           onChange={(e) => setIsGlobalPinned(e.target.checked)}
                         />
-                        <span className="text-xs text-foreground font-medium flex items-center gap-1.5">
-                          <Globe className="w-3.5 h-3.5 text-foreground" />
+                        <span className="text-sm text-foreground font-medium flex items-center gap-1.5">
+                          <Globe className="w-4 h-4 text-foreground" />
                           <span>{t.workspace?.globalPinLabel || "全站展台首屏置顶 (Admin)"}</span>
                         </span>
                       </label>

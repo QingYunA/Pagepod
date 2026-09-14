@@ -348,36 +348,36 @@ export default function WorkspaceUploadPage() {
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Top Header */}
         <div className="flex items-center justify-between pb-4 border-b border-border">
-          <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="sm" asChild className="h-9 text-sm text-muted-foreground hover:text-foreground">
             <Link href="/workspace" prefetch={true}>
-              <ArrowLeft className="w-3.5 h-3.5 mr-1" /> 返回项目列表
+              <ArrowLeft className="w-4 h-4 mr-1.5" /> 返回项目列表
             </Link>
           </Button>
-          <Badge variant="outline" className="text-[10px] font-mono">
+          <Badge variant="outline" className="text-xs px-2.5 py-0.5 font-mono">
             upload hub
           </Badge>
         </div>
 
         {/* Page Title */}
         <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             发布与托管 HTML
           </h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             支持 HTML 拖拽上传、静态资源 Zip 压缩包自动解压平铺，或直接粘贴源代码。
           </p>
         </div>
 
         {successSlug ? (
           <Card className="border-border p-8 text-center space-y-4">
-            <div className="mx-auto w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground">
-              <CheckCircle2 className="w-6 h-6" />
+            <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center text-foreground">
+              <CheckCircle2 className="w-7 h-7" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-base font-semibold text-foreground">发布成功！</h2>
-              <p className="text-xs text-muted-foreground">
+              <h2 className="text-lg font-semibold text-foreground">发布成功！</h2>
+              <p className="text-sm text-muted-foreground">
                 已分配专属独立沙箱路由：
-                <code className="mx-1 px-1.5 py-0.5 rounded bg-muted text-foreground font-mono">
+                <code className="mx-1 px-2 py-0.5 rounded bg-muted text-foreground font-mono text-xs">
                   /p/{successSlug}
                 </code>
               </p>
@@ -397,27 +397,27 @@ export default function WorkspaceUploadPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 text-xs gap-1.5"
+                className="h-9 text-sm gap-1.5"
                 onClick={handleCopyUrl}
               >
-                {copiedUrl ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                {copiedUrl ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 <span>{copiedUrl ? "已复制直链" : "复制运行链接"}</span>
               </Button>
             </div>
 
             {visibility === "private" && (
-              <div className="p-3.5 rounded-lg bg-muted/60 border border-border text-left space-y-1 max-w-md mx-auto">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <div className="p-4 rounded-xl bg-muted/60 border border-border text-left space-y-1.5 max-w-md mx-auto">
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" /> 账号级私有保护已生效
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   该项目仅限您当前登录的账号访问。在任何电脑或手机上登录 GitHub / Google 账号即可直接打开，无需输入任何密码；未登录访客将被严格拒绝。
                 </p>
               </div>
             )}
 
-            <div className="pt-2 flex items-center justify-center gap-2">
-              <Button size="sm" asChild>
+            <div className="pt-2 flex items-center justify-center gap-2.5">
+              <Button size="sm" asChild className="h-9 text-sm">
                 <Link href={`/p/${successSlug}`}>
                   立即在运行台体验
                 </Link>
@@ -425,6 +425,7 @@ export default function WorkspaceUploadPage() {
               <Button
                 size="sm"
                 variant="outline"
+                className="h-9 text-sm"
                 onClick={() => {
                   setSuccessSlug(null);
                   setFile(null);
@@ -444,13 +445,13 @@ export default function WorkspaceUploadPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Input Type Selector using Tabs */}
             <Tabs value={mode} onValueChange={(v) => setMode(v as "file" | "paste")}>
-              <TabsList className="grid grid-cols-2 w-full h-9">
-                <TabsTrigger value="file" className="gap-1.5 text-xs">
-                  <FolderArchive className="w-3.5 h-3.5" />
+              <TabsList className="grid grid-cols-2 w-full h-10">
+                <TabsTrigger value="file" className="gap-2 text-sm font-medium">
+                  <FolderArchive className="w-4 h-4" />
                   <span>上传文件 (.html / .zip)</span>
                 </TabsTrigger>
-                <TabsTrigger value="paste" className="gap-1.5 text-xs">
-                  <FileCode2 className="w-3.5 h-3.5" />
+                <TabsTrigger value="paste" className="gap-2 text-sm font-medium">
+                  <FileCode2 className="w-4 h-4" />
                   <span>直接粘贴代码</span>
                 </TabsTrigger>
               </TabsList>
@@ -464,7 +465,7 @@ export default function WorkspaceUploadPage() {
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
                       onClick={() => fileInputRef.current?.click()}
-                      className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer text-center transition-all ${
+                      className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer text-center transition-all ${
                         isDragging
                           ? "border-primary bg-accent/50 scale-[1.01]"
                           : "border-border hover:border-foreground/40 bg-muted/10 hover:bg-muted/30"
@@ -475,10 +476,10 @@ export default function WorkspaceUploadPage() {
                           isDragging ? "text-primary" : "text-muted-foreground"
                         }`}
                       />
-                      <p className="text-xs font-medium text-foreground">
+                      <p className="text-sm font-medium text-foreground">
                         {isDragging ? "松开鼠标即可上传该文件" : "点击选择 或 直接将文件拖拽至此处"}
                       </p>
-                      <p className="text-[11px] text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         支持单个 <code className="font-mono text-foreground font-semibold">.html</code> 或包含子资源的{" "}
                         <code className="font-mono text-foreground font-semibold">.zip</code> 压缩包
                       </p>
@@ -487,9 +488,9 @@ export default function WorkspaceUploadPage() {
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="mt-4 text-xs gap-1.5 pointer-events-none"
+                        className="mt-4 h-9 text-sm gap-2 pointer-events-none"
                       >
-                        <Upload className="w-3.5 h-3.5" />
+                        <Upload className="w-4 h-4" />
                         <span>浏览本地文件</span>
                       </Button>
 
@@ -503,30 +504,30 @@ export default function WorkspaceUploadPage() {
                     </div>
 
                     {file && (
-                      <div className="mt-3 flex items-center justify-between p-3 bg-muted/40 border border-border rounded-md text-xs">
+                      <div className="mt-3 flex items-center justify-between p-3.5 bg-muted/40 border border-border rounded-lg text-sm">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <FileText className="w-4 h-4 text-foreground shrink-0" />
                           <span className="font-medium text-foreground truncate">{file.name}</span>
-                          <span className="text-muted-foreground shrink-0 font-mono text-[11px]">
+                          <span className="text-muted-foreground shrink-0 font-mono text-xs">
                             ({(file.size / 1024).toFixed(1)} KB)
                           </span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant="secondary" className="text-[10px] text-emerald-500 font-normal">
+                          <Badge variant="secondary" className="text-xs px-2 py-0.5 text-emerald-500 font-medium">
                             已就绪
                           </Badge>
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
                               setFile(null);
                             }}
                             title="移除文件"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <X className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -539,7 +540,7 @@ export default function WorkspaceUploadPage() {
               <TabsContent value="paste" className="mt-3">
                 <Card>
                   <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>HTML 源代码</span>
                       <span>粘贴后将自动抽取 &lt;title&gt; 作为标题</span>
                     </div>
@@ -549,7 +550,7 @@ export default function WorkspaceUploadPage() {
                       value={pasteContent}
                       onChange={(e) => handlePasteChange(e.target.value)}
                       placeholder="<!DOCTYPE html><html>... 在此粘贴 AI 编写的 HTML 代码"
-                      className="bg-neutral-950 border-border font-mono resize-y text-neutral-200"
+                      className="bg-neutral-950 border-border font-mono resize-y text-neutral-200 text-sm"
                     />
                   </CardContent>
                 </Card>
@@ -559,14 +560,14 @@ export default function WorkspaceUploadPage() {
             {/* Metadata Card */}
             <Card>
               <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-xs font-semibold text-foreground">
+                <CardTitle className="text-base font-semibold text-foreground">
                   项目属性与展示设置
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="upload-title" className="block mb-1.5">
+                    <Label htmlFor="upload-title" className="block mb-1.5 text-sm">
                       项目标题
                     </Label>
                     <Input
@@ -574,29 +575,30 @@ export default function WorkspaceUploadPage() {
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder={file ? file.name.replace(/\.[^/.]+$/, "") : "例如：2048 小游戏"}
+                      className="h-9 text-sm"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="upload-slug" className="block mb-1.5">
+                    <Label htmlFor="upload-slug" className="block mb-1.5 text-sm">
                       短链接路由 Slug
                     </Label>
-                    <div className="flex items-center rounded-md border border-input bg-transparent px-2.5 h-8 text-xs">
-                      <span className="text-muted-foreground font-mono text-[11px] mr-1">/p/</span>
+                    <div className="flex items-center rounded-lg border border-input bg-transparent px-3 h-9 text-sm">
+                      <span className="text-muted-foreground font-mono text-xs mr-1">/p/</span>
                       <input
                         id="upload-slug"
                         type="text"
                         value={slug}
                         onChange={(e) => setSlug(e.target.value)}
                         placeholder="game-2048"
-                        className="w-full bg-transparent text-foreground outline-none font-mono text-xs"
+                        className="w-full bg-transparent text-foreground outline-none font-mono text-sm"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="upload-description" className="block mb-1.5">
+                  <Label htmlFor="upload-description" className="block mb-1.5 text-sm">
                     简介描述（可选）
                   </Label>
                   <Input
@@ -604,12 +606,13 @@ export default function WorkspaceUploadPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="简要概括项目的功能或操作指南"
+                    className="h-9 text-sm"
                   />
                 </div>
 
                 {/* Category Selection */}
                 <div>
-                  <label className="block text-xs font-medium text-foreground mb-1.5">
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
                     所属分类
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -621,13 +624,13 @@ export default function WorkspaceUploadPage() {
                           key={cat.id}
                           type="button"
                           onClick={() => setCategory(cat.id)}
-                          className={`flex items-center justify-center gap-1.5 p-2 rounded-md border text-xs transition-colors cursor-pointer ${
+                          className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${
                             isSelected
                               ? "bg-foreground text-background font-semibold border-foreground"
                               : "bg-muted/20 border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
                           }`}
                         >
-                          <Icon className="w-3.5 h-3.5" />
+                          <Icon className="w-4 h-4" />
                           <span>{cat.label}</span>
                         </button>
                       );
@@ -637,7 +640,7 @@ export default function WorkspaceUploadPage() {
 
                 {/* Language Selection */}
                 <div>
-                  <Label htmlFor="upload-language" className="block mb-1.5">
+                  <Label htmlFor="upload-language" className="block mb-1.5 text-sm">
                     {t.workspace?.languageLabel || "主要语言 (Language)"}
                   </Label>
                   <div className="flex items-center gap-2.5">
@@ -645,7 +648,7 @@ export default function WorkspaceUploadPage() {
                       id="upload-language"
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
-                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-52"
+                      className="text-xs sm:text-sm h-9 px-3 py-1 bg-muted/20 border-border w-56"
                     >
                       <option value="auto">
                         {t.workspace?.languageAuto || "自动检测 (Auto)"}{detectedLangHint ? ` → ${detectedLangHint === "zh" ? (t.workspace?.langZh || "中文") : detectedLangHint === "en" ? (t.workspace?.langEn || "English") : (t.workspace?.langOther || "Other")}` : ""}
@@ -654,7 +657,7 @@ export default function WorkspaceUploadPage() {
                       <option value="en">{t.workspace?.langEn || "英文 (English)"}</option>
                       <option value="other">{t.workspace?.langOther || "其他 (Other)"}</option>
                     </Select>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {t.workspace?.languageHint || "基于 HTML 智能启发式算法自动识别，亦可手动锁定"}
                     </span>
                   </div>
@@ -662,12 +665,12 @@ export default function WorkspaceUploadPage() {
 
                 {/* Tags */}
                 <div>
-                  <label className="block text-xs font-medium text-foreground mb-1.5">
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
                     标签 (Tags)
                   </label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {tags.map((t) => (
-                      <Badge key={t} variant="secondary" className="text-[11px] gap-1 px-2 py-0.5">
+                      <Badge key={t} variant="secondary" className="text-xs gap-1.5 px-2.5 py-1">
                         <span>{t}</span>
                         <button
                           type="button"
@@ -690,19 +693,19 @@ export default function WorkspaceUploadPage() {
                         }
                       }}
                       placeholder="输入标签按回车添加..."
-                      className="text-xs"
+                      className="h-9 text-sm"
                     />
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => handleAddTag(tagInput)}
-                      className="text-xs shrink-0"
+                      className="h-9 text-sm shrink-0"
                     >
                       添加
                     </Button>
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px] text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2 text-xs text-muted-foreground">
                     <span>推荐标签：</span>
                     {SUGGESTED_TAGS.map((st) => (
                       <button
@@ -720,7 +723,7 @@ export default function WorkspaceUploadPage() {
                 {/* Visibility and Pin */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-border">
                   <div>
-                    <Label htmlFor="upload-visibility" className="block mb-1.5">
+                    <Label htmlFor="upload-visibility" className="block mb-1.5 text-sm">
                       公开访问状态
                     </Label>
                     <Select
@@ -730,6 +733,7 @@ export default function WorkspaceUploadPage() {
                         setVisibility(e.target.value as "public" | "private");
                         setBypassedRiskCheck(false);
                       }}
+                      className="h-9 text-sm"
                     >
                       <option value="public">公开 (Showcase 画廊展示)</option>
                       <option value="private">私有 (仅自己可见，绝对保密)</option>
@@ -737,24 +741,24 @@ export default function WorkspaceUploadPage() {
                   </div>
 
                   <div className="flex flex-col justify-end gap-2">
-                    <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
+                    <label className="flex items-center gap-2.5 h-9 cursor-pointer select-none">
                       <Checkbox
                         checked={isPinned}
                         onChange={(e) => setIsPinned(e.target.checked)}
                       />
-                      <span className="text-xs text-foreground font-medium">
+                      <span className="text-sm text-foreground font-medium">
                         {t.workspace?.workspacePinLabel || "置顶到个人工作区"}
                       </span>
                     </label>
 
                     {isAdmin && (
-                      <label className="flex items-center gap-2.5 h-8 cursor-pointer select-none">
+                      <label className="flex items-center gap-2.5 h-9 cursor-pointer select-none">
                         <Checkbox
                           checked={isGlobalPinned}
                           onChange={(e) => setIsGlobalPinned(e.target.checked)}
                         />
-                        <span className="text-xs text-foreground font-medium flex items-center gap-1.5">
-                          <Globe className="w-3.5 h-3.5 text-foreground" />
+                        <span className="text-sm text-foreground font-medium flex items-center gap-1.5">
+                          <Globe className="w-4 h-4 text-foreground" />
                           <span>{t.workspace?.globalPinLabel || "全站展台首屏置顶 (Admin)"}</span>
                         </span>
                       </label>
@@ -765,7 +769,7 @@ export default function WorkspaceUploadPage() {
             </Card>
 
             {errorMessage && (
-              <div role="alert" className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-center gap-2">
+              <div role="alert" className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
@@ -774,11 +778,11 @@ export default function WorkspaceUploadPage() {
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full h-9 text-xs font-medium gap-1.5"
+              className="w-full h-10 text-sm font-medium gap-2"
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>正在解析文件与部署沙箱资源...</span>
                 </>
               ) : (

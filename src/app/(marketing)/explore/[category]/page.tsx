@@ -143,7 +143,7 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
   return (
     <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-8 py-10 sm:py-14 w-full">
         {/* Breadcrumb Navigation for SEO */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground mb-8">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground mb-8">
           <Link href="/" className="hover:text-foreground transition-colors">
             Home
           </Link>
@@ -158,20 +158,20 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
         {/* Category Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8 mb-10 border-b border-border">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-foreground text-background">
-                <Icon className="w-4 h-4" />
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 rounded-lg bg-foreground text-background">
+                <Icon className="w-5 h-5" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 {catInfo.nameEn}
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
               {catInfo.desc}
             </p>
           </div>
 
-          <Button asChild size="sm" className="h-8 text-xs shrink-0 font-medium">
+          <Button asChild size="sm" className="h-9 text-sm shrink-0 font-medium">
             <Link href="/workspace/upload">
               Upload in {category}
             </Link>
@@ -190,27 +190,27 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
           <h3 className="text-xs font-semibold uppercase tracking-wider font-mono text-muted-foreground mb-4">
             Curated Pillar Specifications & Sandbox Standards
           </h3>
-          <div className="grid sm:grid-cols-2 gap-6 text-xs leading-relaxed text-muted-foreground">
+          <div className="grid sm:grid-cols-2 gap-6 text-sm leading-relaxed text-muted-foreground">
             <div className="space-y-1.5">
-              <h4 className="font-medium text-foreground">Zero-Installation Client Execution</h4>
+              <h4 className="font-medium text-foreground text-sm">Zero-Installation Client Execution</h4>
               <p>
                 Every application in this collection executes client-side within an isolated, hardened iframe sandbox. Zero server round-trips and instant startup.
               </p>
             </div>
             <div className="space-y-1.5">
-              <h4 className="font-medium text-foreground">Hardened CSP Sandboxing</h4>
+              <h4 className="font-medium text-foreground text-sm">Hardened CSP Sandboxing</h4>
               <p>
                 Enforces strict Content Security Policy without <code>allow-same-origin</code> privileges to physically protect visitor data and prevent cross-site leakage.
               </p>
             </div>
             <div className="space-y-1.5">
-              <h4 className="font-medium text-foreground">Instant Shareable Permanent URLs</h4>
+              <h4 className="font-medium text-foreground text-sm">Instant Shareable Permanent URLs</h4>
               <p>
                 Each published application receives a permanent canonical link. Ideal for documentation embeds, interactive prototypes, and quick client previews.
               </p>
             </div>
             <div className="space-y-1.5">
-              <h4 className="font-medium text-foreground">Public Curation & Provenance</h4>
+              <h4 className="font-medium text-foreground text-sm">Public Curation & Provenance</h4>
               <p>
                 Community-contributed single-file HTML tools and prototypes, preserved with permissive open-source licenses and author attribution.
               </p>
@@ -230,13 +230,13 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
                 <Link
                   key={key}
                   href={`/explore/${key}`}
-                  className="p-3.5 rounded-lg border border-border bg-card/50 hover:bg-card hover:border-foreground/30 transition-all flex items-center justify-between text-xs"
+                  className="p-3.5 rounded-lg border border-border bg-card/50 hover:bg-card hover:border-foreground/30 transition-all flex items-center justify-between text-sm"
                 >
-                  <div className="flex items-center gap-2">
-                    <ItemIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                  <div className="flex items-center gap-2.5">
+                    <ItemIcon className="w-4 h-4 text-muted-foreground" />
                     <span className="font-medium text-foreground">{item.nameEn}</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/60" />
                 </Link>
               );
             })}

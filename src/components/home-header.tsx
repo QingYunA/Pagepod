@@ -84,17 +84,17 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/95 backdrop-blur-xs px-3 sm:px-6 md:px-8 h-14 flex items-center">
+    <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/95 backdrop-blur-xs px-3 sm:px-6 md:px-8 h-16 flex items-center">
       <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
         {/* Brand logo & Desktop Navigation */}
         <div className="flex items-center gap-6 shrink-0">
           <Link
             href="/"
             prefetch={true}
-            className="flex items-center gap-2 font-semibold tracking-tight text-sm text-foreground group shrink-0"
+            className="flex items-center gap-2.5 font-semibold tracking-tight text-base text-foreground group shrink-0"
           >
             <BrandLogo size={24} className="w-6 h-6 shrink-0" />
-            <span className="font-semibold text-sm">
+            <span className="font-semibold text-base">
               {process.env.NEXT_PUBLIC_SITE_NAME || "Pagepod"}
             </span>
           </Link>
@@ -111,7 +111,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                   key={item.href}
                   href={item.href}
                   prefetch={true}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
                       ? "text-foreground bg-muted font-semibold"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -132,7 +132,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
             variant="ghost"
             size="sm"
             asChild
-            className="h-8.5 text-sm text-muted-foreground hover:text-foreground hidden sm:inline-flex px-2.5"
+            className="h-9 text-sm text-muted-foreground hover:text-foreground hidden sm:inline-flex px-3"
           >
             <a
               href="https://github.com/QingYunA/html-manager"
@@ -161,7 +161,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
           <Button
             size="sm"
             asChild
-            className="h-8.5 text-sm font-medium hidden sm:inline-flex px-3"
+            className="h-9 text-sm font-medium hidden sm:inline-flex px-3.5"
           >
             <Link href="/workspace/upload" prefetch={true}>
               <Plus className="w-4 h-4 mr-1" />
@@ -181,7 +181,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                 variant="ghost"
                 size="sm"
                 asChild
-                className="h-8.5 text-sm font-medium px-2.5 sm:px-3"
+                className="h-9 text-sm font-medium px-3 sm:px-3.5"
               >
                 <Link href="/login" prefetch={true}>
                   {t.nav.login}
@@ -191,7 +191,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                 variant="outline"
                 size="sm"
                 asChild
-                className="h-8.5 text-sm font-medium hidden sm:inline-flex px-3"
+                className="h-9 text-sm font-medium hidden sm:inline-flex px-3.5"
               >
                 <Link href="/login?tab=signup" prefetch={true}>
                   {t.nav.signup}
@@ -207,7 +207,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="h-9 w-9 text-muted-foreground hover:text-foreground"
                   aria-label="打开导航菜单"
                 >
                   <Menu className="w-4 h-4" />

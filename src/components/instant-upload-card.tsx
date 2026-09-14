@@ -187,8 +187,8 @@ export function InstantUploadCard() {
         />
 
         {!uploadedResult ? (
-          <div className="flex flex-col items-center text-center space-y-3">
-            <div className="w-10 h-10 rounded-full border border-border/60 bg-muted/40 flex items-center justify-center text-muted-foreground">
+          <div className="flex flex-col items-center text-center space-y-3.5">
+            <div className="w-11 h-11 rounded-full border border-border/60 bg-muted/40 flex items-center justify-center text-muted-foreground">
               {isPending ? (
                 <Loader2 className="w-5 h-5 animate-spin text-foreground" />
               ) : (
@@ -197,12 +197,12 @@ export function InstantUploadCard() {
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-sm font-medium text-foreground tracking-tight">
+              <h3 className="text-base font-semibold text-foreground tracking-tight">
                 {isZh
                   ? "拖入单文件 HTML 即刻获取分享链接"
                   : "Drop your HTML file here to get an instant shareable link"}
               </h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {isZh
                   ? "无需登录 · 安全沙箱隔离 · 2MB 免费免配置"
                   : "No sign-up required · Sandboxed runner · Up to 2MB free"}
@@ -210,7 +210,7 @@ export function InstantUploadCard() {
             </div>
 
             {errorMsg && (
-              <p className="text-xs text-destructive font-medium px-2 py-1 rounded bg-destructive/10 border border-destructive/20">
+              <p className="text-xs text-destructive font-medium px-2.5 py-1 rounded bg-destructive/10 border border-destructive/20">
                 {errorMsg}
               </p>
             )}
@@ -220,12 +220,12 @@ export function InstantUploadCard() {
                 variant="outline"
                 size="sm"
                 disabled={isPending}
-                className="h-8 text-xs font-medium px-4 shadow-sm border-border/80"
+                className="h-9 text-sm font-medium px-4.5 shadow-xs border-border/80"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
                     {isZh ? "正在部署沙箱..." : "Deploying Sandbox..."}
                   </>
                 ) : isZh ? (
@@ -236,9 +236,9 @@ export function InstantUploadCard() {
               </Button>
             </div>
 
-            <div className="pt-2 flex items-center gap-3 text-[11px] text-muted-foreground/80">
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-500" />
+            <div className="pt-2 flex items-center gap-3 text-xs text-muted-foreground/80">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                 {isZh ? "严格 CSP 物理隔离" : "Hardened CSP Isolation"}
               </span>
               <span>·</span>
@@ -251,17 +251,17 @@ export function InstantUploadCard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5 border-emerald-500/30 text-emerald-500 bg-emerald-500/5">
+                <Badge variant="outline" className="text-xs font-mono px-2.5 py-0.5 border-emerald-500/30 text-emerald-500 bg-emerald-500/5">
                   LIVE & SANDBOXED
                 </Badge>
-                <span className="text-xs font-medium text-foreground truncate max-w-[200px]">
+                <span className="text-sm font-medium text-foreground truncate max-w-[220px]">
                   {uploadedResult.title}
                 </span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => {
                   setUploadedResult(null);
                   setErrorMsg(null);
@@ -271,25 +271,25 @@ export function InstantUploadCard() {
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 p-2 rounded-lg border border-border/80 bg-muted/30 font-mono text-xs text-foreground">
-              <LinkIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <div className="flex items-center gap-2 p-2.5 rounded-lg border border-border/80 bg-muted/30 font-mono text-xs sm:text-sm text-foreground">
+              <LinkIcon className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="truncate flex-1">
                 {typeof window !== "undefined" ? window.location.origin : ""}{uploadedResult.url}
               </span>
               <Button
                 variant="secondary"
                 size="sm"
-                className="h-7 text-xs px-2.5 shrink-0"
+                className="h-8 text-xs px-3 shrink-0"
                 onClick={handleCopyLink}
               >
                 {copied ? (
                   <>
-                    <Check className="w-3 h-3 mr-1 text-emerald-500" />
+                    <Check className="w-3.5 h-3.5 mr-1 text-emerald-500" />
                     {isZh ? "已复制" : "Copied"}
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3 h-3 mr-1" />
+                    <Copy className="w-3.5 h-3.5 mr-1" />
                     {isZh ? "复制链接" : "Copy"}
                   </>
                 )}
@@ -297,7 +297,7 @@ export function InstantUploadCard() {
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {isZh
                   ? "管理凭据已保存在本机，随时登录即可认领合并。"
                   : "Ownership token stored in browser. Sign in anytime to manage."}
@@ -306,10 +306,10 @@ export function InstantUploadCard() {
                 href={uploadedResult.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
               >
                 {isZh ? "在线运行" : "Run Online"}
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
           </div>

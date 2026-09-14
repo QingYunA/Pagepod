@@ -28,9 +28,10 @@
 - **Monochrome & Zinc 纯粹黑白灰调**：
   - 深色模式采用精炼纯正的 Zinc 深黑基底（`#09090b`），浅色模式采用纯净白（`#ffffff`）。
   - 严格采用 1px 精细 Hairline 边框（`#27272a` / `#e4e4e7`），保持界面的精密感与技术质感。
-- **全套 shadcn/ui & Radix UI 组件驱动**：
+- **全套 shadcn/ui & Radix UI 组件驱动与标准工业级标度 (Standard Industrial Scale)**：
   - 页面全部交互元素必须调用 `src/components/ui/*` 规范原语：`Button`、`Badge`、`Card`、`Input`、`Tabs`、`Dialog`。
-  - 组件尺寸偏向紧凑精致（32px / 36px 高度，11px~13px 字号）。
+  - 组件尺寸遵循标准工业级标度（`Button`/`Input` 标准 36px `h-9` 高度，次要/小号 32px `h-8`，大号 40px `h-10`；正文与输入 14px `text-sm`，标题 16px `text-base` 以上，次要元数据与角标 12px `text-xs`）。
+  - **全站字号物理红线**：坚决禁止在全站任何界面使用低于 12px 的微缩字号（彻底清除并禁止 `text-[10px]`、`text-[11px]`、`text-[9px]`），消除视觉疲劳与微雕感，遵循 ADR-0006 规范。
 - **静态底图与双核悬浮胶囊操作体系 (Static Poster with Dual-Action Capsule & Resilience Shield)**：
   - **严禁在列表/网格中无差别直出全量 iframe**（彻底避免多重并发大型 HTML/WebGL 造成的 GPU/CPU 峰值、风扇狂转与内存爆炸）；
   - 展示型卡片统一采用 `HoverSandboxPreview`：默认呈现 Zinc 高定技术点阵底图与分类专属线框海报（零网络开销、首屏极速加载）；

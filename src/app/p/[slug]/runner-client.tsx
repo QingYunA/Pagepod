@@ -131,16 +131,16 @@ export default function RunnerClient({
           </Button>
 
           <div className="min-w-0 flex items-center gap-2">
-            <h1 className="text-xs font-semibold text-foreground truncate max-w-[140px] sm:max-w-xs md:max-w-sm">
+            <h1 className="text-sm font-semibold text-foreground truncate max-w-[140px] sm:max-w-xs md:max-w-sm">
               {project.title}
             </h1>
             {isPrivate ? (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1 text-amber-600 dark:text-amber-400 border-amber-500/30">
+              <Badge variant="secondary" className="text-xs px-2 py-0.5 gap-1 text-amber-600 dark:text-amber-400 border-amber-500/30">
                 <Lock className="w-3 h-3" />
                 <span>私有项目</span>
               </Badge>
             ) : (
-              <Badge variant="outline" className="hidden sm:inline-flex text-[10px] px-1.5 py-0">
+              <Badge variant="outline" className="hidden sm:inline-flex text-xs px-2 py-0.5">
                 {project.category}
               </Badge>
             )}
@@ -151,45 +151,45 @@ export default function RunnerClient({
               onClick={() => setShowInfo(!showInfo)}
               title={t.runner.details}
             >
-              <Info className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px] font-medium">{t.runner.details}</span>
+              <Info className="w-4 h-4" />
+              <span className="hidden sm:inline text-xs font-medium">{t.runner.details}</span>
             </Button>
           </div>
         </div>
 
         {/* Center: Device Switcher */}
-        <div className="flex items-center border border-border rounded-md p-0.5 bg-muted/40">
+        <div className="flex items-center border border-border rounded-lg p-0.5 bg-muted/40">
           <Button
             variant={device === "desktop" ? "secondary" : "ghost"}
             size="sm"
-            className="h-7 px-2.5 text-xs gap-1.5 rounded-sm"
+            className="h-8 px-3 text-xs font-medium gap-1.5 rounded-md"
             onClick={() => setDevice("desktop")}
             title={t.runner.desktop}
           >
-            <Monitor className="w-3.5 h-3.5" />
-            <span className="hidden md:inline text-[11px]">{t.runner.desktop}</span>
+            <Monitor className="w-4 h-4" />
+            <span className="hidden md:inline">{t.runner.desktop}</span>
           </Button>
 
           <Button
             variant={device === "tablet" ? "secondary" : "ghost"}
             size="sm"
-            className="h-7 px-2.5 text-xs gap-1.5 rounded-sm"
+            className="h-8 px-3 text-xs font-medium gap-1.5 rounded-md"
             onClick={() => setDevice("tablet")}
             title={t.runner.tablet}
           >
-            <Tablet className="w-3.5 h-3.5" />
-            <span className="hidden md:inline text-[11px]">{t.runner.tablet}</span>
+            <Tablet className="w-4 h-4" />
+            <span className="hidden md:inline">{t.runner.tablet}</span>
           </Button>
 
           <Button
             variant={device === "mobile" ? "secondary" : "ghost"}
             size="sm"
-            className="h-7 px-2.5 text-xs gap-1.5 rounded-sm"
+            className="h-8 px-3 text-xs font-medium gap-1.5 rounded-md"
             onClick={() => setDevice("mobile")}
             title={t.runner.mobile}
           >
-            <Smartphone className="w-3.5 h-3.5" />
-            <span className="hidden md:inline text-[11px]">{t.runner.mobile}</span>
+            <Smartphone className="w-4 h-4" />
+            <span className="hidden md:inline">{t.runner.mobile}</span>
           </Button>
         </div>
 
@@ -267,25 +267,25 @@ export default function RunnerClient({
       {showInfo && (
         <div className="bg-card/95 backdrop-blur-md border-b border-border px-4 py-3 flex flex-col gap-3 text-xs text-muted-foreground z-20 shadow-md">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-4 text-[11px]">
+            <div className="flex flex-wrap items-center gap-4 text-xs">
               <div>
-                <span className="text-muted-foreground">{t.runner.category}</span>
+                <span className="text-muted-foreground">{t.runner.category}</span>{" "}
                 <span className="text-foreground font-medium">{project.category}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">{t.runner.status}</span>
+                <span className="text-muted-foreground">{t.runner.status}</span>{" "}
                 <span className="text-foreground font-medium">
                   {isPrivate ? (isOwner ? "私有 (所有者可访问)" : "私有保护") : t.runner.plainOutput}
                 </span>
               </div>
               {project.description && (
                 <div className="max-w-md truncate">
-                  <span className="text-muted-foreground">{t.runner.description}</span>
+                  <span className="text-muted-foreground">{t.runner.description}</span>{" "}
                   <span className="text-foreground">{project.description}</span>
                 </div>
               )}
             </div>
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setShowInfo(false)}>
+            <Button variant="ghost" size="sm" className="h-7 px-2.5 text-xs" onClick={() => setShowInfo(false)}>
               {t.runner.close}
             </Button>
           </div>
@@ -293,8 +293,8 @@ export default function RunnerClient({
           {/* Related Projects Showcase */}
           {relatedProjects.length > 0 && (
             <div className="pt-2 border-t border-border/50">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-foreground mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <div className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-2">
+                <Sparkles className="w-4 h-4 text-primary" />
                 <span>{t.runner.relatedTitle}</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -304,8 +304,8 @@ export default function RunnerClient({
                     href={`/p/${rel.slug}`}
                     className="p-2 rounded border border-border/60 bg-muted/20 hover:bg-muted/60 transition-colors flex flex-col gap-1"
                   >
-                    <span className="text-[11px] font-medium text-foreground truncate">{rel.title}</span>
-                    <span className="text-[10px] text-muted-foreground">{rel.category}</span>
+                    <span className="text-xs font-medium text-foreground truncate">{rel.title}</span>
+                    <span className="text-xs text-muted-foreground">{rel.category}</span>
                   </Link>
                 ))}
               </div>
@@ -333,10 +333,10 @@ export default function RunnerClient({
         >
           {device !== "desktop" && (
             <div className="h-6 bg-muted/50 flex items-center justify-between px-3 shrink-0 border-b border-border select-none">
-              <span className="text-[10px] font-mono text-muted-foreground tracking-tight">
+              <span className="text-xs font-mono text-muted-foreground tracking-tight">
                 {device === "tablet" ? "768 × 1024" : "375 × 667"}
               </span>
-              <span className="text-[9px] font-mono text-muted-foreground/60 uppercase">
+              <span className="text-xs font-mono text-muted-foreground/60 uppercase">
                 {device}
               </span>
             </div>
@@ -387,7 +387,7 @@ export default function RunnerClient({
             href="/"
             target="_blank"
             title="Hosted on Pagepod - Free HTML Sandbox"
-            className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all shadow-xs"
+            className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-xs font-mono text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all shadow-xs"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 group-hover:animate-pulse" />
             <span>Hosted on <strong className="font-semibold text-foreground">Pagepod</strong></span>
@@ -543,20 +543,20 @@ export default function RunnerClient({
                       className="group p-4 rounded-xl border border-border bg-card hover:border-foreground/30 transition-all flex flex-col justify-between shadow-xs"
                     >
                       <div>
-                        <Badge variant="outline" className="text-[10px] uppercase font-mono mb-2">
+                        <Badge variant="outline" className="text-xs uppercase font-mono mb-2">
                           {rel.category}
                         </Badge>
-                        <h4 className="text-xs font-semibold text-foreground group-hover:text-foreground line-clamp-1 mb-1">
+                        <h4 className="text-sm font-semibold text-foreground group-hover:text-foreground line-clamp-1 mb-1">
                           {rel.title}
                         </h4>
-                        <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                           {rel.description || "Interactive HTML project hosted on Pagepod."}
                         </p>
                       </div>
-                      <div className="pt-3 mt-3 border-t border-border/60 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+                      <div className="pt-3 mt-3 border-t border-border/60 flex items-center justify-between text-xs font-mono text-muted-foreground">
                         <span className="truncate max-w-[100px]">/p/{rel.slug}</span>
                         <span className="flex items-center gap-1 text-emerald-500 font-medium shrink-0">
-                          <Play className="w-2.5 h-2.5 fill-emerald-500" />
+                          <Play className="w-3 h-3 fill-emerald-500" />
                           Play
                         </span>
                       </div>
@@ -574,15 +574,15 @@ export default function RunnerClient({
         <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 gap-0 border-border bg-card">
           <DialogHeader className="p-3.5 border-b border-border flex flex-row items-center justify-between space-y-0">
             <div>
-              <DialogTitle className="text-xs font-mono font-medium">
+              <DialogTitle className="text-sm font-mono font-medium">
                 {project.entryPath}
               </DialogTitle>
-              <DialogDescription className="text-[11px] text-muted-foreground">
+              <DialogDescription className="text-xs text-muted-foreground">
                 {t.runner.sourceCode}
               </DialogDescription>
             </div>
             <div className="flex items-center gap-2 mr-6">
-              <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={handleCopyCode}>
+              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={handleCopyCode}>
                 {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedCode ? t.runner.copied : t.runner.copySource}</span>
               </Button>

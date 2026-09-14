@@ -96,11 +96,11 @@ function ReviewStatusBadge({
         variant="outline"
         className={
           isOverlay
-            ? "text-[10px] gap-1 backdrop-blur-md bg-destructive/80 border-destructive text-white font-medium"
-            : "text-[10px] px-1 py-0 bg-destructive/10 border-destructive/30 text-destructive font-normal"
+            ? "text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-destructive/80 border-destructive text-white font-medium"
+            : "text-xs px-2 py-0.5 bg-destructive/10 border-destructive/30 text-destructive font-medium"
         }
       >
-        <ShieldAlert className="w-2.5 h-2.5 mr-0.5" />
+        <ShieldAlert className="w-3 h-3 mr-0.5" />
         {t.moderation?.statusRejected || "Rejected"}
       </Badge>
     );
@@ -112,8 +112,8 @@ function ReviewStatusBadge({
         variant="outline"
         className={
           isOverlay
-            ? "text-[10px] gap-1 backdrop-blur-md bg-amber-500/20 border-amber-500/40 text-amber-300 font-medium"
-            : "text-[10px] px-1 py-0 bg-amber-500/10 border-amber-500/30 text-amber-500 font-normal"
+            ? "text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-amber-500/20 border-amber-500/40 text-amber-300 font-medium"
+            : "text-xs px-2 py-0.5 bg-amber-500/10 border-amber-500/30 text-amber-500 font-medium"
         }
       >
         {t.moderation?.statusPending || "Pending"}
@@ -127,11 +127,11 @@ function ReviewStatusBadge({
         variant="outline"
         className={
           isOverlay
-            ? "text-[10px] gap-1 backdrop-blur-md bg-amber-600/20 border-amber-600/40 text-amber-300 font-medium"
-            : "text-[10px] px-1 py-0 bg-amber-600/10 border-amber-600/30 text-amber-600 font-normal"
+            ? "text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-amber-600/20 border-amber-600/40 text-amber-300 font-medium"
+            : "text-xs px-2 py-0.5 bg-amber-600/10 border-amber-600/30 text-amber-600 font-medium"
         }
       >
-        <AlertTriangle className="w-2.5 h-2.5 mr-0.5" />
+        <AlertTriangle className="w-3 h-3 mr-0.5" />
         {t.moderation?.statusFlagged || "Restricted"}
       </Badge>
     );
@@ -429,16 +429,16 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
               <button
                 key={cat.id}
                 onClick={() => setCategoryFilter(cat.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   isSelected
                     ? "bg-foreground text-background font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-4 h-4" />
                 <span>{cat.label}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  className={`text-xs px-2 py-0.5 rounded-full font-mono ${
                     isSelected
                       ? "bg-background/20 text-background"
                       : "bg-muted text-muted-foreground"
@@ -452,28 +452,28 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
         </div>
 
         {/* View Mode Toggle Switcher */}
-        <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+        <div className="flex items-center gap-2.5 self-end md:self-auto shrink-0">
           <span className="text-xs text-muted-foreground hidden sm:inline font-mono">
             {filtered.length} / {projects.length} 项
           </span>
-          <div className="flex items-center border border-border rounded-md p-0.5 bg-muted/30">
+          <div className="flex items-center border border-border rounded-lg p-1 bg-muted/30 gap-1">
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
               size="icon"
-              className="h-7 w-7 rounded-sm"
+              className="h-8 w-8 rounded-md"
               onClick={() => handleViewModeChange("grid")}
               title="卡片沙箱视图 (Grid)"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-4 h-4" />
             </Button>
             <Button
               variant={viewMode === "table" ? "secondary" : "ghost"}
               size="icon"
-              className="h-7 w-7 rounded-sm"
+              className="h-8 w-8 rounded-md"
               onClick={() => handleViewModeChange("table")}
               title="紧凑表格视图 (Table)"
             >
-              <List className="w-3.5 h-3.5" />
+              <List className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -482,24 +482,24 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
       {/* Search, Language Filter & Sort Controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="搜索项目标题、Slug、标签..."
             aria-label="搜索项目标题、Slug、标签"
-            className="pl-8 text-xs bg-muted/20 border-border"
+            className="pl-9 h-9 text-sm bg-muted/20 border-border"
           />
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
           {/* Language toggle pills */}
-          <div className="inline-flex items-center rounded-md border border-border bg-muted/20 p-0.5 text-xs">
+          <div className="inline-flex items-center rounded-lg border border-border bg-muted/20 p-1 text-xs gap-0.5">
             <button
               type="button"
               onClick={() => setLanguageFilter("all")}
               className={cn(
-                "px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer",
+                "px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
                 languageFilter === "all"
                   ? "bg-foreground text-background font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -511,7 +511,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
               type="button"
               onClick={() => setLanguageFilter("zh")}
               className={cn(
-                "px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer",
+                "px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
                 languageFilter === "zh"
                   ? "bg-foreground text-background font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -523,7 +523,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
               type="button"
               onClick={() => setLanguageFilter("en")}
               className={cn(
-                "px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer",
+                "px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
                 languageFilter === "en"
                   ? "bg-foreground text-background font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -535,7 +535,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
               type="button"
               onClick={() => setLanguageFilter("other")}
               className={cn(
-                "px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer",
+                "px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
                 languageFilter === "other"
                   ? "bg-foreground text-background font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -551,7 +551,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
               aria-label={t.gallery?.sortBy || "排序方式"}
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "newest" | "views" | "alpha")}
-              className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-auto"
+              className="text-xs sm:text-sm h-9 px-3 py-1 bg-muted/20 border-border w-auto"
             >
               <option value="newest">{t.gallery?.sortNewest || "最新发布"}</option>
               <option value="views">{t.gallery?.sortViews || "最多浏览"}</option>
@@ -597,28 +597,28 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
 
                       {/* Badges on top of miniature viewport */}
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 pointer-events-none z-20">
-                        <Badge variant="subtle" className="text-[10px] gap-1 backdrop-blur-md bg-black/70 border-neutral-800 text-neutral-200">
-                          <CategoryIcon className="w-3 h-3" />
+                        <Badge variant="subtle" className="text-xs px-2 py-0.5 gap-1.5 backdrop-blur-md bg-black/75 border-neutral-800 text-neutral-200">
+                          <CategoryIcon className="w-3.5 h-3.5" />
                           <span>{cat?.label || item.category}</span>
                         </Badge>
-                        <Badge variant="subtle" className="text-[10px] px-1.5 backdrop-blur-md bg-black/70 border-neutral-800 text-neutral-300 font-mono uppercase">
+                        <Badge variant="subtle" className="text-xs px-2 py-0.5 backdrop-blur-md bg-black/75 border-neutral-800 text-neutral-300 font-mono uppercase">
                           {item.language || "zh"}
                         </Badge>
                         {item.isPinned && (
-                          <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/75 border-neutral-400 text-neutral-100 font-medium">
-                            <Pin className="w-2.5 h-2.5 fill-current" />
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-black/80 border-neutral-400 text-neutral-100 font-medium">
+                            <Pin className="w-3 h-3 fill-current" />
                             <span>{t.workspace?.workspacePinned || "工作区置顶"}</span>
                           </Badge>
                         )}
                         {item.isGlobalPinned && (
-                          <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/75 border-white/20 text-white font-medium">
-                            <Globe className="w-2.5 h-2.5" />
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-black/80 border-white/20 text-white font-medium">
+                            <Globe className="w-3 h-3" />
                             <span>{t.workspace?.globalPinned || "全站推荐"}</span>
                           </Badge>
                         )}
                         <ReviewStatusBadge status={item.reviewStatus} t={t} isOverlay />
                         {item.visibility === "private" && (
-                          <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/70 border-red-900/50 text-red-300">
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-black/75 border-red-900/50 text-red-300">
                             私有
                           </Badge>
                         )}
@@ -629,53 +629,53 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                         type="button"
                         onClick={(e) => handleShare(item.slug, e)}
                         title="复制运行链接"
-                        className="absolute top-2.5 right-2.5 p-1.5 rounded-md bg-black/70 hover:bg-black/90 text-neutral-300 hover:text-white border border-neutral-800 backdrop-blur-md transition-colors cursor-pointer z-20"
+                        className="absolute top-2.5 right-2.5 p-2 rounded-lg bg-black/70 hover:bg-black/90 text-neutral-300 hover:text-white border border-neutral-800 backdrop-blur-md transition-colors cursor-pointer z-20"
                       >
                         {copiedSlug === item.slug ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <Check className="w-4 h-4 text-emerald-400" />
                         ) : (
-                          <Share2 className="w-3.5 h-3.5" />
+                          <Share2 className="w-4 h-4" />
                         )}
                       </button>
                     </div>
 
                     {/* Card Body: Title, Slug, Description */}
-                    <CardHeader className="p-3.5 pb-2 space-y-1">
+                    <CardHeader className="p-4 pb-2 space-y-1">
                       <div className="flex items-start justify-between gap-2">
                         <Link href={`/p/${item.slug}`} className="hover:underline">
-                          <CardTitle className="text-sm font-semibold truncate text-foreground leading-snug">
+                          <CardTitle className="text-base font-semibold truncate text-foreground leading-snug">
                             {item.title}
                           </CardTitle>
                         </Link>
                       </div>
-                      <div className="font-mono text-[11px] text-muted-foreground truncate">
+                      <div className="font-mono text-xs text-muted-foreground truncate">
                         /p/{item.slug}
                       </div>
                       {item.description ? (
-                        <CardDescription className="line-clamp-2 text-xs leading-relaxed pt-0.5 text-muted-foreground">
+                        <CardDescription className="line-clamp-2 text-sm leading-relaxed pt-0.5 text-muted-foreground">
                           {item.description}
                         </CardDescription>
                       ) : (
-                        <p className="text-[11px] text-muted-foreground/60 italic pt-0.5">暂无描述</p>
+                        <p className="text-xs text-muted-foreground/60 italic pt-0.5">暂无描述</p>
                       )}
                     </CardHeader>
 
                     {/* Card Bottom: Metadata & Management Controls */}
-                    <CardContent className="p-3.5 pt-0 pb-3 space-y-2.5 flex-1 flex flex-col justify-end">
+                    <CardContent className="p-4 pt-0 pb-3.5 space-y-2.5 flex-1 flex flex-col justify-end">
                       {/* Meta stats */}
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono pt-2 border-t border-border/60">
-                        <span className="inline-flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
+                      <div className="flex items-center justify-between text-xs text-muted-foreground font-mono pt-2.5 border-t border-border/60">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Eye className="w-3.5 h-3.5" />
                           <span>{item.viewCount || 0} 次加载</span>
                         </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5" />
                           <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                         </span>
                       </div>
 
                       {/* Management Row: Visibility Select & Action Buttons */}
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
+                      <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-border/40">
                         <Select
                           aria-label="修改可见性"
                           value={item.visibility}
@@ -685,23 +685,23 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                               e.target.value as "public" | "private"
                             )
                           }
-                          className="text-[11px] h-7 px-2 py-0.5 max-w-[130px]"
+                          className="text-xs h-8 px-2.5 py-1 max-w-[140px]"
                         >
                           <option value="public">公开 (Public)</option>
                           <option value="private">私有 (Private)</option>
                         </Select>
 
-                        <div className="flex items-center gap-0.5">
+                        <div className="flex items-center gap-1">
                           {(item.reviewStatus === "rejected" || item.reviewStatus === "flagged") && (
                             <Button
                               variant="ghost"
                               size="icon"
                               asChild
-                              className="h-7 w-7 text-amber-500 hover:text-amber-600"
+                              className="h-8 w-8 text-amber-500 hover:text-amber-600"
                               title="Appeal Review / 申诉复核"
                             >
                               <a href={createAppealMailtoUrl(item)}>
-                                <HelpCircle className="w-3.5 h-3.5" />
+                                <HelpCircle className="w-4 h-4" />
                               </a>
                             </Button>
                           )}
@@ -716,7 +716,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                                   size="icon"
                                   disabled={!isOwner || isPending || isPendingThisWorkspace}
                                   onClick={() => handleTogglePin(item.id, item.isPinned)}
-                                  className={`h-7 w-7 rounded-sm ${
+                                  className={`h-8 w-8 rounded-md ${
                                     !isOwner
                                       ? "opacity-30 cursor-not-allowed text-muted-foreground"
                                       : item.isPinned
@@ -732,9 +732,9 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                                   }
                                 >
                                   {isPendingThisWorkspace ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <Loader2 className="w-4 h-4 animate-spin" />
                                   ) : (
-                                    <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
+                                    <Pin className={`w-4 h-4 ${item.isPinned ? "fill-current" : ""}`} />
                                   )}
                                 </Button>
 
@@ -744,7 +744,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                                     size="icon"
                                     disabled={isPending || isPendingThisGlobal}
                                     onClick={() => handleToggleGlobalPin(item.id, item.isGlobalPinned ?? false)}
-                                    className={`h-7 w-7 rounded-sm ${
+                                    className={`h-8 w-8 rounded-md ${
                                       item.isGlobalPinned
                                         ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
                                         : "text-muted-foreground hover:text-foreground"
@@ -756,9 +756,9 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                                     }
                                   >
                                     {isPendingThisGlobal ? (
-                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      <Loader2 className="w-4 h-4 animate-spin" />
                                     ) : (
-                                      <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
+                                      <Globe className={`w-4 h-4 ${item.isGlobalPinned ? "fill-current" : ""}`} />
                                     )}
                                   </Button>
                                 )}
@@ -771,24 +771,24 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                             size="icon"
                             disabled={capturingId === item.id || isPending}
                             onClick={(e) => handleRegenerateScreenshot(item.id, e)}
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
                             title="重新生成高清静态截图"
                           >
                             {capturingId === item.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-foreground" />
+                              <Loader2 className="w-4 h-4 animate-spin text-foreground" />
                             ) : (
-                              <Camera className="w-3.5 h-3.5" />
+                              <Camera className="w-4 h-4" />
                             )}
                           </Button>
 
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
                             asChild
                           >
                             <Link href={`/workspace/projects/${item.id}/edit`} title="在线编辑代码">
-                              <Edit3 className="w-3.5 h-3.5" />
+                              <Edit3 className="w-4 h-4" />
                             </Link>
                           </Button>
 
@@ -800,13 +800,13 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                               setDeleteTarget(item);
                             }}
                             disabled={deletingId === item.id || isPending}
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive cursor-pointer"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer"
                             title={t.workspace?.deleteTitle || "删除项目"}
                           >
                             {deletingId === item.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-destructive" />
+                              <Loader2 className="w-4 h-4 animate-spin text-destructive" />
                             ) : (
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             )}
                           </Button>
                         </div>
@@ -823,22 +823,22 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-border text-[11px] font-medium text-muted-foreground bg-muted/20">
-                <th className="py-2.5 px-3 w-10 text-center">{t.workspace?.tableHeaderPin || "置顶"}</th>
-                {isAdmin && <th className="py-2.5 px-3 w-10 text-center">{t.workspace?.tableHeaderGlobal || "全站"}</th>}
-                <th className="py-2.5 px-3 w-20">预览</th>
-                <th className="py-2.5 px-3">项目</th>
-                <th className="py-2.5 px-3">{t.workspace?.tableHeaderCategoryLang || "分类与语言"}</th>
-                <th className="py-2.5 px-3">访问量</th>
-                <th className="py-2.5 px-3">可见性</th>
-                <th className="py-2.5 px-3">创建时间</th>
-                <th className="py-2.5 px-3 text-right">操作</th>
+              <tr className="border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted/20">
+                <th className="py-3 px-3.5 w-10 text-center">{t.workspace?.tableHeaderPin || "置顶"}</th>
+                {isAdmin && <th className="py-3 px-3.5 w-10 text-center">{t.workspace?.tableHeaderGlobal || "全站"}</th>}
+                <th className="py-3 px-3.5 w-24">预览</th>
+                <th className="py-3 px-3.5">项目</th>
+                <th className="py-3 px-3.5">{t.workspace?.tableHeaderCategoryLang || "分类与语言"}</th>
+                <th className="py-3 px-3.5">访问量</th>
+                <th className="py-3 px-3.5">可见性</th>
+                <th className="py-3 px-3.5">创建时间</th>
+                <th className="py-3 px-3.5 text-right">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border text-xs">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 9 : 8} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={isAdmin ? 9 : 8} className="py-12 text-center text-muted-foreground text-sm">
                     {t.workspace?.noProjectsFound || "暂无匹配的 HTML 项目。"}
                   </td>
                 </tr>
@@ -856,7 +856,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                       )}
                     >
                       {/* Workspace Pin toggle */}
-                      <td className="py-3 px-3 text-center">
+                      <td className="py-3.5 px-3.5 text-center">
                         {(() => {
                           const isOwner = isProjectOwner(item);
                           const isPendingThisWorkspace = pendingPinAction?.id === item.id && pendingPinAction?.type === "workspace";
@@ -866,7 +866,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                               size="icon"
                               disabled={!isOwner || isPending || isPendingThisWorkspace}
                               onClick={() => handleTogglePin(item.id, item.isPinned)}
-                              className={`h-7 w-7 rounded-sm ${
+                              className={`h-8 w-8 rounded-md ${
                                 !isOwner
                                   ? "opacity-30 cursor-not-allowed text-muted-foreground"
                                   : item.isPinned
@@ -882,9 +882,9 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                               }
                             >
                               {isPendingThisWorkspace ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
-                                <Pin className={`w-3.5 h-3.5 ${item.isPinned ? "fill-current" : ""}`} />
+                                <Pin className={`w-4 h-4 ${item.isPinned ? "fill-current" : ""}`} />
                               )}
                             </Button>
                           );
@@ -893,7 +893,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
 
                       {/* Admin Global Pin toggle */}
                       {isAdmin && (
-                        <td className="py-3 px-3 text-center">
+                        <td className="py-3.5 px-3.5 text-center">
                           {(() => {
                             const isPendingThisGlobal = pendingPinAction?.id === item.id && pendingPinAction?.type === "global";
                             return (
@@ -902,7 +902,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                                 size="icon"
                                 disabled={isPending || isPendingThisGlobal}
                                 onClick={() => handleToggleGlobalPin(item.id, item.isGlobalPinned ?? false)}
-                                className={`h-7 w-7 rounded-sm ${
+                                className={`h-8 w-8 rounded-md ${
                                   item.isGlobalPinned
                                     ? "text-foreground bg-foreground/15 border border-foreground/30 hover:bg-foreground/20"
                                     : "text-muted-foreground hover:text-foreground"
@@ -914,9 +914,9 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                                 }
                               >
                                 {isPendingThisGlobal ? (
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
-                                  <Globe className={`w-3.5 h-3.5 ${item.isGlobalPinned ? "fill-current" : ""}`} />
+                                  <Globe className={`w-4 h-4 ${item.isGlobalPinned ? "fill-current" : ""}`} />
                                 )}
                               </Button>
                             );
@@ -925,7 +925,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                       )}
 
                       {/* Hover-to-Activate Sandbox Preview Thumbnail */}
-                      <td className="py-3 px-3">
+                      <td className="py-3.5 px-3.5">
                         <HoverSandboxPreview
                           slug={item.slug}
                           title={item.title}
@@ -939,53 +939,53 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                       </td>
 
                       {/* Title, slug & description */}
-                      <td className="py-3 px-3 max-w-xs">
-                        <div className="font-medium text-foreground truncate flex items-center gap-1.5">
+                      <td className="py-3.5 px-3.5 max-w-xs">
+                        <div className="font-medium text-foreground truncate flex items-center gap-1.5 text-sm">
                           <span>{item.title}</span>
                           <ReviewStatusBadge status={item.reviewStatus} t={t} />
                         </div>
-                        <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <div className="text-xs font-mono text-muted-foreground flex items-center gap-1 mt-0.5">
                           <span>/p/{item.slug}</span>
                           <Link href={`/p/${item.slug}`} target="_blank" className="hover:text-foreground">
-                            <ExternalLink className="w-3 h-3" />
+                            <ExternalLink className="w-3.5 h-3.5" />
                           </Link>
                         </div>
                         {item.description && (
-                          <div className="text-[11px] text-muted-foreground/80 truncate mt-0.5">
+                          <div className="text-xs text-muted-foreground/80 truncate mt-0.5">
                             {item.description}
                           </div>
                         )}
                       </td>
 
                       {/* Category, Language and Asset Type */}
-                      <td className="py-3 px-3">
+                      <td className="py-3.5 px-3.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1 font-normal">
-                            <CategoryIcon className="w-2.5 h-2.5 opacity-70" />
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 font-normal">
+                            <CategoryIcon className="w-3 h-3 opacity-70" />
                             <span>{cat?.label || item.category}</span>
                           </Badge>
-                          <Badge variant="subtle" className="text-[10px] px-1.5 py-0 font-mono uppercase text-muted-foreground">
+                          <Badge variant="subtle" className="text-xs px-2 py-0.5 font-mono uppercase text-muted-foreground">
                             {item.language || "zh"}
                           </Badge>
-                          <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                             {item.assetType === "single_html" ? (
-                              <FileCode2 className="w-3 h-3 text-muted-foreground" />
+                              <FileCode2 className="w-3.5 h-3.5 text-muted-foreground" />
                             ) : (
-                              <FolderArchive className="w-3 h-3 text-muted-foreground" />
+                              <FolderArchive className="w-3.5 h-3.5 text-muted-foreground" />
                             )}
                           </span>
                         </div>
                       </td>
 
                       {/* Views */}
-                      <td className="py-3 px-3 text-muted-foreground font-mono text-[11px]">
-                        <span className="inline-flex items-center gap-1">
-                          <Eye className="w-3 h-3 text-muted-foreground" /> {item.viewCount || 0}
+                      <td className="py-3.5 px-3.5 text-muted-foreground font-mono text-xs">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Eye className="w-3.5 h-3.5 text-muted-foreground" /> {item.viewCount || 0}
                         </span>
                       </td>
 
                       {/* Visibility selector */}
-                      <td className="py-3 px-3">
+                      <td className="py-3.5 px-3.5">
                         <Select
                           aria-label="修改可见性"
                           value={item.visibility}
@@ -995,7 +995,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                               e.target.value as "public" | "private"
                             )
                           }
-                          className="text-[11px] h-auto px-2 py-1"
+                          className="text-xs h-8 px-2.5 py-1"
                         >
                           <option value="public">公开 (Public)</option>
                           <option value="private">私有 (Private)</option>
@@ -1003,38 +1003,38 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                       </td>
 
                       {/* Date */}
-                      <td className="py-3 px-3 text-muted-foreground text-[11px] font-mono">
-                        <span className="inline-flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
+                      <td className="py-3.5 px-3.5 text-muted-foreground text-xs font-mono">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5" />
                           {new Date(item.createdAt).toLocaleDateString()}
                         </span>
                       </td>
 
                       {/* Action buttons */}
-                      <td className="py-3 px-3 text-right">
+                      <td className="py-3.5 px-3.5 text-right">
                         <div className="inline-flex items-center gap-1">
                           {(item.reviewStatus === "rejected" || item.reviewStatus === "flagged") && (
                             <Button
                               variant="ghost"
                               size="icon"
                               asChild
-                              className="h-7 w-7 text-amber-500 hover:text-amber-600"
+                              className="h-8 w-8 text-amber-500 hover:text-amber-600"
                               title="Appeal Review / 申诉复核"
                             >
                               <a href={createAppealMailtoUrl(item)}>
-                                <HelpCircle className="w-3.5 h-3.5" />
+                                <HelpCircle className="w-4 h-4" />
                               </a>
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" asChild>
                             <Link href={`/p/${item.slug}`} target="_blank" title="在新标签页运行">
-                              <ExternalLink className="w-3.5 h-3.5" />
+                              <ExternalLink className="w-4 h-4" />
                             </Link>
                           </Button>
 
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" asChild>
                             <Link href={`/workspace/projects/${item.id}/edit`} title="在线编辑代码">
-                              <Edit3 className="w-3.5 h-3.5" />
+                              <Edit3 className="w-4 h-4" />
                             </Link>
                           </Button>
 
@@ -1043,13 +1043,13 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                             size="icon"
                             disabled={capturingId === item.id || isPending}
                             onClick={(e) => handleRegenerateScreenshot(item.id, e)}
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
                             title="重新生成高清静态截图"
                           >
                             {capturingId === item.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-foreground" />
+                              <Loader2 className="w-4 h-4 animate-spin text-foreground" />
                             ) : (
-                              <Camera className="w-3.5 h-3.5" />
+                              <Camera className="w-4 h-4" />
                             )}
                           </Button>
 
@@ -1061,13 +1061,13 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                               setDeleteTarget(item);
                             }}
                             disabled={deletingId === item.id || isPending}
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive cursor-pointer"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer"
                             title={t.workspace?.deleteTitle || "删除项目"}
                           >
                             {deletingId === item.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-destructive" />
+                              <Loader2 className="w-4 h-4 animate-spin text-destructive" />
                             ) : (
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             )}
                           </Button>
                         </div>
@@ -1097,17 +1097,17 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
               <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20 shrink-0">
                 <AlertTriangle className="w-4 h-4 text-destructive" />
               </div>
-              <DialogTitle className="text-sm font-semibold text-foreground">
+              <DialogTitle className="text-base font-semibold text-foreground">
                 {t.workspace?.deleteTitle || "删除项目"}
               </DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-muted-foreground pt-1 space-y-2">
-              <span className="block text-xs leading-relaxed text-muted-foreground">
+            <DialogDescription className="text-sm text-muted-foreground pt-1 space-y-2">
+              <span className="block text-sm leading-relaxed text-muted-foreground">
                 {t.workspace?.deleteConfirmText || "确定要永久删除此项目吗？此操作不可逆，将永久抹除数据库元数据及关联的所有存储资源与静态文件。"}
               </span>
               {deleteTarget && (
-                <span className="block rounded-md border border-border/60 bg-muted/40 p-2.5 space-y-1 font-mono text-[11px] text-foreground">
-                  <span className="block font-sans font-medium text-xs text-foreground truncate">
+                <span className="block rounded-md border border-border/60 bg-muted/40 p-3 space-y-1 font-mono text-xs text-foreground">
+                  <span className="block font-sans font-medium text-sm text-foreground truncate">
                     {deleteTarget.title}
                   </span>
                   <span className="block text-muted-foreground truncate">
@@ -1115,14 +1115,14 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                   </span>
                 </span>
               )}
-              <span className="block text-[11px] text-destructive/85 font-normal">
+              <span className="block text-xs text-destructive/90 font-normal">
                 {t.workspace?.deleteWarningNote || "请谨慎操作：删除后该路由对应的页面将立刻下线，外部访问链接将无法访问。"}
               </span>
             </DialogDescription>
           </DialogHeader>
 
           {deleteError && (
-            <div role="alert" className="p-2.5 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+            <div role="alert" className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span className="truncate">{deleteError}</span>
             </div>
@@ -1138,7 +1138,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
                 setDeleteTarget(null);
                 setDeleteError(null);
               }}
-              className="h-8 text-xs cursor-pointer"
+              className="h-9 text-sm cursor-pointer"
             >
               {t.workspace?.cancel || "取消"}
             </Button>
@@ -1148,7 +1148,7 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
               size="sm"
               disabled={isPending}
               onClick={handleConfirmDelete}
-              className="h-8 text-xs font-medium cursor-pointer"
+              className="h-9 text-sm font-medium cursor-pointer"
             >
               {isPending ? (
                 <>

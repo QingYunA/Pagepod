@@ -117,25 +117,25 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="p-2 rounded-lg bg-muted text-foreground group-hover:bg-foreground group-hover:text-background transition-colors">
-                    <Icon className="w-4 h-4" />
+                  <div className="p-2.5 rounded-lg bg-muted text-foreground group-hover:bg-foreground group-hover:text-background transition-colors">
+                    <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Badge variant="secondary" className="text-[11px] font-mono">
+                    <Badge variant="secondary" className="text-xs font-mono px-2.5 py-0.5">
                       {cat.count} {t.explore.itemsCount}
                     </Badge>
                     <div
                       aria-hidden="true"
                       className="p-1 rounded text-muted-foreground group-hover:text-foreground transition-colors"
                     >
-                      <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </div>
                   </div>
                 </div>
-                <h3 className="text-sm font-semibold text-foreground mb-1 group-hover:text-foreground transition-colors">
+                <h3 className="text-base font-semibold text-foreground mb-1 group-hover:text-foreground transition-colors">
                   {cat.label}
                 </h3>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {cat.desc}
                 </p>
               </div>
@@ -147,14 +147,14 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
       {/* Popular Tags Section */}
       <div className="p-5 rounded-xl border border-border bg-muted/20 mb-14">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-foreground" />
+          <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-foreground" />
             <span>{t.explore.popularTags}</span>
           </span>
-          <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="sm" asChild className="h-8 text-xs text-muted-foreground hover:text-foreground">
             <Link href="/" className="gap-1">
               <span>{t.explore.viewAll}</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </Button>
         </div>
@@ -163,7 +163,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
             <Link
               key={idx}
               href={`/?q=${encodeURIComponent(tag.query)}`}
-              className="px-2.5 py-1 rounded-md border border-border bg-background hover:bg-muted text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+              className="px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
             >
               #{tag.label}
             </Link>
@@ -175,21 +175,21 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-foreground">
+            <h2 className="text-lg font-semibold text-foreground">
               {locale === "zh" ? "精选作品" : "Curated Works"}
             </h2>
-            <span className="text-xs font-mono text-muted-foreground">
+            <span className="text-sm font-mono text-muted-foreground">
               ({filteredProjects.length})
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Language Orthogonal Filter Pills */}
-            <div className="inline-flex items-center rounded-md border border-border bg-muted/30 p-0.5 text-xs">
+            <div className="inline-flex items-center rounded-lg border border-border bg-muted/30 p-1 text-xs gap-0.5">
               <button
                 type="button"
                 onClick={() => setSelectedLanguage("all")}
-                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   selectedLanguage === "all"
                     ? "bg-background text-foreground shadow-xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
@@ -200,7 +200,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
               <button
                 type="button"
                 onClick={() => setSelectedLanguage("zh")}
-                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   selectedLanguage === "zh"
                     ? "bg-background text-foreground shadow-xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
@@ -211,7 +211,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
               <button
                 type="button"
                 onClick={() => setSelectedLanguage("en")}
-                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   selectedLanguage === "en"
                     ? "bg-background text-foreground shadow-xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
@@ -222,7 +222,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
               <button
                 type="button"
                 onClick={() => setSelectedLanguage("other")}
-                className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   selectedLanguage === "other"
                     ? "bg-background text-foreground shadow-xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
@@ -237,10 +237,10 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
         {filteredProjects.length === 0 ? (
           <div className="text-center py-16 border border-dashed border-border rounded-xl">
             <Compass className="w-8 h-8 text-muted-foreground/50 mx-auto mb-3" />
-            <p className="text-xs text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               {locale === "zh" ? "当前暂无公开项目" : "No public projects yet"}
             </p>
-            <Button size="sm" asChild className="h-8 text-xs">
+            <Button size="sm" asChild className="h-9 text-sm">
               <Link href="/workspace/upload">
                 {locale === "zh" ? "+ 上传首个作品" : "+ Publish first work"}
               </Link>
@@ -251,38 +251,38 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
             {filteredProjects.map((project) => (
               <div
                 key={project.id}
-                className="group relative flex flex-col justify-between p-4 rounded-xl border border-border bg-card hover:border-foreground/30 transition-all shadow-xs"
+                className="group relative flex flex-col justify-between p-4.5 rounded-xl border border-border bg-card hover:border-foreground/30 transition-all shadow-xs"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                    <Badge variant="outline" className="text-xs px-2 py-0.5 uppercase font-mono">
                       {project.category}
                     </Badge>
-                    <span className="text-[11px] font-mono text-muted-foreground">
+                    <span className="text-xs font-mono text-muted-foreground">
                       {project.viewCount} views
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-semibold text-foreground group-hover:text-foreground line-clamp-1 mb-1.5">
+                  <h3 className="text-base font-semibold text-foreground group-hover:text-foreground line-clamp-1 mb-1.5">
                     <Link href={`/p/${project.slug}`}>
                       {project.title}
                     </Link>
                   </h3>
 
-                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-4 min-h-[32px]">
+                  <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-4 min-h-[40px]">
                     {project.description || "Interactive web application hosted on Pagepod."}
                   </p>
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-border/80">
-                  <span className="text-[11px] font-mono text-muted-foreground truncate max-w-[120px]">
+                  <span className="text-xs font-mono text-muted-foreground truncate max-w-[140px]">
                     /p/{project.slug}
                   </span>
 
                   <div className="flex items-center gap-1.5">
-                    <Button size="sm" variant="outline" asChild className="h-7 text-xs gap-1 px-2.5">
+                    <Button size="sm" variant="outline" asChild className="h-8 text-xs gap-1.5 px-3">
                       <Link href={`/p/${project.slug}`}>
-                        <Play className="w-3 h-3 text-emerald-500 fill-emerald-500" />
+                        <Play className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" />
                         <span>{t.gallery.openRunner}</span>
                       </Link>
                     </Button>
@@ -296,14 +296,14 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
         {/* Link back to Showcase Gallery */}
         <div className="mt-14 p-6 rounded-xl border border-border bg-card/60 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">
+            <h3 className="text-base font-semibold text-foreground">
               {locale === "zh" ? "想看全部作品？" : "Looking for all works?"}
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {locale === "zh" ? "前往画廊浏览全部列表，支持快速搜索与鼠标悬停即时试玩。" : "Visit the showcase to browse everything with instant search and hover previews."}
             </p>
           </div>
-          <Button variant="outline" size="sm" asChild className="shrink-0 h-8 text-xs">
+          <Button variant="outline" size="sm" asChild className="shrink-0 h-9 text-sm">
             <Link href="/" className="gap-1.5">
               <span>{t.explore.viewAll}</span>
               <ArrowRight className="w-3.5 h-3.5" />

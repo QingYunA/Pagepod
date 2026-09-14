@@ -160,7 +160,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
   return (
     <div className="space-y-6">
       {/* Category Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none w-full min-w-0 max-w-full border-b border-border">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none w-full min-w-0 max-w-full border-b border-border">
         {categories.map((cat) => {
           const Icon = cat.icon;
           const isSelected = selectedCategory === cat.id;
@@ -172,13 +172,13 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 setSelectedTag(null);
                 setVisibleCount(PAGE_SIZE);
               }}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                 isSelected
                   ? "bg-foreground text-background font-semibold"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-4 h-4" />
               <span>{cat.label}</span>
             </button>
           );
@@ -191,7 +191,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           {/* Search Input */}
           <div className="relative w-full sm:w-72">
-            <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               value={search}
               onChange={(e) => {
@@ -200,7 +200,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
               }}
               placeholder={t.gallery.searchPlaceholder}
               aria-label={t.gallery.searchPlaceholder}
-              className="pl-8 text-xs bg-muted/20 border-border h-8"
+              className="pl-9 text-sm bg-muted/20 border-border h-9"
             />
             {search && (
               <button
@@ -211,7 +211,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 aria-label="清除搜索"
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -223,7 +223,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 setSelectedLanguage("all");
                 setVisibleCount(PAGE_SIZE);
               }}
-              className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
                 selectedLanguage === "all"
                   ? "bg-background text-foreground shadow-xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -236,7 +236,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 setSelectedLanguage("zh");
                 setVisibleCount(PAGE_SIZE);
               }}
-              className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
                 selectedLanguage === "zh"
                   ? "bg-background text-foreground shadow-xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -249,7 +249,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 setSelectedLanguage("en");
                 setVisibleCount(PAGE_SIZE);
               }}
-              className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
                 selectedLanguage === "en"
                   ? "bg-background text-foreground shadow-xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -262,7 +262,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 setSelectedLanguage("other");
                 setVisibleCount(PAGE_SIZE);
               }}
-              className={`px-2.5 py-1 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
                 selectedLanguage === "other"
                   ? "bg-background text-foreground shadow-xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -282,7 +282,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 setSortBy(e.target.value as any);
                 setVisibleCount(PAGE_SIZE);
               }}
-              className="w-auto h-8 text-xs bg-muted/20 border-border py-1 px-2.5"
+              className="w-auto h-9 text-xs sm:text-sm bg-muted/20 border-border py-1 px-3"
               aria-label={t.gallery.sortBy || "排序方式"}
             >
               <option value="trending">{t.gallery.sortTrending || "热度推荐"}</option>
@@ -292,7 +292,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
             </Select>
           </div>
 
-          <span className="text-xs text-muted-foreground hidden lg:inline whitespace-nowrap">
+          <span className="text-xs sm:text-sm text-muted-foreground hidden lg:inline whitespace-nowrap">
             {t.gallery.totalCount.replace("{count}", String(filteredProjects.length))}
           </span>
 
@@ -300,20 +300,20 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
               size="icon"
-              className="h-7 w-7 rounded-sm"
+              className="h-8 w-8 rounded-sm"
               onClick={() => setViewMode("grid")}
               title="Grid"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-4 h-4" />
             </Button>
             <Button
               variant={viewMode === "list" ? "secondary" : "ghost"}
               size="icon"
-              className="h-7 w-7 rounded-sm"
+              className="h-8 w-8 rounded-sm"
               onClick={() => setViewMode("list")}
               title="List"
             >
-              <List className="w-3.5 h-3.5" />
+              <List className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -323,7 +323,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
       {(selectedTag || allTags.length > 0) && (
         <div className="flex items-center gap-2 w-full overflow-x-auto text-xs min-w-0 max-w-full pb-1 scrollbar-none">
           {selectedTag ? (
-            <Badge variant="secondary" className="gap-1 px-2 py-0.5">
+            <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 text-xs">
               <span>#{selectedTag}</span>
               <button
                 onClick={() => {
@@ -344,7 +344,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 role="button"
                 tabIndex={0}
                 aria-pressed={selectedTag === tag}
-                className="cursor-pointer hover:bg-muted/60 transition-colors text-muted-foreground"
+                className="cursor-pointer hover:bg-muted/60 transition-colors text-muted-foreground px-2.5 py-1 text-xs"
                 onClick={() => {
                   setSelectedTag(tag);
                   setVisibleCount(PAGE_SIZE);
@@ -368,23 +368,23 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
       {filteredProjects.length === 0 ? (
         <Card className="py-16 text-center border-dashed border-border/80">
           <CardContent className="flex flex-col items-center justify-center space-y-3">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+            <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
               <SlidersHorizontal className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-sm font-medium text-foreground">{t.gallery.noProjectsTitle}</h3>
-              <p className="text-xs text-muted-foreground">
+              <h3 className="text-base font-semibold text-foreground">{t.gallery.noProjectsTitle}</h3>
+              <p className="text-sm text-muted-foreground">
                 {t.gallery.noProjectsDesc}
               </p>
             </div>
-            <Button asChild size="sm" variant="outline" className="mt-2">
+            <Button asChild size="default" variant="outline" className="mt-3">
               <Link href="/workspace/upload">{t.gallery.uploadNow}</Link>
             </Button>
           </CardContent>
         </Card>
       ) : viewMode === "grid" ? (
         /* GRID VIEW: High-end card with live sandboxed miniature thumbnail */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {displayedProjects.map((p) => {
             const cat = categoryMap[p.category] || categoryMap["tools"];
             const CategoryIcon = cat.icon;
@@ -406,17 +406,17 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                   />
 
                   {/* Badges on top of thumbnail */}
-                  <div className="absolute top-2 left-2 flex items-center gap-1.5 pointer-events-none z-20">
-                    <Badge variant="subtle" className="text-[10px] gap-1 backdrop-blur-md bg-black/60 border-neutral-800 text-neutral-200">
-                      <CategoryIcon className="w-3 h-3" />
+                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 pointer-events-none z-20">
+                    <Badge variant="subtle" className="text-xs gap-1.5 backdrop-blur-md bg-black/60 border-neutral-800 text-neutral-200">
+                      <CategoryIcon className="w-3.5 h-3.5" />
                       <span>{cat.label}</span>
                     </Badge>
-                    <Badge variant="subtle" className="text-[10px] px-1.5 backdrop-blur-md bg-black/60 border-neutral-800 text-neutral-300 font-mono uppercase">
+                    <Badge variant="subtle" className="text-xs px-2 backdrop-blur-md bg-black/60 border-neutral-800 text-neutral-300 font-mono uppercase">
                       {p.language || "zh"}
                     </Badge>
                     {p.isGlobalPinned && (
-                      <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/75 border-white/20 text-white font-medium">
-                        <Pin className="w-2.5 h-2.5 fill-current" />
+                      <Badge variant="outline" className="text-xs gap-1.5 backdrop-blur-md bg-black/75 border-white/20 text-white font-medium">
+                        <Pin className="w-3 h-3 fill-current" />
                         <span>{t.gallery.pinned || "PIN"}</span>
                       </Badge>
                     )}
@@ -425,12 +425,12 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                   <button
                     onClick={(e) => handleShare(p.slug, e)}
                     title={t.runner.copyLink}
-                    className="absolute top-2 right-2 p-1.5 rounded-md bg-black/60 hover:bg-black/80 text-neutral-300 hover:text-white border border-neutral-800 backdrop-blur-md transition-colors cursor-pointer z-20"
+                    className="absolute top-2.5 right-2.5 p-1.5 rounded-md bg-black/60 hover:bg-black/80 text-neutral-300 hover:text-white border border-neutral-800 backdrop-blur-md transition-colors cursor-pointer z-20"
                   >
                     {copiedSlug === p.slug ? (
-                      <Check className="w-3 h-3 text-emerald-400" />
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
                     ) : (
-                      <Share2 className="w-3 h-3" />
+                      <Share2 className="w-3.5 h-3.5" />
                     )}
                   </button>
                 </div>
@@ -439,22 +439,22 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 <CardHeader className="p-4 pb-2 space-y-1">
                   <div className="flex items-baseline justify-between gap-2">
                     <Link href={`/p/${p.slug}`}>
-                      <CardTitle className="text-sm font-semibold hover:underline truncate">
+                      <CardTitle className="text-base font-semibold hover:underline truncate">
                         {p.title}
                       </CardTitle>
                     </Link>
                   </div>
-                  <div className="font-mono text-[11px] text-muted-foreground">
+                  <div className="font-mono text-xs text-muted-foreground">
                     /p/{p.slug}
                   </div>
-                  <CardDescription className="line-clamp-2 text-xs leading-relaxed pt-1">
+                  <CardDescription className="line-clamp-2 text-sm leading-relaxed pt-1">
                     {p.description || ""}
                   </CardDescription>
                 </CardHeader>
 
                 {/* Tags */}
                 {Array.isArray(p.tags) && p.tags.length > 0 && (
-                  <CardContent className="p-4 pt-0 pb-3 flex flex-wrap gap-1">
+                  <CardContent className="p-4 pt-0 pb-3 flex flex-wrap gap-1.5">
                     {p.tags.slice(0, 4).map((tag) => (
                       <Badge
                         key={tag}
@@ -462,7 +462,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                         role="button"
                         tabIndex={0}
                         aria-label={`按标签 #${tag} 筛选`}
-                        className="text-[10px] px-1.5 py-0 cursor-pointer hover:bg-muted"
+                        className="text-xs px-2 py-0.5 cursor-pointer hover:bg-muted"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedTag(tag);
@@ -479,7 +479,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                       </Badge>
                     ))}
                     {p.tags.length > 4 && (
-                      <span className="text-[10px] text-muted-foreground self-center">
+                      <span className="text-xs text-muted-foreground self-center">
                         +{p.tags.length - 4}
                       </span>
                     )}
@@ -487,28 +487,28 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 )}
 
                 {/* Card Footer */}
-                <CardFooter className="p-4 pt-2 mt-auto border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                <CardFooter className="p-4 pt-2.5 mt-auto border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 font-mono">
-                      <Eye className="w-3 h-3 text-muted-foreground" /> {p.viewCount || 0}
+                      <Eye className="w-3.5 h-3.5 text-muted-foreground" /> {p.viewCount || 0}
                     </span>
                     <span>•</span>
                     <span className="inline-flex items-center gap-1">
                       {p.assetType === "single_html" ? (
                         <>
-                          <FileCode2 className="w-3 h-3 text-sky-600 dark:text-sky-400" /> {t.gallery.singleHtml}
+                          <FileCode2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" /> {t.gallery.singleHtml}
                         </>
                       ) : (
                         <>
-                          <FolderArchive className="w-3 h-3 text-amber-600 dark:text-amber-400" /> {t.gallery.zipBundle}
+                          <FolderArchive className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> {t.gallery.zipBundle}
                         </>
                       )}
                     </span>
                   </div>
 
-                  <Button variant="ghost" size="sm" asChild className="h-6 px-2 text-xs">
+                  <Button variant="ghost" size="sm" asChild className="h-7.5 px-2.5 text-xs font-medium">
                     <Link href={`/p/${p.slug}`}>
-                      {t.gallery.openDirect} <ExternalLink className="w-3 h-3 ml-1" />
+                      {t.gallery.openDirect} <ExternalLink className="w-3.5 h-3.5 ml-1" />
                     </Link>
                   </Button>
                 </CardFooter>
@@ -525,52 +525,52 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
             return (
               <div
                 key={p.id}
-                className="p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-muted/40 transition-colors"
+                className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 hover:bg-muted/40 transition-colors"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-muted-foreground shrink-0 border border-border">
-                    <CategoryIcon className="w-4 h-4" />
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center text-muted-foreground shrink-0 border border-border">
+                    <CategoryIcon className="w-4.5 h-4.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/p/${p.slug}`}
-                        className="font-medium text-xs text-foreground hover:underline truncate"
+                        className="font-medium text-sm text-foreground hover:underline truncate"
                       >
                         {p.title}
                       </Link>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono uppercase text-muted-foreground border-border">
+                      <Badge variant="outline" className="text-xs px-2 py-0.5 font-mono uppercase text-muted-foreground border-border">
                         {p.language || "zh"}
                       </Badge>
                       {p.isGlobalPinned && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1 border-foreground/30 bg-foreground/10 text-foreground font-medium">
-                          <Pin className="w-2.5 h-2.5 fill-current" />
+                        <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 border-foreground/30 bg-foreground/10 text-foreground font-medium">
+                          <Pin className="w-3 h-3 fill-current" />
                           <span>{t.gallery.pinned || "PIN"}</span>
                         </Badge>
                       )}
-                      <span className="text-[11px] font-mono text-muted-foreground hidden md:inline">
+                      <span className="text-xs font-mono text-muted-foreground hidden md:inline">
                         /p/{p.slug}
                       </span>
                     </div>
                     {p.description && (
-                      <p className="text-[11px] text-muted-foreground truncate max-w-xl">
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-xl mt-0.5">
                         {p.description}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end shrink-0 text-xs">
-                  <div className="flex items-center gap-2 text-muted-foreground font-mono text-[11px]">
+                <div className="flex items-center gap-3.5 w-full sm:w-auto justify-between sm:justify-end shrink-0 text-xs">
+                  <div className="flex items-center gap-2 text-muted-foreground font-mono text-xs">
                     <span className="inline-flex items-center gap-1">
-                      <Eye className="w-3 h-3" /> {p.viewCount || 0}
+                      <Eye className="w-3.5 h-3.5" /> {p.viewCount || 0}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <Button variant="default" size="sm" className="h-7 text-xs gap-1" asChild>
+                    <Button variant="default" size="sm" className="h-8 text-xs gap-1.5 px-3" asChild>
                       <Link href={`/p/${p.slug}`}>
-                        <Play className="w-3 h-3 fill-current" />
+                        <Play className="w-3.5 h-3.5 fill-current" />
                         <span>{t.gallery.openRunner}</span>
                       </Link>
                     </Button>
@@ -587,12 +587,12 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
         <div className="flex flex-col items-center justify-center pt-8 pb-4">
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-            className="h-9 px-6 text-xs font-mono border-border/80 hover:bg-muted/50 transition-all cursor-pointer shadow-2xs"
+            className="h-10 px-6 text-sm font-mono border-border/80 hover:bg-muted/50 transition-all cursor-pointer shadow-xs"
           >
             <span>加载更多项目 · Load More</span>
-            <span className="text-[11px] text-muted-foreground ml-1.5 font-sans">
+            <span className="text-xs text-muted-foreground ml-2 font-sans">
               ({displayedProjects.length} / {filteredProjects.length})
             </span>
           </Button>
