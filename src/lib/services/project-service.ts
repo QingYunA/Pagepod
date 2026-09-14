@@ -92,6 +92,8 @@ export interface CreateProjectInput {
   visibility?: ProjectVisibility;
   isPinned?: boolean;
   isGlobalPinned?: boolean;
+  isWhiteLabel?: boolean;
+  customSubdomain?: string | null;
   screenshotUrl?: string;
   htmlContent?: string;
   fileBuffer?: Buffer;
@@ -108,6 +110,8 @@ export interface UpdateProjectInput {
   visibility?: ProjectVisibility;
   isPinned?: boolean;
   isGlobalPinned?: boolean;
+  isWhiteLabel?: boolean;
+  customSubdomain?: string | null;
   htmlCode?: string;
 }
 
@@ -251,6 +255,12 @@ export async function createProject(
   if (input.isGlobalPinned && actor.role !== "admin" && actor.id !== "selfhost-admin") {
     throw new ProjectForbiddenError("Forbidden: Only administrators can set global showcase pin");
   }
+  if (input.isWhiteLabel || input.customSubdomain) {
+    const isPro = actor.planTier === "pro" || actor.role === "admin" || actor.id === "selfhost-admin";
+    if (!isPro) {
+      throw new ProjectForbiddenError("Forbidden: Custom subdomain and White-label mode are exclusive to Pro creators");
+    }
+  }
   const isGlobalPinned = Boolean(input.isGlobalPinned);
   const isPinned = Boolean(input.isPinned);
 
@@ -272,6 +282,8 @@ export async function createProject(
     pinnedAt: isPinned ? new Date() : null,
     isGlobalPinned,
     globalPinnedAt: isGlobalPinned ? new Date() : null,
+    isWhiteLabel: input.isWhiteLabel ?? false,
+    customSubdomain: input.customSubdomain || null,
     viewCount: 0,
     screenshotUrl,
     isEncrypted: false,
@@ -498,6 +510,14 @@ export async function updateProject(
     }
     patch.isGlobalPinned = input.isGlobalPinned;
     patch.globalPinnedAt = input.isGlobalPinned ? new Date() : null;
+  }
+  if (input.isWhiteLabel !== undefined || input.customSubdomain !== undefined) {
+    const isPro = actor.planTier === "pro" || actor.role === "admin" || actor.id === "selfhost-admin";
+    if (!isPro) {
+      throw new ProjectForbiddenError("Forbidden: Custom subdomain and White-label mode are exclusive to Pro creators");
+    }
+    if (input.isWhiteLabel !== undefined) patch.isWhiteLabel = input.isWhiteLabel;
+    if (input.customSubdomain !== undefined) patch.customSubdomain = input.customSubdomain ? input.customSubdomain.trim().toLowerCase() : null;
   }
   if (newScreenshotUrl) patch.screenshotUrl = newScreenshotUrl;
 

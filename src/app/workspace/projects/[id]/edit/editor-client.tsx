@@ -81,6 +81,8 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
   );
   const [isPinned, setIsPinned] = useState(project.isPinned);
   const [isGlobalPinned, setIsGlobalPinned] = useState(Boolean(project.isGlobalPinned));
+  const [isWhiteLabel, setIsWhiteLabel] = useState(Boolean(project.isWhiteLabel));
+  const [customSubdomain, setCustomSubdomain] = useState(project.customSubdomain || "");
 
   const [previewKey, setPreviewKey] = useState(0);
   const [previewLoading, setPreviewLoading] = useState(true);
@@ -145,6 +147,8 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
           visibility: targetVisibility || visibility,
           isPinned,
           isGlobalPinned: isAdmin ? isGlobalPinned : undefined,
+          isWhiteLabel,
+          customSubdomain: customSubdomain ? customSubdomain.trim().toLowerCase() : null,
           htmlCode: project.assetType === "single_html" ? code : undefined,
         });
         setSavedSuccess(true);
@@ -515,6 +519,55 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         </span>
                       </label>
                     )}
+                  </div>
+                </div>
+
+                {/* Pro Perks: White-label & Custom Subdomain */}
+                <div className="pt-4 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-foreground" />
+                      <span>Pro 尊享定制 (Pro Perks)</span>
+                    </span>
+                    <Badge variant="outline" className="text-[10px] font-mono border-border text-foreground">PRO</Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="edit-subdomain" className="block text-xs font-medium text-foreground mb-1.5">
+                        专属二级子域名 (Subdomain)
+                      </label>
+                      <div className="flex items-center rounded-md border border-input bg-background px-2.5 py-1 text-xs text-muted-foreground focus-within:ring-1 focus-within:ring-ring">
+                        <span className="text-[11px] select-none text-muted-foreground">https://</span>
+                        <input
+                          id="edit-subdomain"
+                          type="text"
+                          value={customSubdomain}
+                          placeholder={project.slug}
+                          onChange={(e) => setCustomSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                          className="bg-transparent border-0 p-0 text-xs text-foreground focus:outline-none focus:ring-0 w-full ml-1"
+                        />
+                        <span className="text-[11px] select-none text-muted-foreground">.pagepod.dev</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">留空则默认使用全局 /p/{project.slug} 路由</p>
+                    </div>
+
+                    <div className="flex flex-col justify-center">
+                      <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
+                        <Checkbox
+                          checked={isWhiteLabel}
+                          onChange={(e) => setIsWhiteLabel(e.target.checked)}
+                        />
+                        <div>
+                          <span className="text-xs text-foreground font-medium block">
+                            白标模式 (White-Label)
+                          </span>
+                          <span className="text-[10px] text-muted-foreground leading-tight block">
+                            隐藏全屏运行台右下角的 "Hosted on Pagepod" 徽标
+                          </span>
+                        </div>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </CardContent>
