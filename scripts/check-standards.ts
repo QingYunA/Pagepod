@@ -93,6 +93,19 @@ function scanFile(filePath: string) {
     }
   });
 
+  // Whole-file multi-line checks for all files
+  const conflictMatch = content.match(/^(<{7}|={7}|>{7})(\s|$)/m);
+  if (conflictMatch && conflictMatch.index !== undefined) {
+    const lineNum = content.slice(0, conflictMatch.index).split("\n").length;
+    violations.push({
+      file: relPath,
+      line: lineNum,
+      rule: "Git Hygiene & Integrity (Unresolved Conflict Marker)",
+      match: conflictMatch[0].trim(),
+      message: "Stray git merge conflict marker detected. Clean up unresolved conflict artifacts.",
+    });
+  }
+
   // Whole-file multi-line checks for TSX/JSX
   if (filePath.endsWith(".tsx") || filePath.endsWith(".jsx")) {
     // 3. Check illegal nested interactive elements: <button> containing <Link> or <a>
@@ -110,6 +123,22 @@ function scanFile(filePath: string) {
           message: "Illegal nested interactive control: <button> contains <Link> or <a>, which traps clicks and violates HTML specification.",
         });
       }
+    }
+
+    // 4. Check native internal <a href="/..."> links (must use Next.js <Link>)
+    const internalLinkRegex = /<a\b[^>]*\bhref=["']\/([a-zA-Z0-9_\-\/]+)["'][^>]*>/g;
+    let linkMatch: RegExpExecArray | null;
+    while ((linkMatch = internalLinkRegex.exec(content)) !== null) {
+      const matchStr = linkMatch[0];
+      if (matchStr.includes("/raw/")) continue;
+      const lineNum = content.slice(0, linkMatch.index).split("\n").length;
+      violations.push({
+        file: relPath,
+        line: lineNum,
+        rule: "Next.js SPA Navigation Invariant (<Link> over <a>)",
+        match: matchStr.slice(0, 80),
+        message: "Native <a> tag used for internal route. Use Next.js <Link> to ensure smooth client-side SPA navigation.",
+      });
     }
   }
 

@@ -20,8 +20,7 @@ import { scanForSecrets, type SecretFinding } from "@/lib/security/secret-guard"
 import { submitGuestUpload } from "@/app/actions/guest";
 import { useLanguage } from "@/lib/i18n/context";
 import { trackEvent } from "@/lib/analytics";
-
-const LOCAL_STORAGE_KEY = "pagepod_guest_claims";
+import { saveGuestClaim, GUEST_CLAIMED_EVENT } from "@/lib/storage/guest-claim";
 
 export function InstantUploadCard() {
   const { locale } = useLanguage();
@@ -55,8 +54,8 @@ export function InstantUploadCard() {
       });
     };
 
-    window.addEventListener("pagepod:claimed", handleClaimed);
-    return () => window.removeEventListener("pagepod:claimed", handleClaimed);
+    window.addEventListener(GUEST_CLAIMED_EVENT, handleClaimed);
+    return () => window.removeEventListener(GUEST_CLAIMED_EVENT, handleClaimed);
   }, []);
 
   // Secret leak dialog state
@@ -69,14 +68,7 @@ export function InstantUploadCard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const saveClaimToStorage = (slug: string, claimToken: string) => {
-    try {
-      const existingRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const list: Array<{ slug: string; claimToken: string }> = existingRaw ? JSON.parse(existingRaw) : [];
-      list.push({ slug, claimToken });
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(list));
-    } catch {
-      // Non-fatal localStorage error
-    }
+    saveGuestClaim({ slug, claimToken });
   };
 
   const processUpload = useCallback(

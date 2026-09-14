@@ -10,6 +10,7 @@
 - **安全沙箱隔离端点**：[`src/app/raw/[slug]/[[...path]]/route.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/raw/[slug]/[[...path]]/route.ts)
 - **创作者工作台**：[`src/app/workspace/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/workspace/page.tsx)
 - **数据访问层与迁移**：[`src/db/index.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/db/index.ts) 与 [`src/db/schema.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/db/schema.ts)
+- **游客认领与客户端暂存**：[`src/lib/storage/guest-claim.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/claim_guest_html_uploads/src/lib/storage/guest-claim.ts)
 - **生产健康自动化探针**：[`scripts/probe-prod.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/scripts/probe-prod.ts)（`npm run probe:prod`）
 
 ---
@@ -120,7 +121,10 @@
     - **Webpack 构建规避 Turbopack Panic**：Git Worktree 中由于 `node_modules` 软链接特性，Next.js Turbopack 会触发内部 Panic。Worktree 下本地构建测试必须使用 `npm run build:webpack`（`next build --webpack`）；
     - **Worktree 冲突合并防伪冲突原则 (Worktree Merge Over Interactive Rebase)**：当远端主分支（`origin/main`）发生并发更新时，Worktree 特性分支拉取最新主分支更新**优先采用 `git merge origin/main`**（或前置将分支历史本地 commit squash 为单一提交后再 rebase）；严禁在包含多阶段迭代提交的分支上执行逐个 commit 交互式 rebase，彻底杜绝历史废弃提交引发的重复伪冲突；
     - 分支合并遵循无冲突流程：Worktree 提 PR 并通过 `gh pr merge <id> --squash` 合并（**严禁携带 `--delete-branch`**，避免 Git 尝试自动检出已被主仓库锁定的 main 分支触发 `fatal: 'main' is already checked out` 错误）。主仓库 `git pull origin main` 后，Worktree 执行 `git reset --hard origin/main` 对齐，远端分支在 Web 界面或主仓库安全清理；
-    - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`。
+    - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`；
+    - **GitHub CLI 代理与 REST 接口避坑**：本地存在代理端口（如 `127.0.0.1:10808`）时，执行 `gh` 命令前须显式配置 `https_proxy=http://127.0.0.1:10808 http_proxy=http://127.0.0.1:10808`；PR 合并优先采用稳定 REST API 路径（`gh api -X PUT /repos/QingYunA/Pagepod/pulls/<id>/merge -f merge_method=squash`），避免 GraphQL 连接重置失败；
+    - **子进程工具链 PATH 显式保护**：非交互式子 shell 执行命令时确保 PATH 包含 Node 解释器路径（如 `/Users/mac/.nvm/versions/node/v24.14.1/bin`），生产探针使用 `npm run probe:prod`（内部基于 Node `tsx` 原生 Undici 执行，消灭底层 Socket 偶发断联）；
+    - **静态工程门禁前置校验**：代码提交前统一运行 `npm run check:standards` 自动校验冲突标记（`<<<<<<<`）、原生 `<a>` 标签违规及反模式文案。
 
 ---
 

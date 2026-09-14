@@ -36,6 +36,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import type { Project } from "@/db/schema";
+import { GUEST_CLAIMED_EVENT } from "@/lib/storage/guest-claim";
 import {
   togglePinAction,
   toggleGlobalPinAction,
@@ -152,8 +153,8 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
       router.refresh();
     };
 
-    window.addEventListener("pagepod:claimed", handleClaimed);
-    return () => window.removeEventListener("pagepod:claimed", handleClaimed);
+    window.addEventListener(GUEST_CLAIMED_EVENT, handleClaimed);
+    return () => window.removeEventListener(GUEST_CLAIMED_EVENT, handleClaimed);
   }, [router]);
 
   const isProjectOwner = (p: Project) => {
