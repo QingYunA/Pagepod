@@ -27,9 +27,9 @@ export const translations = {
     },
     hero: {
       badge: "HTML Runtime & Gallery",
-      title: "保存、运行并分享你的 HTML",
-      desc: "无需配置服务器与构建流水线。上传 HTML 文件或资源包，即刻获得受安全沙箱保护的永久链接与展示舞台。",
-      selfhostDesc: "私有化自托管的 HTML 应用展台与作品集，零构建安全沙箱运行。",
+      title: "保存，运行，分享你的 HTML",
+      desc: "给你的 HTML 一个温暖的小窝：零构建负担，即刻沙箱运行，随时随地与世界分享。",
+      selfhostDesc: "给你的 HTML 一个温暖的小窝：零构建负担，即刻沙箱运行，随时随地与世界分享。",
     },
     categories: {
       all: "全部",
@@ -579,8 +579,8 @@ export const translations = {
     hero: {
       badge: "HTML Runtime & Gallery",
       title: "Save, run, and share your HTML",
-      desc: "No server configuration or build pipelines required. Turn HTML files and zip bundles into sandboxed web experiences with shareable links.",
-      selfhostDesc: "Self-hosted HTML applications and portfolio showcase, sandboxed and ready to run.",
+      desc: "A cozy home for your HTML: zero build overhead, instant sandboxed runtime, and effortless sharing with the world.",
+      selfhostDesc: "A cozy home for your HTML: zero build overhead, instant sandboxed runtime, and effortless sharing with the world.",
     },
     categories: {
       all: "All",
