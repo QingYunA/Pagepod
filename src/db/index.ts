@@ -319,6 +319,23 @@ export function getLastDbError(): string | null {
   return lastDbError;
 }
 
+const ENGLISH_LEGACY_SLUGS = [
+  "2048-classic",
+  "windows-95-minesweeper",
+  "hextris-arcade",
+  "conways-game-of-life",
+  "tearable-cloth-simulation",
+  "threejs-solar-orrery",
+  "retro-dither-studio",
+  "katex-math-studio",
+  "matrix-digital-rain",
+  "solar-system-orbit",
+  "color-palette-studio",
+  "focus-flow",
+  "regex-playground",
+  "neon-2048",
+];
+
 export async function autoApproveLegacyProjects() {
   if (legacyProjectsApproved || !dbUrl) return;
   try {
@@ -330,9 +347,14 @@ export async function autoApproveLegacyProjects() {
       await pgPool!.query(
         `UPDATE projects SET review_status = 'approved' WHERE (review_status = 'pending' OR review_status IS NULL) AND moderation_category IS NULL;`
       );
+      // Calibrate unilingual language attributes for curated English open-source projects
+      await pgPool!.query(
+        `UPDATE projects SET language = 'en' WHERE slug = ANY($1) AND language != 'en';`,
+        [ENGLISH_LEGACY_SLUGS]
+      );
     });
     legacyProjectsApproved = true;
-    console.log("[DB] Legacy projects grandfathered to approved status (0 proactive DDL).");
+    console.log("[DB] Legacy projects grandfathered to approved status and language calibrated (0 proactive DDL).");
   } catch (err: any) {
     lastDbError = `autoApprove: ${err?.message || String(err)}`;
     console.warn("[DB] autoApproveLegacyProjects notice:", err);

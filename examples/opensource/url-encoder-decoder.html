@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Percent Encoder & Query Parser</title>
+  <!--
+    Open Source Provenance:
+    Author: Developer Tools Open Initiative
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #09090b;
+      color: #fafafa;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.75rem 1.5rem;
+      background: #18181b;
+      border-bottom: 1px solid #27272a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 { font-size: 1rem; font-weight: 600; }
+    .segmented {
+      display: flex;
+      background: #27272a;
+      padding: 3px;
+      border-radius: 8px;
+      gap: 4px;
+    }
+    .segmented button {
+      background: transparent;
+      border: none;
+      color: #a1a1aa;
+      padding: 0.3rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .segmented button.active { background: #3f3f46; color: #fafafa; font-weight: 600; }
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      divide-x: 1px solid #27272a;
+      overflow: hidden;
+    }
+    .panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .panel-header {
+      padding: 0.5rem 1rem;
+      background: #111113;
+      border-bottom: 1px solid #27272a;
+      font-size: 0.75rem;
+      color: #71717a;
+      font-family: ui-monospace, monospace;
+      display: flex;
+      justify-content: space-between;
+    }
+    textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #e4e4e7;
+      padding: 1rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>URL Encoder & Query Parser</h1>
+    <div class="segmented">
+      <button id="btnEncode" class="active" onclick="setMode('encode')">Encode</button>
+      <button id="btnDecode" onclick="setMode('decode')">Decode</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <div class="panel-header">
+        <span id="inLabel">RAW URL / STRING</span>
+        <button onclick="copyInput()" style="background:transparent; border:none; color:#a1a1aa; cursor:pointer; font-size:11px;">Copy</button>
+      </div>
+      <textarea id="inputText" placeholder="Enter URL or query string..." oninput="process()"></textarea>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span id="outLabel">PERCENT-ENCODED URL</span>
+        <button onclick="copyOutput()" style="background:transparent; border:none; color:#3b82f6; cursor:pointer; font-size:11px; font-weight:bold;">Copy Output</button>
+      </div>
+      <textarea id="outputText" readonly placeholder="Result will appear here..."></textarea>
+    </div>
+  </main>
+
+  <script>
+    let mode = 'encode';
+    document.getElementById('inputText').value = 'https://example.com/search?q=hello world & symbol=%20';
+    process();
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('btnEncode').classList.toggle('active', mode === 'encode');
+      document.getElementById('btnDecode').classList.toggle('active', mode === 'decode');
+
+      if (mode === 'encode') {
+        document.getElementById('inLabel').textContent = 'RAW URL / STRING';
+        document.getElementById('outLabel').textContent = 'PERCENT-ENCODED URL';
+      } else {
+        document.getElementById('inLabel').textContent = 'PERCENT-ENCODED STRING';
+        document.getElementById('outLabel').textContent = 'DECODED URL';
+      }
+      process();
+    }
+
+    function process() {
+      const input = document.getElementById('inputText').value;
+      const output = document.getElementById('outputText');
+
+      try {
+        if (mode === 'encode') {
+          output.value = encodeURIComponent(input);
+        } else {
+          output.value = decodeURIComponent(input.trim());
+        }
+      } catch (err) {
+        output.value = `Decode Error: ${err.message}`;
+      }
+    }
+
+    function copyOutput() {
+      navigator.clipboard.writeText(document.getElementById('outputText').value);
+      alert('Copied to clipboard!');
+    }
+
+    function copyInput() {
+      navigator.clipboard.writeText(document.getElementById('inputText').value);
+    }
+  </script>
+</body>
+</html>

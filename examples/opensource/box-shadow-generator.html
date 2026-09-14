@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Box Shadow Generator</title>
+  <!--
+    Open Source Provenance:
+    Author: Frontend Design Systems Collective
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #09090b;
+      color: #fafafa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #27272a;
+      background: #18181b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 { font-size: 1.1rem; font-weight: 600; }
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+    }
+    .stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: radial-gradient(circle at 50% 50%, #1c1917 0%, #09090b 100%);
+    }
+    .target-box {
+      width: 240px;
+      height: 240px;
+      background: #27272a;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #a1a1aa;
+      transition: all 0.15s ease;
+    }
+    .sidebar {
+      background: #111113;
+      border-left: 1px solid #27272a;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      overflow-y: auto;
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-family: ui-monospace, monospace;
+      color: #a1a1aa;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #3b82f6;
+      cursor: pointer;
+    }
+    .code-preview {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      word-break: break-all;
+    }
+    button {
+      background: #fafafa;
+      color: #09090b;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CSS Box Shadow Studio</h1>
+    <span style="font-size: 0.8rem; color: #71717a; font-family: ui-monospace, monospace;">Native CSS Generator</span>
+  </header>
+
+  <main>
+    <div class="stage">
+      <div class="target-box" id="box">Preview Box</div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>HORIZONTAL (X)</span>
+          <span id="xVal">0px</span>
+        </div>
+        <input type="range" id="x" min="-50" max="50" value="0" oninput="updateShadow()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>VERTICAL (Y)</span>
+          <span id="yVal">20px</span>
+        </div>
+        <input type="range" id="y" min="-50" max="50" value="20" oninput="updateShadow()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>BLUR RADIUS</span>
+          <span id="blurVal">25px</span>
+        </div>
+        <input type="range" id="blur" min="0" max="100" value="25" oninput="updateShadow()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>SPREAD RADIUS</span>
+          <span id="spreadVal">-5px</span>
+        </div>
+        <input type="range" id="spread" min="-20" max="50" value="-5" oninput="updateShadow()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>OPACITY</span>
+          <span id="opacityVal">0.3</span>
+        </div>
+        <input type="range" id="opacity" min="0" max="1" step="0.05" value="0.3" oninput="updateShadow()">
+      </div>
+
+      <div class="slider-group">
+        <label style="font-size: 0.8rem; color: #a1a1aa; font-family: ui-monospace, monospace;">CSS CODE</label>
+        <div class="code-preview" id="code"></div>
+      </div>
+
+      <button onclick="copyCode()">Copy Box-Shadow</button>
+    </aside>
+  </main>
+
+  <script>
+    function updateShadow() {
+      const x = document.getElementById('x').value;
+      const y = document.getElementById('y').value;
+      const blur = document.getElementById('blur').value;
+      const spread = document.getElementById('spread').value;
+      const opacity = document.getElementById('opacity').value;
+
+      document.getElementById('xVal').textContent = `${x}px`;
+      document.getElementById('yVal').textContent = `${y}px`;
+      document.getElementById('blurVal').textContent = `${blur}px`;
+      document.getElementById('spreadVal').textContent = `${spread}px`;
+      document.getElementById('opacityVal').textContent = opacity;
+
+      const shadow = `${x}px ${y}px ${blur}px ${spread}px rgba(0, 0, 0, ${opacity})`;
+      document.getElementById('box').style.boxShadow = shadow;
+      document.getElementById('code').textContent = `box-shadow: ${shadow};`;
+    }
+
+    function copyCode() {
+      const code = document.getElementById('code').textContent;
+      navigator.clipboard.writeText(code);
+      alert('Copied to clipboard!');
+    }
+
+    updateShadow();
+  </script>
+</body>
+</html>
