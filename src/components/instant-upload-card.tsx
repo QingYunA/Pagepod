@@ -147,7 +147,6 @@ export function InstantUploadCard() {
         setErrorMsg(msg);
       } finally {
         setIsPending(false);
->>>>>>> origin/main
       }
     },
     [visibility]
