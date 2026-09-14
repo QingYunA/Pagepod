@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Formatter & Tree Validator</title>
+  <!--
+    Open Source Provenance:
+    Author: Developer Tools Open Initiative
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #09090b;
+      color: #fafafa;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.75rem 1.25rem;
+      background: #18181b;
+      border-bottom: 1px solid #27272a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    h1 { font-size: 0.95rem; font-weight: 600; font-family: -apple-system, sans-serif; }
+    .badge {
+      font-size: 0.75rem;
+      background: #27272a;
+      color: #a1a1aa;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 0.5rem;
+    }
+    button {
+      background: #27272a;
+      color: #fafafa;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s;
+    }
+    button:hover { background: #3f3f46; }
+    button.primary { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+    button.primary:hover { background: #2563eb; }
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      divide-x: 1px solid #27272a;
+      overflow: hidden;
+    }
+    .pane {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    .pane-header {
+      padding: 0.4rem 1rem;
+      background: #111113;
+      border-bottom: 1px solid #27272a;
+      font-size: 0.75rem;
+      color: #71717a;
+      display: flex;
+      justify-content: space-between;
+    }
+    textarea {
+      flex: 1;
+      background: transparent;
+      color: #e4e4e7;
+      border: none;
+      resize: none;
+      padding: 1rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      outline: none;
+    }
+    .output-pre {
+      flex: 1;
+      padding: 1rem;
+      overflow: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #e4e4e7;
+      margin: 0;
+    }
+    .output-pre.error { color: #f87171; }
+    .status-bar {
+      padding: 0.4rem 1rem;
+      background: #18181b;
+      border-top: 1px solid #27272a;
+      font-size: 0.75rem;
+      color: #a1a1aa;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-group">
+      <h1>JSON Formatter & Validator</h1>
+      <span class="badge">100% Client-Side</span>
+    </div>
+    <div class="toolbar">
+      <button onclick="formatJson(2)">Prettify (2 Spaces)</button>
+      <button onclick="formatJson(4)">Prettify (4 Spaces)</button>
+      <button onclick="minifyJson()">Minify</button>
+      <button onclick="copyOutput()" class="primary">Copy Output</button>
+      <button onclick="clearAll()">Clear</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="pane">
+      <div class="pane-header">
+        <span>RAW JSON INPUT</span>
+        <span id="inputSize">0 bytes</span>
+      </div>
+      <textarea id="rawInput" placeholder="Paste unformatted or stringified JSON here..." oninput="autoFormat()"></textarea>
+    </div>
+
+    <div class="pane" style="border-left: 1px solid #27272a;">
+      <div class="pane-header">
+        <span>FORMATTED JSON OUTPUT</span>
+        <span id="statusIndicator">Ready</span>
+      </div>
+      <pre class="output-pre" id="formattedOutput"></pre>
+    </div>
+  </main>
+
+  <footer class="status-bar">
+    <span id="metrics">Lines: 0 | Keys: 0</span>
+    <span>Zero data transmission. No telemetry.</span>
+  </footer>
+
+  <script>
+    const sample = {
+      name: "Pagepod Project",
+      version: "1.0.0",
+      description: "Self-hosted & curated HTML applications",
+      features: ["Single HTML Sandboxed", "Zero Build Overhead", "Local Privacy"],
+      config: {
+        timeoutMs: 6500,
+        maxBytes: 2097152,
+        active: true
+      }
+    };
+
+    const rawInput = document.getElementById('rawInput');
+    const formattedOutput = document.getElementById('formattedOutput');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const inputSize = document.getElementById('inputSize');
+    const metrics = document.getElementById('metrics');
+
+    rawInput.value = JSON.stringify(sample);
+    autoFormat();
+
+    function autoFormat() {
+      formatJson(2);
+    }
+
+    function formatJson(spaces = 2) {
+      const val = rawInput.value.trim();
+      inputSize.textContent = `${new Blob([val]).size} bytes`;
+
+      if (!val) {
+        formattedOutput.textContent = '';
+        formattedOutput.classList.remove('error');
+        statusIndicator.textContent = 'Empty';
+        statusIndicator.style.color = '#a1a1aa';
+        metrics.textContent = 'Lines: 0 | Keys: 0';
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(val);
+        const formatted = JSON.stringify(parsed, null, spaces);
+        formattedOutput.textContent = formatted;
+        formattedOutput.classList.remove('error');
+        statusIndicator.textContent = '✓ Valid JSON';
+        statusIndicator.style.color = '#4ade80';
+
+        const lines = formatted.split('\n').length;
+        const keyCount = typeof parsed === 'object' && parsed !== null ? Object.keys(parsed).length : 0;
+        metrics.textContent = `Lines: ${lines} | Root Keys: ${keyCount}`;
+      } catch (err) {
+        formattedOutput.textContent = `JSON Parse Error:\n${err.message}`;
+        formattedOutput.classList.add('error');
+        statusIndicator.textContent = '✗ Invalid JSON';
+        statusIndicator.style.color = '#f87171';
+      }
+    }
+
+    function minifyJson() {
+      const val = rawInput.value.trim();
+      if (!val) return;
+      try {
+        const parsed = JSON.parse(val);
+        formattedOutput.textContent = JSON.stringify(parsed);
+        formattedOutput.classList.remove('error');
+        statusIndicator.textContent = '✓ Minified';
+        statusIndicator.style.color = '#4ade80';
+      } catch (err) {
+        formatJson(2);
+      }
+    }
+
+    function copyOutput() {
+      const text = formattedOutput.textContent;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = statusIndicator.textContent;
+        statusIndicator.textContent = 'Copied to Clipboard!';
+        setTimeout(() => { statusIndicator.textContent = orig; }, 1500);
+      });
+    }
+
+    function clearAll() {
+      rawInput.value = '';
+      formattedOutput.textContent = '';
+      statusIndicator.textContent = 'Cleared';
+      inputSize.textContent = '0 bytes';
+      metrics.textContent = 'Lines: 0 | Keys: 0';
+    }
+  </script>
+</body>
+</html>
