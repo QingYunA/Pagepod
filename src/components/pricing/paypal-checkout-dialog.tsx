@@ -113,7 +113,7 @@ export default function PayPalCheckoutDialog({
   user,
   onSuccess,
 }: PayPalCheckoutDialogProps) {
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const isZh = locale === "zh";
 
   const [isLoadingScript, setIsLoadingScript] = useState(true);
@@ -362,7 +362,7 @@ export default function PayPalCheckoutDialog({
                     {isZh ? "应付金额 (USD)" : "Total Amount (USD)"}
                   </span>
                   <Badge variant="outline" className="text-xs font-mono px-1 py-0 h-4 border-border text-foreground">
-                    -20%
+                    {t.pricing.discountBadge}
                   </Badge>
                 </div>
                 <div className="flex items-baseline gap-2">
@@ -377,7 +377,7 @@ export default function PayPalCheckoutDialog({
               </div>
               <div className="text-right">
                 <Badge variant="secondary" className="text-xs font-mono">
-                  {isZh ? "首发早鸟特惠" : "Early Bird"}
+                  {t.pricing.earlyBirdTag}
                 </Badge>
               </div>
             </div>

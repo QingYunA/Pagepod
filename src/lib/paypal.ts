@@ -16,6 +16,7 @@ export const PLAN_PRICING = {
     name: "Pagepod Lite Lifetime Deal",
     amount: "3.90",
     originalAmount: "4.90",
+    discount: "20% OFF",
     currency: "USD",
   },
   pro: {
@@ -23,6 +24,7 @@ export const PLAN_PRICING = {
     name: "Pagepod Pro Lifetime Deal",
     amount: "7.90",
     originalAmount: "9.90",
+    discount: "20% OFF",
     currency: "USD",
   },
 };

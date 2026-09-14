@@ -361,6 +361,7 @@ export const translations = {
     pricing: {
       badge: "终身买断 · 透明方案",
       earlyBirdBadge: "首发早鸟特惠 · 终身方案限时 8 折",
+      earlyBirdTag: "首发早鸟特惠",
       discountBadge: "20% OFF",
       earlyBirdNotice: "首批早鸟 8 折特惠已自动生效，结账时直接按折后价结算。",
       title: "为前端开发者与创作者打造的透明定价",
@@ -918,6 +919,7 @@ export const translations = {
     pricing: {
       badge: "Lifetime Deals · Transparent",
       earlyBirdBadge: "Early Adopter Offer · 20% OFF Lifetime Plans",
+      earlyBirdTag: "Early Bird",
       discountBadge: "20% OFF",
       earlyBirdNotice: "Early bird 20% discount is automatically applied at checkout.",
       title: "Built for Front-end Creators & Builders",
