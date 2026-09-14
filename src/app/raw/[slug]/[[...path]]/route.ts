@@ -114,6 +114,9 @@ export async function GET(request: Request, context: RouteParams) {
     headers.set("Expires", "0");
     headers.set("Vary", "Cookie, Authorization");
     headers.set("X-Robots-Tag", "noindex, nofollow");
+  } else if (project.isGuestTransient) {
+    headers.set("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=600");
+    headers.set("X-Robots-Tag", "noindex, nofollow");
   } else if (isImageOrMedia) {
     // Static media & screenshots: 1 day in browser, 30 days on CDN edge
     headers.set("Cache-Control", "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400");

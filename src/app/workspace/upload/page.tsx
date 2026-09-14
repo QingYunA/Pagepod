@@ -77,14 +77,22 @@ export default function WorkspaceUploadPage() {
   const [isPinned, setIsPinned] = useState(false);
   const [isGlobalPinned, setIsGlobalPinned] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [isWhiteLabel, setIsWhiteLabel] = useState(false);
+  const [customSubdomain, setCustomSubdomain] = useState("");
   const [copiedUrl, setCopiedUrl] = useState(false);
 
   useEffect(() => {
     fetch("/api/user/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.user && (data.user.role === "admin" || data.user.id === "selfhost-admin")) {
-          setIsAdmin(true);
+        if (data?.user) {
+          if (data.user.role === "admin" || data.user.id === "selfhost-admin") {
+            setIsAdmin(true);
+          }
+          if (data.user.planTier === "pro" || data.user.role === "admin" || data.user.id === "selfhost-admin") {
+            setIsPro(true);
+          }
         }
       })
       .catch(() => {});
@@ -252,6 +260,10 @@ export default function WorkspaceUploadPage() {
         if (isAdmin) {
           formData.append("isGlobalPinned", String(isGlobalPinned));
         }
+        formData.append("isWhiteLabel", String(isWhiteLabel));
+        if (customSubdomain) {
+          formData.append("customSubdomain", customSubdomain.trim().toLowerCase());
+        }
 
         if (mode === "file" && file) {
           formData.append("file", file);
@@ -288,6 +300,10 @@ export default function WorkspaceUploadPage() {
             apiFormData.append("isPinned", String(isPinned));
             if (isAdmin) {
               apiFormData.append("isGlobalPinned", String(isGlobalPinned));
+            }
+            apiFormData.append("isWhiteLabel", String(isWhiteLabel));
+            if (customSubdomain) {
+              apiFormData.append("customSubdomain", customSubdomain.trim().toLowerCase());
             }
 
             const apiRes = await fetch("/api/upload", {
@@ -327,9 +343,11 @@ export default function WorkspaceUploadPage() {
 
       // Perform static credential & token scan
       const scanResult = scanHtmlForSensitiveData(codeToScan);
-      setDetectedRisks(scanResult.matches);
-      setShowRiskDialog(true);
-      return;
+      if (scanResult.matches.length > 0) {
+        setDetectedRisks(scanResult.matches);
+        setShowRiskDialog(true);
+        return;
+      }
     }
 
     await performActualSubmit();
@@ -761,6 +779,57 @@ export default function WorkspaceUploadPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Pro Perks: White-label & Custom Subdomain */}
+                {isPro && (
+                  <div className="pt-3 border-t border-border space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-foreground" />
+                        <span>Pro 权益定制 (Pro Perks)</span>
+                      </span>
+                      <Badge variant="outline" className="text-[10px] font-mono border-border text-foreground">PRO</Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="upload-subdomain" className="block text-xs font-medium text-foreground mb-1.5">
+                          专属二级子域名 (Subdomain)
+                        </label>
+                        <div className="flex items-center rounded-md border border-input bg-background px-2.5 py-1 text-xs text-muted-foreground focus-within:ring-1 focus-within:ring-ring">
+                          <span className="text-[11px] select-none text-muted-foreground">https://</span>
+                          <input
+                            id="upload-subdomain"
+                            type="text"
+                            value={customSubdomain}
+                            placeholder={slug || "my-app"}
+                            onChange={(e) => setCustomSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                            className="bg-transparent border-0 p-0 text-xs text-foreground focus:outline-none focus:ring-0 w-full ml-1"
+                          />
+                          <span className="text-[11px] select-none text-muted-foreground">.pagepod.dev</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">留空则默认使用全局 /p/{slug || "slug"} 路由</p>
+                      </div>
+
+                      <div className="flex flex-col justify-center">
+                        <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
+                          <Checkbox
+                            checked={isWhiteLabel}
+                            onChange={(e) => setIsWhiteLabel(e.target.checked)}
+                          />
+                          <div>
+                            <span className="text-xs text-foreground font-medium block">
+                              白标模式 (White-Label)
+                            </span>
+                            <span className="text-[10px] text-muted-foreground leading-tight block">
+                              隐藏全屏运行台右下角的 "Hosted on Pagepod" 徽标
+                            </span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

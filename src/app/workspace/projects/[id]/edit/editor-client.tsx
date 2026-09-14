@@ -46,8 +46,6 @@ import { Select } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { scanHtmlForSensitiveData, type SensitiveRiskMatch } from "@/lib/scanner/sensitive-scanner";
-import { PublicRiskDialog } from "@/components/public-risk-dialog";
 
 interface EditorClientProps {
   project: Project;
@@ -115,11 +113,6 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
     }
   };
 
-  // Public Risk Dialog states
-  const [showRiskDialog, setShowRiskDialog] = useState(false);
-  const [detectedRisks, setDetectedRisks] = useState<SensitiveRiskMatch[]>([]);
-  const [bypassedRiskCheck, setBypassedRiskCheck] = useState(false);
-
   const handleAddTag = (t: string) => {
     const trimmed = t.trim();
     if (trimmed && !tags.includes(trimmed)) {
@@ -132,7 +125,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
     setTags(tags.filter((item) => item !== t));
   };
 
-  const performSave = (targetVisibility?: "public" | "private") => {
+  const handleSave = () => {
     setErrorMsg("");
     setSavedSuccess(false);
 
@@ -144,7 +137,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
           category,
           language,
           tags,
-          visibility: targetVisibility || visibility,
+          visibility,
           isPinned,
           isGlobalPinned: isAdmin ? isGlobalPinned : undefined,
           isWhiteLabel,
@@ -159,18 +152,6 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
         setErrorMsg((err as Error)?.message || "保存失败");
       }
     });
-  };
-
-  const handleSave = () => {
-    // Intercept when project is public and risk check hasn't been confirmed yet
-    if (visibility === "public" && !bypassedRiskCheck) {
-      const scanResult = scanHtmlForSensitiveData(code);
-      setDetectedRisks(scanResult.matches);
-      setShowRiskDialog(true);
-      return;
-    }
-
-    performSave();
   };
 
   return (
@@ -289,7 +270,6 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                     theme="dark"
                     onChange={(val) => {
                       setCode(val);
-                      setBypassedRiskCheck(false);
                     }}
                     className="text-xs h-full"
                   />
@@ -488,7 +468,6 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       value={visibility}
                       onChange={(e) => {
                         setVisibility(e.target.value as "public" | "private");
-                        setBypassedRiskCheck(false);
                       }}
                     >
                       <option value="public">公开 (Showcase 展示)</option>
@@ -527,7 +506,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-foreground" />
-                      <span>Pro 尊享定制 (Pro Perks)</span>
+                      <span>Pro 权益定制 (Pro Perks)</span>
                     </span>
                     <Badge variant="outline" className="text-[10px] font-mono border-border text-foreground">PRO</Badge>
                   </div>
@@ -575,23 +554,6 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
           </div>
         )}
       </div>
-
-      {/* Public Risk Dialog for Editor */}
-      <PublicRiskDialog
-        open={showRiskDialog}
-        onOpenChange={setShowRiskDialog}
-        matches={detectedRisks}
-        onConfirmPublic={() => {
-          setShowRiskDialog(false);
-          setBypassedRiskCheck(true);
-          performSave("public");
-        }}
-        onSwitchToPrivate={() => {
-          setShowRiskDialog(false);
-          setVisibility("private");
-          performSave("private");
-        }}
-      />
     </div>
   );
 }

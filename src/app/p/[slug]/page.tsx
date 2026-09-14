@@ -30,12 +30,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  // If private or not yet approved, disallow search engine indexing
-  if (project.visibility === "private" || project.reviewStatus === "rejected" || project.reviewStatus === "pending") {
+  // If private, guest transient, or not yet approved, disallow search engine indexing
+  if (
+    project.visibility === "private" ||
+    project.isGuestTransient ||
+    project.reviewStatus === "rejected" ||
+    project.reviewStatus === "pending"
+  ) {
     return {
       title:
         project.reviewStatus === "rejected"
           ? "Project Removed / 项目已违规下架 - Pagepod"
+          : project.isGuestTransient
+          ? `${project.title || slug} (Guest Preview) - Pagepod`
           : "Private Project / 私有保护项目 - Pagepod",
       description: "Content is not publicly available on Pagepod.",
       robots: { index: false, follow: false },

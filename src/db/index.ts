@@ -90,6 +90,7 @@ function readLocalData(): LocalData {
       language: p.language ?? "zh",
       isWhiteLabel: p.isWhiteLabel ?? false,
       customSubdomain: p.customSubdomain ?? null,
+      isGuestTransient: p.isGuestTransient ?? false,
       visibility: (p.visibility as string) === "unlisted" ? "private" : p.visibility,
       reviewStatus: p.reviewStatus ?? "approved",
       moderationCategory: p.moderationCategory ?? null,
@@ -163,9 +164,9 @@ const SQL_PROJECTS = `
     user_id TEXT,
     title TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
-    description TEXT DEFAULT '',
+    description TEXT,
     category TEXT NOT NULL DEFAULT 'tools',
-    tags JSONB DEFAULT '[]',
+    tags TEXT[] NOT NULL DEFAULT '{}',
     asset_type TEXT NOT NULL DEFAULT 'single_html',
     entry_path TEXT NOT NULL DEFAULT 'index.html',
     storage_type TEXT NOT NULL DEFAULT 'local',
@@ -178,6 +179,7 @@ const SQL_PROJECTS = `
     language TEXT NOT NULL DEFAULT 'zh',
     is_white_label BOOLEAN NOT NULL DEFAULT false,
     custom_subdomain TEXT,
+    is_guest_transient BOOLEAN NOT NULL DEFAULT false,
     view_count INTEGER NOT NULL DEFAULT 0,
     screenshot_url TEXT,
     is_encrypted BOOLEAN NOT NULL DEFAULT false,
@@ -200,6 +202,8 @@ const SQL_PROJECTS_MIGRATIONS = [
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS screenshot_url TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_white_label BOOLEAN NOT NULL DEFAULT false;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS custom_subdomain TEXT;`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_guest_transient BOOLEAN NOT NULL DEFAULT false;`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_custom_subdomain ON projects (custom_subdomain) WHERE custom_subdomain IS NOT NULL;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS key_mode TEXT NOT NULL DEFAULT 'legacy-server';`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS kdf_salt TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS kdf_iterations INTEGER;`,
@@ -406,6 +410,9 @@ export async function getAllProjects(options?: {
           conditions.push(eq(schema.projects.userId, options.userId));
         } else if (!options?.includePrivate) {
           conditions.push(eq(schema.projects.visibility, "public"));
+          if (!options?.isWorkspace) {
+            conditions.push(eq(schema.projects.isGuestTransient, false));
+          }
           if (!options?.reviewStatus && !options?.allowAllReviewStatuses) {
             conditions.push(
               or(
@@ -504,6 +511,7 @@ export async function getAllProjects(options?: {
       list = list.filter((p) => {
         const isPublic = p.visibility === "public";
         if (!isPublic) return false;
+        if (!options?.isWorkspace && p.isGuestTransient) return false;
         if (options?.reviewStatus) return p.reviewStatus === options.reviewStatus;
         if (options?.allowAllReviewStatuses) return true;
         return p.reviewStatus === "approved" || !p.reviewStatus;
@@ -583,17 +591,21 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
   if (db) {
     try {
       const rows = await withTableFallback(() =>
-        db.select().from(schema.projects).where(eq(schema.projects.slug, slug)).limit(1)
+        db
+          .select()
+          .from(schema.projects)
+          .where(or(eq(schema.projects.slug, slug), eq(schema.projects.customSubdomain, slug)))
+          .limit(1)
       );
       return rows[0] || null;
     } catch (err) {
       console.error("getProjectBySlug DB query error:", err);
       const local = readLocalData();
-      return local.projects.find((p) => p.slug === slug) || null;
+      return local.projects.find((p) => p.slug === slug || (p.customSubdomain && p.customSubdomain === slug)) || null;
     }
   } else {
     const local = readLocalData();
-    return local.projects.find((p) => p.slug === slug) || null;
+    return local.projects.find((p) => p.slug === slug || (p.customSubdomain && p.customSubdomain === slug)) || null;
   }
 }
 
@@ -641,6 +653,7 @@ export async function createProject(data: NewProject): Promise<Project> {
     language: data.language ?? "zh",
     isWhiteLabel: data.isWhiteLabel ?? false,
     customSubdomain: data.customSubdomain ?? null,
+    isGuestTransient: data.isGuestTransient ?? false,
     viewCount: data.viewCount ?? 0,
     screenshotUrl: data.screenshotUrl ?? null,
     isEncrypted: data.isEncrypted ?? false,

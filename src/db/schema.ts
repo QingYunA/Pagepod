@@ -25,7 +25,10 @@ export const projects = pgTable(
 
     // Pro-Tier Project Customization
     isWhiteLabel: boolean("is_white_label").notNull().default(false),
-    customSubdomain: text("custom_subdomain"),
+    customSubdomain: text("custom_subdomain").unique(),
+
+    // Ingress & Guest Lifecycle
+    isGuestTransient: boolean("is_guest_transient").notNull().default(false),
 
     // End-to-End Encryption fields (zero-knowledge)
     isEncrypted: boolean("is_encrypted").notNull().default(false),

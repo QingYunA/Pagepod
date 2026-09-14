@@ -44,6 +44,47 @@ export const tagsSchema = z
   ])
   .default([]);
 
+export const RESERVED_SUBDOMAINS = new Set([
+  "www",
+  "admin",
+  "api",
+  "auth",
+  "app",
+  "preview",
+  "mail",
+  "cdn",
+  "status",
+  "static",
+  "assets",
+]);
+
+export const SYSTEM_PATHS = new Set([
+  "explore",
+  "pricing",
+  "about",
+  "privacy",
+  "terms",
+  "workspace",
+  "login",
+  "admin",
+  "api",
+  "auth",
+  "_next",
+  "p",
+  "raw",
+]);
+
+export const customSubdomainSchema = z
+  .string()
+  .trim()
+  .regex(/^[a-z0-9_-]{2,30}$/, "Subdomain must be 2-30 lowercase letters, numbers, or hyphens")
+  .refine(
+    (val) => !RESERVED_SUBDOMAINS.has(val.toLowerCase()) && !SYSTEM_PATHS.has(val.toLowerCase()),
+    "Subdomain is a reserved system name"
+  )
+  .optional()
+  .nullable();
+
 export const uploadPayloadSchema = z.object({
   title: z.string().trim().max(200).optional(),
   slug: slugSchema,
@@ -55,7 +96,7 @@ export const uploadPayloadSchema = z.object({
   isPinned: z.boolean().default(false),
   isGlobalPinned: z.boolean().default(false),
   isWhiteLabel: z.boolean().default(false),
-  customSubdomain: z.string().trim().regex(/^[a-z0-9_-]{2,30}$/, "Subdomain must be 2-30 lowercase letters, numbers, or hyphens").optional().nullable(),
+  customSubdomain: customSubdomainSchema,
   htmlContent: z.string().max(20_000_000, "HTML content too large (max 20MB)").optional(),
 });
 
@@ -69,7 +110,7 @@ export const updateProjectInputSchema = z.object({
   isPinned: z.boolean().default(false),
   isGlobalPinned: z.boolean().optional(),
   isWhiteLabel: z.boolean().optional(),
-  customSubdomain: z.string().trim().regex(/^[a-z0-9_-]{2,30}$/, "Subdomain must be 2-30 lowercase letters, numbers, or hyphens").optional().nullable(),
+  customSubdomain: customSubdomainSchema,
   htmlCode: z.string().max(20_000_000).optional(),
 });
 
