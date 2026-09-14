@@ -13,54 +13,57 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #09090b;
-      color: #fafafa;
+      background: #ffffff;
+      color: #18181b;
       height: 100vh;
       display: flex;
       flex-direction: column;
     }
     header {
       padding: 0.75rem 1.5rem;
-      background: #18181b;
-      border-bottom: 1px solid #27272a;
+      background: #fafafa;
+      border-bottom: 1px solid #e4e4e7;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    h1 { font-size: 1rem; font-weight: 600; }
+    h1 { font-size: 1rem; font-weight: 600; color: #09090b; }
     .segmented {
       display: flex;
-      background: #27272a;
+      background: #f4f4f5;
       padding: 3px;
+      border: 1px solid #e4e4e7;
       border-radius: 8px;
       gap: 4px;
     }
     .segmented button {
       background: transparent;
       border: none;
-      color: #a1a1aa;
+      color: #71717a;
       padding: 0.3rem 0.8rem;
       border-radius: 6px;
       font-size: 0.8rem;
       cursor: pointer;
+      transition: all 0.15s;
     }
-    .segmented button.active { background: #3f3f46; color: #fafafa; font-weight: 600; }
+    .segmented button.active { background: #ffffff; color: #09090b; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     main {
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      divide-x: 1px solid #27272a;
+      divide-x: 1px solid #e4e4e7;
       overflow: hidden;
     }
     .panel {
       display: flex;
       flex-direction: column;
       height: 100%;
+      background: #ffffff;
     }
     .panel-header {
       padding: 0.5rem 1rem;
-      background: #111113;
-      border-bottom: 1px solid #27272a;
+      background: #fafafa;
+      border-bottom: 1px solid #e4e4e7;
       font-size: 0.75rem;
       color: #71717a;
       font-family: ui-monospace, monospace;
@@ -69,9 +72,9 @@
     }
     textarea {
       flex: 1;
-      background: transparent;
+      background: #ffffff;
       border: none;
-      color: #e4e4e7;
+      color: #09090b;
       padding: 1rem;
       font-family: ui-monospace, monospace;
       font-size: 0.85rem;
@@ -79,6 +82,7 @@
       resize: none;
       outline: none;
     }
+    #inputText { background: #fafafa; }
   </style>
 </head>
 <body>
@@ -94,7 +98,7 @@
     <div class="panel">
       <div class="panel-header">
         <span id="inLabel">RAW TEXT</span>
-        <button onclick="copyInput()" style="background:transparent; border:none; color:#a1a1aa; cursor:pointer; font-size:11px;">Copy</button>
+        <button onclick="copyInput()" style="background:transparent; border:none; color:#71717a; cursor:pointer; font-size:12px;">Copy</button>
       </div>
       <textarea id="inputText" placeholder="Enter text to convert..." oninput="process()"></textarea>
     </div>
@@ -102,7 +106,7 @@
     <div class="panel">
       <div class="panel-header">
         <span id="outLabel">BASE64 OUTPUT</span>
-        <button onclick="copyOutput()" style="background:transparent; border:none; color:#3b82f6; cursor:pointer; font-size:11px; font-weight:bold;">Copy Output</button>
+        <button onclick="copyOutput()" style="background:transparent; border:none; color:#2563eb; cursor:pointer; font-size:12px; font-weight:bold;">Copy Output</button>
       </div>
       <textarea id="outputText" readonly placeholder="Output will appear here..."></textarea>
     </div>

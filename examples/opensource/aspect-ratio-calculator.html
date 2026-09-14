@@ -13,8 +13,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #09090b;
-      color: #fafafa;
+      background: #fafafa;
+      color: #18181b;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -25,14 +25,14 @@
     .card {
       max-width: 440px;
       width: 100%;
-      background: #18181b;
-      border: 1px solid #27272a;
+      background: #ffffff;
+      border: 1px solid #e4e4e7;
       border-radius: 20px;
       padding: 2rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
-    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; letter-spacing: -0.02em; }
-    p { font-size: 0.85rem; color: #a1a1aa; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; letter-spacing: -0.02em; color: #09090b; }
+    p { font-size: 0.85rem; color: #71717a; margin-bottom: 1.5rem; }
     .ratio-presets {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -40,38 +40,40 @@
       margin-bottom: 1.5rem;
     }
     .preset-btn {
-      background: #27272a;
-      border: 1px solid #3f3f46;
-      color: #fafafa;
+      background: #f4f4f5;
+      border: 1px solid #e4e4e7;
+      color: #18181b;
       border-radius: 8px;
       padding: 0.4rem;
       font-size: 0.8rem;
       font-family: ui-monospace, monospace;
       cursor: pointer;
+      transition: all 0.15s;
     }
-    .preset-btn:hover { background: #3f3f46; }
+    .preset-btn:hover { background: #e4e4e7; }
     .input-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-bottom: 1.5rem;
     }
-    label { font-size: 0.75rem; color: #a1a1aa; font-family: ui-monospace, monospace; display: block; margin-bottom: 4px; }
+    label { font-size: 0.75rem; color: #71717a; font-family: ui-monospace, monospace; display: block; margin-bottom: 4px; }
     input[type="number"] {
       width: 100%;
       height: 42px;
       border-radius: 10px;
-      border: 1px solid #3f3f46;
-      background: #27272a;
-      color: #fafafa;
+      border: 1px solid #e4e4e7;
+      background: #ffffff;
+      color: #18181b;
       padding: 0 0.75rem;
       font-size: 0.95rem;
       font-family: ui-monospace, monospace;
       outline: none;
     }
+    input[type="number"]:focus { border-color: #2563eb; }
     .ratio-result {
-      background: #111113;
-      border: 1px solid #27272a;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
       border-radius: 12px;
       padding: 1rem;
       text-align: center;
@@ -80,7 +82,7 @@
     .ratio-display {
       font-size: 1.75rem;
       font-weight: 800;
-      color: #38bdf8;
+      color: #0284c7;
       font-family: ui-monospace, monospace;
     }
   </style>

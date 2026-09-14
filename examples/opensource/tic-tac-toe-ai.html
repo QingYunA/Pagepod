@@ -12,8 +12,8 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
-      background: #09090b;
-      color: #fafafa;
+      background: #fafafa;
+      color: #18181b;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       display: flex;
@@ -25,17 +25,17 @@
     .card {
       max-width: 380px;
       width: 100%;
-      background: #18181b;
-      border: 1px solid #27272a;
+      background: #ffffff;
+      border: 1px solid #e4e4e7;
       border-radius: 20px;
       padding: 1.75rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
-    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .status { font-size: 0.9rem; color: #a1a1aa; margin-bottom: 1.5rem; height: 1.25rem; }
+    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; color: #09090b; }
+    .status { font-size: 0.9rem; color: #71717a; margin-bottom: 1.5rem; height: 1.25rem; }
     .board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -45,7 +45,8 @@
       margin-bottom: 1.5rem;
     }
     .cell {
-      background: #27272a;
+      background: #f4f4f5;
+      border: 1px solid #e4e4e7;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -55,16 +56,16 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .cell:hover { background: #3f3f46; }
-    .cell.x { color: #38bdf8; }
-    .cell.o { color: #f43f5e; }
+    .cell:hover { background: #e4e4e7; }
+    .cell.x { color: #0284c7; }
+    .cell.o { color: #e11d48; }
     button {
       width: 100%;
       height: 42px;
       border-radius: 10px;
-      border: none;
-      background: #fafafa;
-      color: #09090b;
+      border: 1px solid #18181b;
+      background: #18181b;
+      color: #ffffff;
       font-weight: 600;
       font-size: 0.9rem;
       cursor: pointer;

@@ -6,20 +6,20 @@
   <title>Color Palette Studio · Harmony Generator & WCAG Checker</title>
   <style>
     :root {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --border: #e4e4e7;
+      --text: #09090b;
+      --muted: #71717a;
+      --primary: #18181b;
+    }
+    [data-theme="dark"] {
       --bg: #09090b;
       --card: #18181b;
       --border: #27272a;
       --text: #f4f4f5;
       --muted: #a1a1aa;
       --primary: #6366f1;
-    }
-    [data-theme="light"] {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --primary: #4f46e5;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -112,7 +112,7 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
       cursor: pointer;
       transition: transform 0.15s;
     }
@@ -133,7 +133,7 @@
     }
     .badge-wcag {
       align-self: flex-start;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 600;
       padding: 0.2rem 0.4rem;
       border-radius: 4px;
@@ -174,7 +174,7 @@
 <body>
   <div class="wrapper">
     <div class="top-bar">
-      <h1>🎨 Color Palette Studio</h1>
+      <h1>Color Palette Studio</h1>
       <button id="themeToggle">Theme</button>
     </div>
 
@@ -192,8 +192,8 @@
           <option value="complementary">Complementary (互补高对比)</option>
         </select>
       </div>
-      <button class="btn-primary" id="randomBtn">🎲 Randomize</button>
-      <button id="copyCssBtn">📋 Copy CSS Variables</button>
+      <button class="btn-primary" id="randomBtn">Randomize</button>
+      <button id="copyCssBtn">Copy CSS Variables</button>
     </div>
 
     <div class="palette-grid" id="paletteGrid"></div>
@@ -217,8 +217,8 @@
     const themeToggle = document.getElementById('themeToggle');
 
     themeToggle.addEventListener('click', () => {
-      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-      document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
     });
 
     function hexToHSL(hex) {
