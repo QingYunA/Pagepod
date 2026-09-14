@@ -69,6 +69,7 @@
 
 ### 4. 反浮夸文案与工程高级感 (Anti-Slop & Editorial Voice)
 - ❌ **严禁页游与土豪“VIP”套话**：坚决禁止在产品文案中出现“尊享”、“特权”、“VIP”、“自由扩容”、“神级”、“无敌”等浮夸廉价词汇；
+- ❌ **严禁同义词三重堆砌与标签罗列**：卡片或模块内严禁在标题、副标题、操作按钮与底部微注中反复变换同义词复述相同属性（如同时出现 `Sandboxed`、`Hardened CSP` 与 `Sandbox Runner`，或重复强调 `Token Protected`、`NoIndex` 与 `Instant Link`）；优先采用极简事实约束（如“无需登录 · 单文件 HTML 最大 2MB”），删除一切无增量信息的口号式底部微字；
 - ✅ **倡导中性、克制的技术质感词汇**：统一使用“功能”、“权益”、“配额”、“Features”、“Perks”；
 - ❌ **严禁会员付费元素彩虹化**：会员状态标签、价格方案与横幅禁止使用金色渐变（如 `from-amber-500/10`）或厚重阴影（`shadow-2xl`），统一遵守 Zinc 单色黑白灰调、1px 细线边框与 shadcn `<Badge variant="outline">` 原语；
 - ✅ **双语国际化零死角**：全链路必须响应式切换；严禁在英文模式下漏译或硬编码中文回退值（如默认未命名账号必须动态适配为 `"Admin"`，严禁硬编码 `"管理员"`）。
@@ -139,7 +140,12 @@
     - **领域与风控断言全等**：任何批量操作（如 `batchDelete`、`batchUpdateVisibility`、`batchMove`）绝非仅是底层数据库执行，必须与单项领域服务保持 100% 语义全等；
     - **强制逐项校验与副作用闭环**：必须在执行底层变更前对受影响的每个项目逐一执行 Seam RBAC 权限核验（`assertCanManageProject`）与业务合规断言（如 `assertCanSetVisibility` 阻断标记争议项目直接公开），并完整触发物理存储清理等关键生命周期副作用（如 `deleteProjectFiles()` 清除 R2/Blob 孤儿资产），严禁绕过领域服务防线。
 
-12. **跨分支合并后设计一致性回检 (Post-Merge Design Parity Invariant)**：
+12. **写入路径零同步无头渲染准则 (Zero Synchronous Headless Invariant)**：
+    - **响应主链路绝对非阻塞**：面向用户的项目创建（`createProject`）、代码更新（`updateProject`）及游客即时上传等交互主链路，**严禁在请求/响应生命周期内同步 `await` 重型无头浏览器渲染**（Headless Chrome、Puppeteer、Playwright 或外部截屏抓取 API）；
+    - **海报截图全权异步化**：所有海报截图与缩略图捕获必须统一委托至 Next.js `after(runCapture)` 或后台异步队列静默执行，并在生成后以异步形式回填更新数据库，保证服务端创建与更新操作在 **< 50ms（毫秒级）** 内完成响应返回；
+    - **未公开项目免除无谓开销**：`unlisted`（口令保护）及 `private` 项目因其隐私属性及不进入公共画廊，严禁触发外网无头截图抓取，节省服务器与第三方算力。
+
+13. **跨分支合并后设计一致性回检 (Post-Merge Design Parity Invariant)**：
     - 在执行 `git merge origin/main` 同步远端最新主分支后，必须扩大自检范围，对拉入的所有新增或受影响 UI 组件执行静态标准门禁（`npm run check:standards`）；严禁只审查手头修改的文件而忽略上游合入组件的反模式污染。
 
 ---

@@ -220,6 +220,21 @@ function scanFile(filePath: string) {
       });
     }
   }
+
+  // 6. Check Zero Synchronous Headless Invariant: renderProjectScreenshot must not be directly invoked in project-service.ts
+  if (relPath.replace(/\\/g, "/") === "src/lib/services/project-service.ts") {
+    const syncScreenshotMatch = content.match(/\brenderProjectScreenshot\s*\(/);
+    if (syncScreenshotMatch && syncScreenshotMatch.index !== undefined) {
+      const lineNum = content.slice(0, syncScreenshotMatch.index).split("\n").length;
+      violations.push({
+        file: relPath,
+        line: lineNum,
+        rule: "AGENTS.md 2.12 (Zero Synchronous Headless Invariant)",
+        match: "renderProjectScreenshot()",
+        message: "Synchronous call to renderProjectScreenshot() in service mutation path. Headless capture must be decoupled to after(runCapture) or background queues to ensure sub-50ms instant link generation.",
+      });
+    }
+  }
 }
 
 function walkDir(dir: string) {
