@@ -1,13 +1,23 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/i18n/context";
+import { translations, type Locale } from "@/lib/i18n/translations";
 import { isClientCloudMode } from "@/lib/supabase/client";
 import { InstantUploadCard } from "@/components/instant-upload-card";
 
-export function HeroSection() {
-  const { t } = useLanguage();
+export function HeroSection({ initialLocale }: { initialLocale?: Locale }) {
+  const { t: clientT, locale: clientLocale } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isCloud = isClientCloudMode();
   const customSiteName = process.env.NEXT_PUBLIC_SITE_NAME?.trim();
+
+  const activeLocale = !mounted && initialLocale ? initialLocale : (clientLocale || initialLocale || "en");
+  const t = translations[activeLocale] || clientT;
 
   const title = !isCloud && customSiteName ? customSiteName : t.hero.title;
   const desc =
@@ -31,7 +41,7 @@ export function HeroSection() {
 
         {/* Bottom Prominent Drag-and-Drop Ingestion Card */}
         <div className="w-full">
-          <InstantUploadCard />
+          <InstantUploadCard initialLocale={initialLocale} />
         </div>
       </div>
     </section>
