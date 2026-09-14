@@ -167,18 +167,54 @@ async function runTests() {
       { slug: unlistedPost.slug, claimToken: unlistedPost.claimToken },
     ]);
     assert(validClaim.claimedCount === 1, "Transfers ownership to authenticated user");
+    assert(validClaim.resolvedSlugs.includes(unlistedPost.slug), "Marks claimed slug in resolvedSlugs");
 
     const claimedProject = await getProjectBySlug(unlistedPost.slug);
     assert(claimedProject?.userId === mockUser.id, "Database userId updated to Alice's account");
 
+    // Idempotent retry on already claimed project
+    const duplicateClaim = await claimGuestProjects(mockUser, [
+      { slug: unlistedPost.slug, claimToken: unlistedPost.claimToken },
+    ]);
+    assert(duplicateClaim.claimedCount === 0, "Idempotent: duplicate claim does not increment count");
+    assert(duplicateClaim.resolvedSlugs.includes(unlistedPost.slug), "Resolved slugs safely purges already owned project");
+
     // Cleanup test project
-    if (createdProject) {
-      await deleteProject(createdProject.id);
+    if (claimedProject) {
+      await deleteProject(claimedProject.id);
     }
   }
 
+  console.log("\n=== 5. Authenticated Direct Ingestion Tests ===");
+  const authUser = {
+    id: "registered_user_bob",
+    email: "bob@example.com",
+    role: "user" as const,
+  };
 
-  console.log("\n=== 5. Umami Custom Event Telemetry Tests ===");
+  const directPost = await handleGuestUpload({
+    htmlContent: `<!DOCTYPE html><html><head><title>Bob Direct App</title></head><body><h1>Bob</h1></body></html>`,
+    clientIp: "10.0.0.4",
+    slug: `test-bob-direct-${Date.now()}`,
+    currentUser: authUser,
+  });
+
+  assert(directPost.success === true, "Direct authenticated upload succeeds");
+  assert(directPost.isDirectClaimed === true, "Marks result as isDirectClaimed");
+  assert(directPost.claimToken === undefined, "Does not issue ephemeral claimToken for logged-in user");
+
+  if (directPost.slug) {
+    const bobProject = await getProjectBySlug(directPost.slug);
+    assert(bobProject !== null, "Direct project persisted to database");
+    assert(bobProject?.userId === authUser.id, "Project directly belongs to Bob");
+    assert(!bobProject?.tags?.includes("guest-upload"), "Does not tag with guest-upload");
+
+    if (bobProject) {
+      await deleteProject(bobProject.id);
+    }
+  }
+
+  console.log("\n=== 6. Umami Custom Event Telemetry Tests ===");
   const { trackEvent } = await import("../src/lib/analytics");
 
   // 1. SSR / headless safety without window object

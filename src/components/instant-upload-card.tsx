@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import Link from "next/link";
 import {
   UploadCloud,
   Link as LinkIcon,
@@ -33,11 +34,30 @@ export function InstantUploadCard() {
     slug: string;
     url: string;
     title: string;
-    claimToken: string;
+    claimToken?: string;
     accessToken?: string;
     visibility?: "public" | "unlisted";
+    isDirectClaimed?: boolean;
   } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Dynamically sync status if guest upload is claimed while staying on current page
+  useEffect(() => {
+    const handleClaimed = (e: Event) => {
+      const customEvent = e as CustomEvent<{ resolvedSlugs?: string[] }>;
+      const resolvedSlugs = customEvent.detail?.resolvedSlugs || [];
+      setUploadedResult((prev) => {
+        if (!prev) return null;
+        if (resolvedSlugs.length === 0 || resolvedSlugs.includes(prev.slug)) {
+          return { ...prev, isDirectClaimed: true };
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener("pagepod:claimed", handleClaimed);
+    return () => window.removeEventListener("pagepod:claimed", handleClaimed);
+  }, []);
 
   // Secret leak dialog state
   const [pendingSecretFile, setPendingSecretFile] = useState<{
@@ -103,7 +123,7 @@ export function InstantUploadCard() {
             visibility,
           });
           setErrorMsg(res.error || "Upload failed");
-        } else if (res.slug && res.url && res.claimToken) {
+        } else if (res.slug && res.url) {
           trackEvent("drop_html_success", {
             visibility: res.visibility || visibility,
             file_size_kb: Math.round(file.size / 1024),
@@ -115,8 +135,11 @@ export function InstantUploadCard() {
             claimToken: res.claimToken,
             accessToken: res.accessToken,
             visibility: res.visibility,
+            isDirectClaimed: res.isDirectClaimed,
           });
-          saveClaimToStorage(res.slug, res.claimToken);
+          if (res.claimToken) {
+            saveClaimToStorage(res.slug, res.claimToken);
+          }
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "An unexpected error occurred during upload.";
@@ -387,16 +410,35 @@ export function InstantUploadCard() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                {uploadedResult.visibility === "unlisted"
-                  ? isZh
-                    ? "已生成专属访问口令，未在公开画廊展示。随时登录可认领管理。"
-                    : "Protected by access token and excluded from showcase. Sign in anytime to manage."
-                  : isZh
-                  ? "已在公共画廊上线展示。管理凭据已保存在本机。"
-                  : "Live on public showcase. Ownership token stored in browser."}
-              </p>
+            <div className="flex items-center justify-between pt-1 gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
+                {uploadedResult.isDirectClaimed ? (
+                  <>
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span>
+                      {isZh ? "已直接保存至你的个人空间。" : "Directly saved to your workspace."}
+                    </span>
+                    <Link
+                      href="/workspace"
+                      className="text-foreground hover:underline font-medium ml-1 inline-flex items-center gap-0.5"
+                    >
+                      {isZh ? "前往工作台管理" : "Manage"}
+                    </Link>
+                  </>
+                ) : uploadedResult.visibility === "unlisted" ? (
+                  <span>
+                    {isZh
+                      ? "已生成专属访问口令，未在公开画廊展示。随时登录可认领管理。"
+                      : "Protected by access token and excluded from showcase. Sign in anytime to manage."}
+                  </span>
+                ) : (
+                  <span>
+                    {isZh
+                      ? "已在公共画廊上线展示。管理凭据已保存在本机，随时登录可认领管理。"
+                      : "Live on public showcase. Ownership token stored in browser. Sign in anytime to manage."}
+                  </span>
+                )}
+              </div>
               <a
                 href={uploadedResult.url}
                 target="_blank"
