@@ -122,6 +122,21 @@ function scanFile(filePath: string) {
           message: `Banned emoji '${emojiMatch[0]}' detected in UI component. AGENTS.md strictly forbids emoji icons; use lucide-react line icons instead.`,
         });
       }
+
+      // Check banned sub-12px micro-text in UI components (AGENTS.md 1.2 & ADR-0008)
+      const customPxMatch = lineText.match(/\btext-\[([0-9]+(?:\.[0-9]+)?)px\]/);
+      if (customPxMatch) {
+        const px = parseFloat(customPxMatch[1]);
+        if (px < 12) {
+          violations.push({
+            file: relPath,
+            line: lineNum,
+            rule: "AGENTS.md 1.2 & ADR-0008 (Absolute 12px Typography Floor)",
+            match: customPxMatch[0],
+            message: `Banned sub-12px font size '${customPxMatch[0]}' (${px}px) detected. Standard minimum is 12px (text-xs).`,
+          });
+        }
+      }
     }
   });
 
