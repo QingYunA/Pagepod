@@ -520,7 +520,7 @@ export default function WorkspaceUploadPage() {
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
                               setFile(null);

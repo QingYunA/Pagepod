@@ -115,7 +115,7 @@ export function NotificationBell() {
               size="sm"
               onClick={handleMarkAllAsRead}
               disabled={isLoading}
-              className="h-7 text-xs px-2.5 text-muted-foreground hover:text-foreground"
+              className="h-8 text-xs px-3 text-muted-foreground hover:text-foreground"
             >
               {isLoading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />

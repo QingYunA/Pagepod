@@ -237,7 +237,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             size="sm"
             onClick={handleSave}
             disabled={isPending}
-            className="h-7 text-xs"
+            className="h-8 px-3 text-xs font-medium"
           >
             {savedSuccess ? (
               <>
@@ -299,7 +299,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 px-2.5 text-xs gap-1.5"
+                    className="h-8 px-3 text-xs gap-1.5"
                     onClick={() => {
                       setPreviewLoading(true);
                       setPreviewKey((k) => k + 1);

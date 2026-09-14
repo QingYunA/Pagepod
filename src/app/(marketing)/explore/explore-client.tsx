@@ -163,7 +163,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
             <Link
               key={idx}
               href={`/?q=${encodeURIComponent(tag.query)}`}
-              className="px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+              className="px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted text-xs sm:text-sm font-mono text-muted-foreground hover:text-foreground transition-colors"
             >
               #{tag.label}
             </Link>

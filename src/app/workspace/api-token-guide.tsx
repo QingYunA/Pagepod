@@ -106,7 +106,7 @@ export default function ApiTokenGuideModal({ configuredTokens: _configuredTokens
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-xs px-2.5"
+                  className="h-8 text-xs px-3"
                   aria-label={isZh ? "复制 cURL 示例" : "Copy cURL example"}
                   onClick={() => copyToClipboard("curl", curlExample)}
                 >
@@ -137,7 +137,7 @@ export default function ApiTokenGuideModal({ configuredTokens: _configuredTokens
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-xs px-2.5"
+                  className="h-8 text-xs px-3"
                   aria-label={isZh ? "复制 JSON 示例" : "Copy JSON example"}
                   onClick={() => copyToClipboard("json", jsonExample)}
                 >

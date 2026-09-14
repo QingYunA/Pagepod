@@ -47,8 +47,8 @@ export default function RunnerLoading() {
           <div className="h-8 w-8 flex items-center justify-center text-muted-foreground/40">
             <Share2 className="w-3.5 h-3.5" />
           </div>
-          <Skeleton className="h-7 w-7 rounded-md ml-1" />
-          <Skeleton className="h-7 w-7 rounded-md ml-1" />
+          <Skeleton className="h-8 w-8 rounded-md ml-1" />
+          <Skeleton className="h-8 w-8 rounded-md ml-1" />
         </div>
       </header>
 

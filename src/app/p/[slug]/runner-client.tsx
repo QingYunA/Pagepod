@@ -285,7 +285,7 @@ export default function RunnerClient({
                 </div>
               )}
             </div>
-            <Button variant="ghost" size="sm" className="h-7 px-2.5 text-xs" onClick={() => setShowInfo(false)}>
+            <Button variant="ghost" size="sm" className="h-8 px-3 text-xs" onClick={() => setShowInfo(false)}>
               {t.runner.close}
             </Button>
           </div>

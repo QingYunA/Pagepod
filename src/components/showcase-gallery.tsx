@@ -506,7 +506,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                     </span>
                   </div>
 
-                  <Button variant="ghost" size="sm" asChild className="h-7.5 px-2.5 text-xs font-medium">
+                  <Button variant="ghost" size="sm" asChild className="h-8 px-3 text-xs font-medium">
                     <Link href={`/p/${p.slug}`}>
                       {t.gallery.openDirect} <ExternalLink className="w-3.5 h-3.5 ml-1" />
                     </Link>

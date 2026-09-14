@@ -146,7 +146,7 @@ export function InstantUploadCard() {
             <Button
               variant="outline"
               size="sm"
-              className="h-7 text-xs border-border/80"
+              className="h-8 px-3 text-xs border-border/80"
               onClick={() => setPendingSecretFile(null)}
             >
               {isZh ? "取消并清理文件" : "Cancel & Clean File"}
@@ -154,7 +154,7 @@ export function InstantUploadCard() {
             <Button
               variant="destructive"
               size="sm"
-              className="h-7 text-xs"
+              className="h-8 px-3 text-xs"
               onClick={() => {
                 const f = pendingSecretFile.file;
                 setPendingSecretFile(null);

@@ -447,7 +447,7 @@ export default function HoverSandboxPreview({
                   size="sm"
                   variant="outline"
                   onClick={handleRetry}
-                  className="h-7 px-2.5 text-xs gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border-neutral-700"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border-neutral-700"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>{t.gallery.retry}</span>
@@ -455,7 +455,7 @@ export default function HoverSandboxPreview({
                 <Button
                   size="sm"
                   asChild
-                  className="h-7 px-2.5 text-xs gap-1.5 bg-neutral-100 hover:bg-white text-neutral-950 font-medium"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-100 hover:bg-white text-neutral-950 font-medium"
                 >
                   <Link href={`/p/${slug}`} target="_blank">
                     <span>{t.gallery.openAnyway}</span>
@@ -480,7 +480,7 @@ export default function HoverSandboxPreview({
                   size="sm"
                   variant="outline"
                   onClick={handleRetry}
-                  className="h-7 px-2.5 text-xs gap-1.5 bg-neutral-900 text-neutral-200 border-neutral-700"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-900 text-neutral-200 border-neutral-700"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>{t.gallery.retry}</span>
@@ -488,7 +488,7 @@ export default function HoverSandboxPreview({
                 <Button
                   size="sm"
                   asChild
-                  className="h-7 px-2.5 text-xs gap-1.5 bg-neutral-100 text-neutral-950 font-medium"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-100 text-neutral-950 font-medium"
                 >
                   <Link href={`/p/${slug}`} target="_blank">
                     <span>{t.gallery.openAnyway}</span>
@@ -616,14 +616,14 @@ export default function HoverSandboxPreview({
                     setShowLargeFileConfirm(false);
                     sandboxPool.activate(slug);
                   }}
-                  className="h-7 px-3 text-xs bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-700"
+                  className="h-8 px-3 text-xs bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-700"
                 >
                   <span>继续预览</span>
                 </Button>
                 <Button
                   size="sm"
                   asChild
-                  className="h-7 px-3 text-xs gap-1.5 bg-neutral-100 hover:bg-white text-neutral-950 font-medium"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-100 hover:bg-white text-neutral-950 font-medium"
                 >
                   <Link href={`/p/${slug}`} target="_blank">
                     <span>{defaultOpenText}</span>
@@ -686,7 +686,7 @@ export default function HoverSandboxPreview({
                       }}
                     />
                   </svg>
-                  <Play className="w-3 h-3 fill-current ml-0.5 absolute text-neutral-300" />
+                  <Play className="w-3.5 h-3.5 fill-current ml-0.5 absolute text-neutral-300" />
                 </div>
                 <span className="font-mono text-xs tracking-tight">
                   {isCharging ? "载入中..." : previewText}

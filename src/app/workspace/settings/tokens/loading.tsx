@@ -8,12 +8,12 @@ export default function TokensLoading() {
       {/* Top Bar Skeleton */}
       <header className="sticky top-0 z-30 w-full border-b border-border bg-background/95 backdrop-blur-xs px-3 sm:px-8 h-12 flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <Button variant="ghost" size="icon" disabled className="h-7 w-7 text-muted-foreground">
+          <Button variant="ghost" size="icon" disabled className="h-8 w-8 text-muted-foreground">
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Key className="w-4 h-4 text-foreground shrink-0" />
-            <span className="font-semibold text-xs tracking-tight">Personal Access Tokens</span>
+            <span className="font-semibold text-sm tracking-tight">Personal Access Tokens</span>
           </div>
           <span className="text-border">/</span>
           <Skeleton className="h-4 w-16" />
