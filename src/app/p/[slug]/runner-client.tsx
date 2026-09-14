@@ -403,17 +403,19 @@ export default function RunnerClient({
         </div>
 
         {/* Viral Badge */}
-        <div className="absolute bottom-2.5 right-3 z-10 pointer-events-auto">
-          <Link
-            href="/"
-            target="_blank"
-            title="Hosted on Pagepod - Free HTML Sandbox"
-            className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all shadow-xs"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 group-hover:animate-pulse" />
-            <span>Hosted on <strong className="font-semibold text-foreground">Pagepod</strong></span>
-          </Link>
-        </div>
+        {!project.isWhiteLabel && (
+          <div className="absolute bottom-2.5 right-3 z-10 pointer-events-auto">
+            <Link
+              href="/"
+              target="_blank"
+              title="Hosted on Pagepod - Free HTML Sandbox"
+              className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-mono text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all shadow-xs"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 group-hover:animate-pulse" />
+              <span>Hosted on <strong className="font-semibold text-foreground">Pagepod</strong></span>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Second-Screen SEO & Contextual Details Section (Boutique Tool Page V2.0) */}

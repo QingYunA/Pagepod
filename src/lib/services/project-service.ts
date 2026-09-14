@@ -19,7 +19,7 @@ import { assertCanManageProject, isExactProjectCreator, type CurrentUser } from 
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import type { Project } from "@/db/schema";
-import type { Language } from "@/lib/validation";
+import { type Language, RESERVED_SUBDOMAINS, SYSTEM_PATHS } from "@/lib/validation";
 import { moderateProjectContent } from "@/lib/moderation/engine";
 import type { ModerationResult } from "@/lib/moderation/types";
 import { createNotification } from "@/db";
@@ -92,6 +92,9 @@ export interface CreateProjectInput {
   visibility?: ProjectVisibility;
   isPinned?: boolean;
   isGlobalPinned?: boolean;
+  isWhiteLabel?: boolean;
+  customSubdomain?: string | null;
+  isGuestTransient?: boolean;
   screenshotUrl?: string;
   htmlContent?: string;
   fileBuffer?: Buffer;
@@ -108,7 +111,29 @@ export interface UpdateProjectInput {
   visibility?: ProjectVisibility;
   isPinned?: boolean;
   isGlobalPinned?: boolean;
+  isWhiteLabel?: boolean;
+  customSubdomain?: string | null;
+  isGuestTransient?: boolean;
   htmlCode?: string;
+}
+
+export function isProActor(actor: CurrentUser): boolean {
+  return actor.planTier === "pro" || actor.role === "admin" || actor.id === "selfhost-admin";
+}
+
+export async function validateCustomSubdomain(subdomain: string, excludeProjectId?: string): Promise<string> {
+  const clean = subdomain.trim().toLowerCase();
+  if (!/^[a-z0-9_-]{2,30}$/.test(clean)) {
+    throw new ProjectValidationError("Subdomain must be 2-30 lowercase letters, numbers, or hyphens");
+  }
+  if (RESERVED_SUBDOMAINS.has(clean) || SYSTEM_PATHS.has(clean)) {
+    throw new ProjectValidationError(`Subdomain "${clean}" is a reserved system name`);
+  }
+  const existing = await dbGetProjectBySlug(clean);
+  if (existing && existing.id !== excludeProjectId) {
+    throw new ProjectValidationError(`Subdomain "${clean}" is already taken`);
+  }
+  return clean;
 }
 
 export function sanitizeSlug(input: string): string {
@@ -251,6 +276,15 @@ export async function createProject(
   if (input.isGlobalPinned && actor.role !== "admin" && actor.id !== "selfhost-admin") {
     throw new ProjectForbiddenError("Forbidden: Only administrators can set global showcase pin");
   }
+  if (input.isWhiteLabel || input.customSubdomain) {
+    if (!isProActor(actor)) {
+      throw new ProjectForbiddenError("Forbidden: Custom subdomain and White-label mode are exclusive to Pro creators");
+    }
+  }
+  let validatedCustomSubdomain: string | null = null;
+  if (input.customSubdomain) {
+    validatedCustomSubdomain = await validateCustomSubdomain(input.customSubdomain);
+  }
   const isGlobalPinned = Boolean(input.isGlobalPinned);
   const isPinned = Boolean(input.isPinned);
 
@@ -272,6 +306,9 @@ export async function createProject(
     pinnedAt: isPinned ? new Date() : null,
     isGlobalPinned,
     globalPinnedAt: isGlobalPinned ? new Date() : null,
+    isWhiteLabel: input.isWhiteLabel ?? false,
+    customSubdomain: validatedCustomSubdomain,
+    isGuestTransient: Boolean(input.isGuestTransient),
     viewCount: 0,
     screenshotUrl,
     isEncrypted: false,
@@ -498,6 +535,22 @@ export async function updateProject(
     }
     patch.isGlobalPinned = input.isGlobalPinned;
     patch.globalPinnedAt = input.isGlobalPinned ? new Date() : null;
+  }
+  if (input.isWhiteLabel !== undefined || input.customSubdomain !== undefined) {
+    if (!isProActor(actor)) {
+      throw new ProjectForbiddenError("Forbidden: Custom subdomain and White-label mode are exclusive to Pro creators");
+    }
+    if (input.isWhiteLabel !== undefined) patch.isWhiteLabel = input.isWhiteLabel;
+    if (input.customSubdomain !== undefined) {
+      if (input.customSubdomain) {
+        patch.customSubdomain = await validateCustomSubdomain(input.customSubdomain, project.id);
+      } else {
+        patch.customSubdomain = null;
+      }
+    }
+  }
+  if (input.isGuestTransient !== undefined) {
+    patch.isGuestTransient = input.isGuestTransient;
   }
   if (newScreenshotUrl) patch.screenshotUrl = newScreenshotUrl;
 

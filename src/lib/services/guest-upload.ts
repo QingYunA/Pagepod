@@ -158,6 +158,7 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
     description: `HTML application shared via Pagepod guest runner.`,
     category,
     visibility,
+    isGuestTransient: true,
     htmlContent,
     fileSize: payloadSize,
     tags: projectTags,
@@ -214,6 +215,7 @@ export async function claimGuestProjects(
         await updateProject(project.id, {
           userId: user.id,
           tags: cleanedTags,
+          isGuestTransient: false,
         });
 
         claimedCount++;

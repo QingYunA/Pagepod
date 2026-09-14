@@ -36,10 +36,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  // If private, unlisted, or not yet approved, disallow search engine indexing
+  // If private, unlisted, guest transient, or not yet approved, disallow search engine indexing
   if (
     project.visibility === "private" ||
     project.visibility === "unlisted" ||
+    project.isGuestTransient ||
     project.reviewStatus === "rejected" ||
     project.reviewStatus === "pending"
   ) {
@@ -47,6 +48,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title:
         project.reviewStatus === "rejected"
           ? "Project Removed / 项目已违规下架 - Pagepod"
+          : project.isGuestTransient
+          ? `${project.title || slug} (Guest Preview) - Pagepod`
           : project.visibility === "unlisted"
           ? "Unlisted Project / 未公开保护项目 - Pagepod"
           : "Private Project / 私有保护项目 - Pagepod",
