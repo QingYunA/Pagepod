@@ -64,6 +64,8 @@ export async function POST(request: Request) {
         visibility: body.visibility,
         isPinned: body.isPinned,
         isGlobalPinned: body.isGlobalPinned,
+        isWhiteLabel: body.isWhiteLabel,
+        customSubdomain: body.customSubdomain,
         htmlContent,
       });
     } else if (isMultipart && parsedFormData) {
@@ -88,6 +90,8 @@ export async function POST(request: Request) {
         visibility: typeof rawVisibility === "string" ? rawVisibility : "public",
         isPinned: formData.get("isPinned") === "true",
         isGlobalPinned: formData.get("isGlobalPinned") === "true",
+        isWhiteLabel: formData.get("isWhiteLabel") === "true",
+        customSubdomain: typeof formData.get("customSubdomain") === "string" ? (formData.get("customSubdomain") as string) : undefined,
       });
 
       if (!parseResult.success) {
@@ -120,6 +124,8 @@ export async function POST(request: Request) {
           visibility: body.visibility,
           isPinned: body.isPinned,
           isGlobalPinned: body.isGlobalPinned,
+          isWhiteLabel: body.isWhiteLabel,
+          customSubdomain: body.customSubdomain,
           fileBuffer,
           fileName: file.name,
         });
@@ -135,6 +141,8 @@ export async function POST(request: Request) {
           visibility: body.visibility,
           isPinned: body.isPinned,
           isGlobalPinned: body.isGlobalPinned,
+          isWhiteLabel: body.isWhiteLabel,
+          customSubdomain: body.customSubdomain,
           htmlContent,
         });
       } else {

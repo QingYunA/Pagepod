@@ -35,6 +35,8 @@ export async function handleUploadAction(
     visibility: str("visibility") ?? "public",
     isPinned: formData.get("isPinned") === "true",
     isGlobalPinned: formData.get("isGlobalPinned") === "true",
+    isWhiteLabel: formData.get("isWhiteLabel") === "true",
+    customSubdomain: str("customSubdomain"),
   });
 
   if (!parseResult.success) {
@@ -53,6 +55,8 @@ export async function handleUploadAction(
     visibility,
     isPinned,
     isGlobalPinned,
+    isWhiteLabel,
+    customSubdomain,
   } = parseResult.data;
 
   try {
@@ -76,6 +80,8 @@ export async function handleUploadAction(
         visibility,
         isPinned,
         isGlobalPinned,
+        isWhiteLabel,
+        customSubdomain,
         htmlContent,
       });
 
@@ -103,6 +109,8 @@ export async function handleUploadAction(
         visibility,
         isPinned,
         isGlobalPinned,
+        isWhiteLabel,
+        customSubdomain,
         fileBuffer,
         fileName: file.name,
       });

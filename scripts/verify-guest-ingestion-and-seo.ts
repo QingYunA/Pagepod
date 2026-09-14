@@ -4,6 +4,8 @@ import {
   handleGuestUpload,
   claimGuestProjects,
   MAX_GUEST_UPLOAD_BYTES,
+  extractProjectAccessToken,
+  verifyProjectAccessToken,
 } from "../src/lib/services/guest-upload";
 import { getProjectBySlug, deleteProject } from "../src/db";
 
@@ -88,26 +90,66 @@ async function runTests() {
   assert(secretPost.requiresConfirmation === true, "Requires user confirmation before publishing secret");
   assert(secretPost.secretFinding?.type === "openai", "Returns matched secret type metadata");
 
-  // Test successful clean guest upload
-  const cleanPost = await handleGuestUpload({
+  // Test successful default guest upload (unlisted with token)
+  const unlistedPost = await handleGuestUpload({
     htmlContent: `<!DOCTYPE html><html><head><title>Guest Calculator</title></head><body><h1>Calc 1.0</h1></body></html>`,
     clientIp: "10.0.0.3",
     slug: `test-guest-calc-${Date.now()}`,
   });
-  assert(cleanPost.success === true, "Clean guest upload succeeds");
-  assert(Boolean(cleanPost.claimToken && cleanPost.claimToken.length >= 32), "Issues high-entropy claimToken");
-  assert(Boolean(cleanPost.slug), "Returns unique project slug");
+  assert(unlistedPost.success === true, "Clean guest upload succeeds");
+  assert(Boolean(unlistedPost.claimToken && unlistedPost.claimToken.length >= 32), "Issues high-entropy claimToken");
+  assert(Boolean(unlistedPost.accessToken && unlistedPost.accessToken.startsWith("sec_")), "Issues secret accessToken for unlisted upload");
+  assert(Boolean(unlistedPost.url && unlistedPost.url.includes(`?token=${unlistedPost.accessToken}`)), "URL contains accessToken param");
+  assert(Boolean(unlistedPost.slug), "Returns unique project slug");
 
   // Verify created project in database
-  const createdProject = cleanPost.slug ? await getProjectBySlug(cleanPost.slug) : null;
+  const createdProject = unlistedPost.slug ? await getProjectBySlug(unlistedPost.slug) : null;
   assert(createdProject !== null, "Project persisted to database");
-  assert(createdProject?.visibility === "public", "Guest project is public by default");
+  assert(createdProject?.visibility === "unlisted", "Guest project is unlisted by default");
   assert(createdProject?.userId?.startsWith("guest:") === true, "Project tagged with guest userId");
+
+  // Test access token extraction and verification
+  if (createdProject && unlistedPost.accessToken) {
+    const extractedToken = extractProjectAccessToken(createdProject);
+    assert(extractedToken === unlistedPost.accessToken, "Extracted access token matches issued token");
+
+    const validAccess = verifyProjectAccessToken(createdProject, unlistedPost.accessToken);
+    assert(validAccess === true, "Grants access with valid token");
+
+    const invalidAccess = verifyProjectAccessToken(createdProject, "sec_wrongtoken123");
+    assert(invalidAccess === false, "Blocks access with incorrect token");
+
+    const emptyAccess = verifyProjectAccessToken(createdProject, undefined);
+    assert(emptyAccess === false, "Blocks access without token");
+
+    const creatorAccess = verifyProjectAccessToken(createdProject, undefined, true);
+    assert(creatorAccess === true, "Grants access to project creator even without token");
+  }
+
+  // Test explicit public upload
+  const publicPost = await handleGuestUpload({
+    htmlContent: `<!DOCTYPE html><html><head><title>Public Showcase Game</title></head><body><h1>Game 1.0</h1></body></html>`,
+    clientIp: "10.0.0.4",
+    visibility: "public",
+    slug: `test-guest-pub-${Date.now()}`,
+  });
+  assert(publicPost.success === true, "Explicit public guest upload succeeds");
+  assert(publicPost.visibility === "public", "Project is marked as public");
+  assert(publicPost.accessToken === undefined, "Public project has no accessToken");
+  assert(Boolean(publicPost.url && !publicPost.url.includes("?token=")), "Public URL does not require token query");
+
+  if (publicPost.slug) {
+    const pubProject = await getProjectBySlug(publicPost.slug);
+    assert(pubProject?.visibility === "public", "Persisted project visibility is public");
+    if (pubProject) {
+      await deleteProject(pubProject.id);
+    }
+  }
 
 
   console.log("\n=== 4. Claim Token Ownership Transition Tests ===");
 
-  if (cleanPost.slug && cleanPost.claimToken) {
+  if (unlistedPost.slug && unlistedPost.claimToken) {
     const mockUser = {
       id: "registered_user_alice",
       email: "alice@example.com",
@@ -116,24 +158,102 @@ async function runTests() {
 
     // Attempt claim with wrong token
     const invalidClaim = await claimGuestProjects(mockUser, [
-      { slug: cleanPost.slug, claimToken: "wrong_token_1234567890" },
+      { slug: unlistedPost.slug, claimToken: "wrong_token_1234567890" },
     ]);
     assert(invalidClaim.claimedCount === 0, "Rejects claim with invalid token");
 
     // Successful claim
     const validClaim = await claimGuestProjects(mockUser, [
-      { slug: cleanPost.slug, claimToken: cleanPost.claimToken },
+      { slug: unlistedPost.slug, claimToken: unlistedPost.claimToken },
     ]);
     assert(validClaim.claimedCount === 1, "Transfers ownership to authenticated user");
+    assert(validClaim.resolvedSlugs.includes(unlistedPost.slug), "Marks claimed slug in resolvedSlugs");
 
-    const claimedProject = await getProjectBySlug(cleanPost.slug);
+    const claimedProject = await getProjectBySlug(unlistedPost.slug);
     assert(claimedProject?.userId === mockUser.id, "Database userId updated to Alice's account");
 
+    // Idempotent retry on already claimed project
+    const duplicateClaim = await claimGuestProjects(mockUser, [
+      { slug: unlistedPost.slug, claimToken: unlistedPost.claimToken },
+    ]);
+    assert(duplicateClaim.claimedCount === 0, "Idempotent: duplicate claim does not increment count");
+    assert(duplicateClaim.resolvedSlugs.includes(unlistedPost.slug), "Resolved slugs safely purges already owned project");
+
     // Cleanup test project
-    if (createdProject) {
-      await deleteProject(createdProject.id);
+    if (claimedProject) {
+      await deleteProject(claimedProject.id);
     }
   }
+
+  console.log("\n=== 5. Authenticated Direct Ingestion Tests ===");
+  const authUser = {
+    id: "registered_user_bob",
+    email: "bob@example.com",
+    role: "user" as const,
+  };
+
+  const directPost = await handleGuestUpload({
+    htmlContent: `<!DOCTYPE html><html><head><title>Bob Direct App</title></head><body><h1>Bob</h1></body></html>`,
+    clientIp: "10.0.0.4",
+    slug: `test-bob-direct-${Date.now()}`,
+    currentUser: authUser,
+  });
+
+  assert(directPost.success === true, "Direct authenticated upload succeeds");
+  assert(directPost.isDirectClaimed === true, "Marks result as isDirectClaimed");
+  assert(directPost.claimToken === undefined, "Does not issue ephemeral claimToken for logged-in user");
+
+  if (directPost.slug) {
+    const bobProject = await getProjectBySlug(directPost.slug);
+    assert(bobProject !== null, "Direct project persisted to database");
+    assert(bobProject?.userId === authUser.id, "Project directly belongs to Bob");
+    assert(!bobProject?.tags?.includes("guest-upload"), "Does not tag with guest-upload");
+
+    if (bobProject) {
+      await deleteProject(bobProject.id);
+    }
+  }
+
+  console.log("\n=== 6. Umami Custom Event Telemetry Tests ===");
+  const { trackEvent } = await import("../src/lib/analytics");
+
+  // 1. SSR / headless safety without window object
+  let ssrThrows = false;
+  try {
+    trackEvent("test_ssr_event", { foo: "bar" });
+  } catch {
+    ssrThrows = true;
+  }
+  assert(!ssrThrows, "trackEvent safely executes without window in SSR context");
+
+  // 2. Client-side window.umami dispatch
+  const recordedEvents: Array<{ name: string; data?: any }> = [];
+  (globalThis as any).window = {
+    umami: {
+      track: (name: string, data?: any) => {
+        recordedEvents.push({ name, data });
+      },
+    },
+  };
+
+  trackEvent("drop_html_success", { visibility: "unlisted", file_size_kb: 32 });
+  assert(recordedEvents.length === 1, "Dispatches event to window.umami.track");
+  assert(recordedEvents[0].name === "drop_html_success", "Preserves exact event name");
+  assert(recordedEvents[0].data?.visibility === "unlisted", "Preserves event payload");
+
+  // 3. Resilient silent fail when umami throws
+  (globalThis as any).window.umami.track = () => {
+    throw new Error("Ad-blocker / network blocked script");
+  };
+  let errorCaught = false;
+  try {
+    trackEvent("drop_html_failed", { reason: "test" });
+  } catch {
+    errorCaught = true;
+  }
+  assert(!errorCaught, "trackEvent safely catches and silences analytics runtime exceptions");
+
+  delete (globalThis as any).window;
 
   console.log(`\n========================================`);
   console.log(`Total: ${passed + failed} | Passed: ${passed} | Failed: ${failed}`);

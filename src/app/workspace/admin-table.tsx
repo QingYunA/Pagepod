@@ -37,6 +37,7 @@ import {
   Inbox,
 } from "lucide-react";
 import type { Project, Folder } from "@/db/schema";
+import { GUEST_CLAIMED_EVENT } from "@/lib/storage/guest-claim";
 import {
   togglePinAction,
   toggleGlobalPinAction,
@@ -157,7 +158,10 @@ export default function AdminTable({
   isAdmin = false,
   currentUserId,
 }: AdminTableProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const isZh = locale === "zh";
+  const router = useRouter();
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [projects, setProjects] = useState(initialProjects);
   const [folders, setFolders] = useState<Folder[]>(initialFolders);
   const [activeScope, setActiveScope] = useState<WorkspaceScope>({ type: "all" });
@@ -176,27 +180,15 @@ export default function AdminTable({
     setFolders(initialFolders);
   }, [initialFolders]);
 
-  // Automatic guest project claim reconciliation upon visiting workspace
+  // Seamlessly refresh table data when projects are claimed by global reconciler
   useEffect(() => {
-    if (!currentUserId) return;
-    try {
-      const stored = localStorage.getItem("pagepod_guest_claims");
-      if (!stored) return;
-      const claims: Array<{ slug: string; claimToken: string }> = JSON.parse(stored);
-      if (Array.isArray(claims) && claims.length > 0) {
-        claimUserGuestProjects(claims)
-          .then((res) => {
-            if (res.success && res.claimedCount > 0) {
-              localStorage.removeItem("pagepod_guest_claims");
-              window.location.reload();
-            }
-          })
-          .catch(() => {});
-      }
-    } catch {
-      // Non-fatal localStorage error
-    }
-  }, [currentUserId]);
+    const handleClaimed = () => {
+      router.refresh();
+    };
+
+    window.addEventListener(GUEST_CLAIMED_EVENT, handleClaimed);
+    return () => window.removeEventListener(GUEST_CLAIMED_EVENT, handleClaimed);
+  }, [router]);
 
   const isProjectOwner = (p: Project) => {
     if (!currentUserId || currentUserId === "selfhost-admin") return true;
@@ -225,10 +217,8 @@ export default function AdminTable({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [capturingId, setCapturingId] = useState<string | null>(null);
   const [pendingPinAction, setPendingPinAction] = useState<{ id: string; type: "workspace" | "global" } | null>(null);
-  const router = useRouter();
 
   // Auto-dismiss toast after 3.5s
   useEffect(() => {
