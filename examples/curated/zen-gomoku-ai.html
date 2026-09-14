@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>水墨禅意五子棋 - Zen Gomoku AI</title>
+  <title>在线五子棋 - 支持人机对战与双人对弈 (Gomoku)</title>
   <style>
     :root {
       --bg: #f8f6f0;
@@ -156,8 +156,8 @@
 
   <header>
     <div class="brand">
-      <h1>水墨禅意五子棋</h1>
-      <span class="badge">原生 Canvas AI</span>
+      <h1>在线五子棋</h1>
+      <span class="badge">人机对战 / 双人对弈</span>
       <span class="badge">MIT License</span>
     </div>
     <div class="btn-group">
@@ -174,7 +174,7 @@
       <canvas id="board" width="560" height="560"></canvas>
       <div id="winModal" class="modal">
         <h2 id="winTitle">黑子获胜</h2>
-        <p id="winDesc">共用时 24 手，棋逢对手，意境深邃。</p>
+        <p id="winDesc">共下了 24 步棋。</p>
         <button id="btnModalRestart" style="padding: 8px 18px; font-size: 13px; background: #d7c4a3; color: #111; border: none; font-weight: 600;">再来一局</button>
       </div>
     </div>
@@ -187,7 +187,7 @@
       <div class="btn-group">
         <button id="btnUndo">悔棋</button>
         <button id="btnRestart">重新开局</button>
-        <button id="btnSound">🔊 音效</button>
+        <button id="btnSound">音效</button>
       </div>
     </div>
   </div>
@@ -401,7 +401,7 @@
       if (checkWin(r, c, currentPlayer)) {
         gameOver = true;
         winTitle.textContent = currentPlayer === 1 ? '黑子胜出！' : '白子胜出！';
-        winDesc.textContent = `共博弈 ${moveHistory.length} 手，神思精妙，大局已定。`;
+        winDesc.textContent = `本局共下了 ${moveHistory.length} 步棋。`;
         winModal.classList.add('show');
         return;
       }

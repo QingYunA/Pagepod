@@ -236,38 +236,38 @@ export const GAMES_SEO: Record<string, ProjectSeoProfile> = {
   // 6. Zen Gomoku AI (Chinese)
   "zen-gomoku-ai": {
     slug: "zen-gomoku-ai",
-    targetKeyword: "水墨禅意五子棋",
-    secondaryKeywords: ["五子棋人机对战", "在线五子棋免安装", "水墨东方棋牌游戏", "五子棋AI算法"],
-    headline: "水墨禅意五子棋 - 人机博弈与双人对弈工坊",
-    summary: "极简水墨东方美学五子棋。原生 HTML5 Canvas 渲染宣纸棋盘与墨晕落子微动效，内置 Minimax 启发式评估的人机对战 AI，支持双人对弈与悔棋复盘。",
+    targetKeyword: "在线五子棋",
+    secondaryKeywords: ["五子棋在线玩", "五子棋人机对战", "网页版五子棋", "五子棋双人对弈"],
+    headline: "在线五子棋 - 支持人机对战与双人对弈",
+    summary: "轻量免安装的在线五子棋。支持人机对战与本地双人对战，内置 Minimax 启发式算法 AI，提供清新落子音效与悔棋复盘功能，纯前端离线运行。",
     category: "games",
     language: "zh",
     useCases: [
       {
-        title: "工作间隙静心对弈",
-        description: "沉浸于素雅水墨画风与古琴落子音效中，在 10 分钟内完成一局棋力相当的智力博弈。",
+        title: "随时随地来一局",
+        description: "打开网页即可开始，零加载等待，支持随时悔棋与重新开局。",
       },
       {
-        title: "人机博弈算法体验",
-        description: "挑战内置的启发式搜索博弈 AI，观察棋盘连五、活四、双三等经典棋型的攻防推演。",
+        title: "人机对战练习棋力",
+        description: "挑战内置的电脑 AI 算法，演练连五、活四、双三等经典攻防策略。",
       },
       {
-        title: "双人本地同屏切磋",
-        description: "一键切换双人模式，与好友在同一台电脑或平板上轮流落子，享受面对面棋道交流。",
+        title: "好友本地同屏对战",
+        description: "一键切换双人对战模式，在同一台电脑或平板上轮流落子下棋。",
       },
     ],
     shortcuts: [
-      { key: "鼠标点击", action: "选点落子" },
-      { key: "悔棋按钮", action: "撤销上一手落子" },
+      { key: "鼠标点击", action: "在棋盘交叉点落子" },
+      { key: "悔棋按钮", action: "撤销上一步落子" },
     ],
     faqs: [
       {
-        question: "五子棋的基本胜负规则是什么？",
-        answer: "先手执黑，后手执白。任何一方率先在横、竖、斜任意方向将同色五枚棋子连成不间断一线即为获胜。",
+        question: "五子棋的胜负规则是什么？",
+        answer: "黑子先手，白子后手。率先在横、竖、斜任意方向将同色五枚棋子连成一线的玩家获胜。",
       },
       {
-        question: "AI 会作弊或偷看落子吗？",
-        answer: "绝不会。AI 逻辑 100% 运行在浏览器本地 JavaScript 线程中，纯基于 Minimax 深度搜索与棋局局势估值函数进行理性推演。",
+        question: "AI 会偷看我的落子吗？",
+        answer: "不会。AI 逻辑完全在浏览器本地 JavaScript 运行，纯基于棋局算法评估落子位置，不连接任何外部网络。",
       },
     ],
     author: { name: "Pagepod Cultural Lab", url: "https://github.com/topics/gomoku" },

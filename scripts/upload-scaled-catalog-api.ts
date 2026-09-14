@@ -124,10 +124,18 @@ async function main() {
     const profile = PROJECT_SEO_MANIFEST[slug];
     const prefix = `[${String(i + 1).padStart(2, "0")}/${slugs.length}] [${slug}]`;
 
+    const htmlPath = resolveHtmlFile(slug);
+    if (!htmlPath) {
+      console.error(`  ❌ Missing local HTML file for: ${slug}`);
+      failedCount++;
+      continue;
+    }
+    const htmlContent = fs.readFileSync(htmlPath, "utf-8");
+
     const existing = existingMap.get(slug);
     if (existing) {
-      // Already exists on this account, update metadata to match SEO profile
-      console.log(`${prefix} Already exists. Updating metadata...`);
+      // Already exists on this account, update metadata & HTML content to match latest version
+      console.log(`${prefix} Updating HTML & metadata (${(htmlContent.length / 1024).toFixed(1)} KB)...`);
       const patchRes = await apiRequest(endpoint, `/api/projects/${existing.id}`, token, {
         method: "PATCH",
         body: JSON.stringify({
@@ -137,11 +145,12 @@ async function main() {
           language: profile.language,
           tags: [profile.category, profile.language, "opensource", "curated"],
           visibility: "public",
+          htmlCode: htmlContent,
         }),
       });
 
       if (patchRes.ok && patchRes.data?.success) {
-        console.log(`  ✓ Updated metadata successfully: ${endpoint}/p/${slug}`);
+        console.log(`  ✓ Updated HTML & metadata successfully: ${endpoint}/p/${slug}`);
         updatedCount++;
       } else {
         console.log(`  ~ Exists (Patch status: ${patchRes.status})`);
@@ -151,14 +160,6 @@ async function main() {
     }
 
     // New project to upload
-    const htmlPath = resolveHtmlFile(slug);
-    if (!htmlPath) {
-      console.error(`  ❌ Missing local HTML file for: ${slug}`);
-      failedCount++;
-      continue;
-    }
-
-    const htmlContent = fs.readFileSync(htmlPath, "utf-8");
     console.log(`${prefix} Uploading new project (${(htmlContent.length / 1024).toFixed(1)} KB)...`);
 
     const uploadRes = await apiRequest(endpoint, "/api/upload", token, {
