@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { BrandLogo } from "@/components/brand-logo";
@@ -102,7 +103,17 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
       onClick: scrollToGallery,
     },
     { href: "/explore", label: t.nav.explore, icon: Compass, exact: false },
-    ...(isCloud ? [{ href: "/pricing", label: t.nav.pricing, icon: CreditCard, exact: false }] : []),
+    ...(isCloud
+      ? [
+          {
+            href: "/pricing",
+            label: t.nav.pricing,
+            icon: CreditCard,
+            exact: false,
+            badge: t.nav.pricingDiscountBadge,
+          },
+        ]
+      : []),
     {
       href: "/workspace",
       label: user?.role === "admin" ? t.nav.console : t.nav.workspace,
@@ -163,6 +174,14 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                 >
                   <Icon className="w-4 h-4 opacity-70" />
                   <span>{item.label}</span>
+                  {item.badge && (
+                    <Badge
+                      variant="outline"
+                      className="px-1.5 py-0 h-4 text-xs font-mono font-medium border-border bg-muted/80 text-foreground"
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
                 </Link>
               );
             })}
@@ -287,7 +306,15 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                           className="flex items-center gap-2.5 w-full cursor-pointer py-1.5"
                         >
                           <Icon className="w-4 h-4 opacity-70" />
-                          <span>{item.label}</span>
+                          <span className="flex-1">{item.label}</span>
+                          {item.badge && (
+                            <Badge
+                              variant="outline"
+                              className="px-1.5 py-0 h-4 text-xs font-mono font-medium border-border bg-muted/80 text-foreground"
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
                         </Link>
                       </DropdownMenuItem>
                     );
