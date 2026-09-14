@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -32,11 +32,13 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/context";
+import { translations } from "@/lib/i18n/translations";
 import { calculateTrendingScore } from "@/lib/scoring";
 import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 
 interface ShowcaseGalleryProps {
   initialProjects: Project[];
+  initialLocale?: "zh" | "en";
 }
 
 const CATEGORY_ICONS = {
@@ -53,11 +55,19 @@ const CATEGORY_ICONS = {
 
 const PAGE_SIZE = 24;
 
-export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProps) {
-  const { t } = useLanguage();
+export default function ShowcaseGallery({ initialProjects, initialLocale }: ShowcaseGalleryProps) {
+  const { t: clientT, locale: clientLocale } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const activeLocale = !mounted && initialLocale ? initialLocale : (clientLocale || initialLocale || "en");
+  const t = translations[activeLocale] || clientT;
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedLanguage, setSelectedLanguage] = useState<"all" | "zh" | "en" | "other">("all");
+  const [userSelectedLanguage, setUserSelectedLanguage] = useState<"all" | "zh" | "en" | "other" | null>(null);
+  const selectedLanguage = userSelectedLanguage ?? (activeLocale === "zh" ? "zh" : "en");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"trending" | "newest" | "views" | "alpha">("trending");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -220,7 +230,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
           <div className="inline-flex items-center rounded-md border border-border bg-muted/30 p-0.5 text-xs self-start sm:self-auto">
             <button
               onClick={() => {
-                setSelectedLanguage("all");
+                setUserSelectedLanguage("all");
                 setVisibleCount(PAGE_SIZE);
               }}
               className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
@@ -233,7 +243,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
             </button>
             <button
               onClick={() => {
-                setSelectedLanguage("zh");
+                setUserSelectedLanguage("zh");
                 setVisibleCount(PAGE_SIZE);
               }}
               className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
@@ -246,7 +256,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
             </button>
             <button
               onClick={() => {
-                setSelectedLanguage("en");
+                setUserSelectedLanguage("en");
                 setVisibleCount(PAGE_SIZE);
               }}
               className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors cursor-pointer ${
@@ -259,7 +269,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
             </button>
             <button
               onClick={() => {
-                setSelectedLanguage("other");
+                setUserSelectedLanguage("other");
                 setVisibleCount(PAGE_SIZE);
               }}
               className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors cursor-pointer ${

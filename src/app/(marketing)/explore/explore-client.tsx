@@ -14,7 +14,8 @@ interface ExploreClientProps {
 
 export default function ExploreClient({ projects }: ExploreClientProps) {
   const { t, locale } = useLanguage();
-  const [selectedLanguage, setSelectedLanguage] = useState<"all" | "zh" | "en" | "other">("all");
+  const [userSelectedLanguage, setUserSelectedLanguage] = useState<"all" | "zh" | "en" | "other" | null>(null);
+  const selectedLanguage = userSelectedLanguage ?? (locale === "zh" ? "zh" : "en");
 
   const categoryCards = [
     {
@@ -188,7 +189,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
             <div className="inline-flex items-center rounded-lg border border-border bg-muted/30 p-1 text-xs gap-0.5">
               <button
                 type="button"
-                onClick={() => setSelectedLanguage("all")}
+                onClick={() => setUserSelectedLanguage("all")}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   selectedLanguage === "all"
                     ? "bg-background text-foreground shadow-xs font-semibold"
@@ -199,7 +200,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedLanguage("zh")}
+                onClick={() => setUserSelectedLanguage("zh")}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   selectedLanguage === "zh"
                     ? "bg-background text-foreground shadow-xs font-semibold"
@@ -210,7 +211,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedLanguage("en")}
+                onClick={() => setUserSelectedLanguage("en")}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   selectedLanguage === "en"
                     ? "bg-background text-foreground shadow-xs font-semibold"
@@ -221,7 +222,7 @@ export default function ExploreClient({ projects }: ExploreClientProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedLanguage("other")}
+                onClick={() => setUserSelectedLanguage("other")}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                   selectedLanguage === "other"
                     ? "bg-background text-foreground shadow-xs font-semibold"
