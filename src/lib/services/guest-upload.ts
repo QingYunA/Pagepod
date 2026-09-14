@@ -19,6 +19,7 @@ export interface GuestUploadInput {
   slug?: string;
   category?: string;
   forcePublishWithSecret?: boolean;
+  currentUser?: CurrentUser | null;
 }
 
 export interface GuestUploadResult {
@@ -27,10 +28,17 @@ export interface GuestUploadResult {
   claimToken?: string;
   title?: string;
   url?: string;
+  isDirectClaimed?: boolean;
   requiresConfirmation?: boolean;
   secretFinding?: SecretFinding;
   error?: string;
   rateLimitResetInSeconds?: number;
+}
+
+export interface ClaimGuestResult {
+  claimedCount: number;
+  resolvedSlugs: string[];
+  errors: string[];
 }
 
 export function hashClaimToken(token: string): string {
@@ -43,18 +51,22 @@ export function generateClaimToken(): string {
 
 /**
  * Handles anonymous guest uploads with strict security, rate limiting, and claim token issuance.
+ * If an authenticated user is provided, directly assigns project ownership without issuing a claimToken.
  */
 export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestUploadResult> {
-  const { htmlContent, clientIp, forcePublishWithSecret = false } = input;
+  const { htmlContent, clientIp, forcePublishWithSecret = false, currentUser } = input;
+  const isAuthUser = Boolean(currentUser && currentUser.id && !currentUser.id.startsWith("guest:"));
 
-  // 1. IP Rate Limiting
-  const rateLimit = checkRateLimit(clientIp, GUEST_RATE_LIMIT_PER_HOUR, 60 * 60 * 1000);
-  if (!rateLimit.allowed) {
-    return {
-      success: false,
-      error: `Hourly upload limit reached (max ${GUEST_RATE_LIMIT_PER_HOUR}/hour). Please try again in ${rateLimit.resetInSeconds}s or sign in for unlimited uploads.`,
-      rateLimitResetInSeconds: rateLimit.resetInSeconds,
-    };
+  // 1. IP Rate Limiting (only strictly enforced for anonymous guests)
+  if (!isAuthUser) {
+    const rateLimit = checkRateLimit(clientIp, GUEST_RATE_LIMIT_PER_HOUR, 60 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      return {
+        success: false,
+        error: `Hourly upload limit reached (max ${GUEST_RATE_LIMIT_PER_HOUR}/hour). Please try again in ${rateLimit.resetInSeconds}s or sign in for unlimited uploads.`,
+        rateLimitResetInSeconds: rateLimit.resetInSeconds,
+      };
+    }
   }
 
   // 2. Strict Payload Ceiling
@@ -88,16 +100,25 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
     );
   }
 
-  // 5. Generate Claim Token & Guest Actor
-  const claimToken = generateClaimToken();
-  const tokenHash = hashClaimToken(claimToken);
-  const guestUserId = `guest:${tokenHash.slice(0, 24)}`;
+  // 5. Generate Actor & Claim Token (if anonymous)
+  let claimToken: string | undefined;
+  let actor: CurrentUser;
+  let tags: string[] = [];
 
-  const guestActor: CurrentUser = {
-    id: guestUserId,
-    email: `${guestUserId}@guest.local`,
-    role: "user",
-  };
+  if (isAuthUser && currentUser) {
+    actor = currentUser;
+    tags = [];
+  } else {
+    claimToken = generateClaimToken();
+    const tokenHash = hashClaimToken(claimToken);
+    const guestUserId = `guest:${tokenHash.slice(0, 24)}`;
+    actor = {
+      id: guestUserId,
+      email: `${guestUserId}@guest.local`,
+      role: "user",
+    };
+    tags = ["guest-upload", `claim:${tokenHash.slice(0, 24)}`];
+  }
 
   // 6. Resolve Title and Unique Slug
   let rawTitle = input.title?.trim();
@@ -113,15 +134,17 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
   const category = categoryParsed.success ? categoryParsed.data : "tools";
 
   // 7. Persist Project via Domain Service (handles slug uniqueness internally)
-  const project = await createProject(guestActor, {
+  const project = await createProject(actor, {
     title: rawTitle,
     slug,
-    description: `Public HTML application shared via Pagepod guest runner.`,
+    description: isAuthUser
+      ? `Interactive HTML application published on Pagepod.`
+      : `Public HTML application shared via Pagepod guest runner.`,
     category,
     visibility: "public",
     htmlContent,
     fileSize: payloadSize,
-    tags: ["guest-upload", `claim:${tokenHash.slice(0, 24)}`],
+    tags,
   });
 
   return {
@@ -130,6 +153,7 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
     claimToken,
     title: project.title,
     url: `/p/${project.slug}`,
+    isDirectClaimed: isAuthUser,
   };
 }
 
@@ -139,18 +163,29 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
 export async function claimGuestProjects(
   user: CurrentUser,
   claims: Array<{ slug: string; claimToken: string }>
-): Promise<{ claimedCount: number; errors: string[] }> {
+): Promise<ClaimGuestResult> {
   if (!user || !user.id || user.id.startsWith("guest:")) {
     throw new ProjectForbiddenError("Authenticated user required to claim projects");
   }
 
   let claimedCount = 0;
+  const resolvedSlugs: string[] = [];
   const errors: string[] = [];
 
   for (const item of claims) {
     try {
       const project = await getProjectBySlug(item.slug);
-      if (!project) continue;
+      if (!project) {
+        // Project no longer exists, safe to resolve
+        resolvedSlugs.push(item.slug);
+        continue;
+      }
+
+      // Already owned by this user
+      if (project.userId === user.id) {
+        resolvedSlugs.push(item.slug);
+        continue;
+      }
 
       const expectedHash = hashClaimToken(item.claimToken).slice(0, 24);
       const expectedGuestId = `guest:${expectedHash}`;
@@ -171,6 +206,7 @@ export async function claimGuestProjects(
         });
 
         claimedCount++;
+        resolvedSlugs.push(item.slug);
 
         try {
           revalidatePath("/");
@@ -180,6 +216,8 @@ export async function claimGuestProjects(
           // Non-fatal outside Next.js request context
         }
       } else {
+        // Project is owned by someone else or token mismatch; mark resolved so client doesn't keep retrying
+        resolvedSlugs.push(item.slug);
         errors.push(`Invalid claim token for project ${item.slug}`);
       }
     } catch (err: any) {
@@ -187,5 +225,5 @@ export async function claimGuestProjects(
     }
   }
 
-  return { claimedCount, errors };
+  return { claimedCount, resolvedSlugs, errors };
 }

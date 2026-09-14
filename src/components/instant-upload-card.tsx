@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { UploadCloud, Link as LinkIcon, Check, Copy, ExternalLink, AlertTriangle, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,9 +21,28 @@ export function InstantUploadCard() {
     slug: string;
     url: string;
     title: string;
-    claimToken: string;
+    claimToken?: string;
+    isDirectClaimed?: boolean;
   } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Dynamically sync status if guest upload is claimed while staying on current page
+  useEffect(() => {
+    const handleClaimed = (e: Event) => {
+      const customEvent = e as CustomEvent<{ resolvedSlugs?: string[] }>;
+      const resolvedSlugs = customEvent.detail?.resolvedSlugs || [];
+      setUploadedResult((prev) => {
+        if (!prev) return null;
+        if (resolvedSlugs.length === 0 || resolvedSlugs.includes(prev.slug)) {
+          return { ...prev, isDirectClaimed: true };
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener("pagepod:claimed", handleClaimed);
+    return () => window.removeEventListener("pagepod:claimed", handleClaimed);
+  }, []);
 
   // Secret leak dialog state
   const [pendingSecretFile, setPendingSecretFile] = useState<{
@@ -76,14 +96,17 @@ export function InstantUploadCard() {
       const res = await submitGuestUpload(formData, force);
       if (!res.success) {
         setErrorMsg(res.error || "Upload failed");
-      } else if (res.slug && res.url && res.claimToken) {
+      } else if (res.slug && res.url) {
         setUploadedResult({
           slug: res.slug,
           url: res.url,
           title: res.title || res.slug,
           claimToken: res.claimToken,
+          isDirectClaimed: res.isDirectClaimed,
         });
-        saveClaimToStorage(res.slug, res.claimToken);
+        if (res.claimToken) {
+          saveClaimToStorage(res.slug, res.claimToken);
+        }
       }
     } catch (err: any) {
       setErrorMsg(err?.message || "An unexpected error occurred during upload.");
@@ -296,17 +319,34 @@ export function InstantUploadCard() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <p className="text-[11px] text-muted-foreground">
-                {isZh
-                  ? "管理凭据已保存在本机，随时登录即可认领合并。"
-                  : "Ownership token stored in browser. Sign in anytime to manage."}
-              </p>
+            <div className="flex items-center justify-between pt-1 gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                {uploadedResult.isDirectClaimed ? (
+                  <>
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span>
+                      {isZh ? "已直接保存至你的个人空间。" : "Directly saved to your workspace."}
+                    </span>
+                    <Link
+                      href="/workspace"
+                      className="text-foreground hover:underline font-medium ml-1 inline-flex items-center gap-0.5"
+                    >
+                      {isZh ? "前往工作台管理" : "Manage"}
+                    </Link>
+                  </>
+                ) : (
+                  <span>
+                    {isZh
+                      ? "管理凭据已保存在本机，随时登录即可认领合并。"
+                      : "Ownership token stored in browser. Sign in anytime to manage."}
+                  </span>
+                )}
+              </div>
               <a
                 href={uploadedResult.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium shrink-0"
               >
                 {isZh ? "在线运行" : "Run Online"}
                 <ExternalLink className="w-3 h-3" />

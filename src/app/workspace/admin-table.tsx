@@ -67,7 +67,6 @@ interface AdminTableProps {
 
 import { translations } from "@/lib/i18n/translations";
 import { createAppealMailtoUrl } from "@/lib/moderation/types";
-import { claimUserGuestProjects } from "@/app/actions/guest";
 
 const CATEGORY_ICONS = {
   all: Layers,
@@ -141,30 +140,21 @@ function ReviewStatusBadge({
 }
 
 export default function AdminTable({ initialProjects, isAdmin = false, currentUserId }: AdminTableProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const isZh = locale === "zh";
+  const router = useRouter();
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [projects, setProjects] = useState(initialProjects);
 
-  // Automatic guest project claim reconciliation upon visiting workspace
+  // Seamlessly refresh table data when projects are claimed by global reconciler
   useEffect(() => {
-    if (!currentUserId) return;
-    try {
-      const stored = localStorage.getItem("pagepod_guest_claims");
-      if (!stored) return;
-      const claims: Array<{ slug: string; claimToken: string }> = JSON.parse(stored);
-      if (Array.isArray(claims) && claims.length > 0) {
-        claimUserGuestProjects(claims)
-          .then((res) => {
-            if (res.success && res.claimedCount > 0) {
-              localStorage.removeItem("pagepod_guest_claims");
-              window.location.reload();
-            }
-          })
-          .catch(() => {});
-      }
-    } catch {
-      // Non-fatal localStorage error
-    }
-  }, [currentUserId]);
+    const handleClaimed = () => {
+      router.refresh();
+    };
+
+    window.addEventListener("pagepod:claimed", handleClaimed);
+    return () => window.removeEventListener("pagepod:claimed", handleClaimed);
+  }, [router]);
 
   const isProjectOwner = (p: Project) => {
     if (!currentUserId || currentUserId === "selfhost-admin") return true;
@@ -191,10 +181,8 @@ export default function AdminTable({ initialProjects, isAdmin = false, currentUs
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [capturingId, setCapturingId] = useState<string | null>(null);
   const [pendingPinAction, setPendingPinAction] = useState<{ id: string; type: "workspace" | "global" } | null>(null);
-  const router = useRouter();
 
   const handleRegenerateScreenshot = async (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
