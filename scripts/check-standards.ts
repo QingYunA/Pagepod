@@ -6,6 +6,46 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
+
+// Auto-heal missing node_modules in Git Worktree environments (ADR-Worktree Discipline)
+function autoHealWorktreeNodeModules() {
+  const localNodeModules = path.resolve(process.cwd(), "node_modules");
+  if (fs.existsSync(localNodeModules)) {
+    return;
+  }
+
+  try {
+    const gitCommonDir = execSync("git rev-parse --git-common-dir", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "ignore"],
+    }).trim();
+
+    if (gitCommonDir) {
+      const mainRepoRoot = path.resolve(process.cwd(), gitCommonDir, "..");
+      const mainNodeModules = path.join(mainRepoRoot, "node_modules");
+      if (fs.existsSync(mainNodeModules) && mainNodeModules !== localNodeModules) {
+        fs.symlinkSync(mainNodeModules, localNodeModules, "junction");
+        console.log(`[Auto-Heal] Successfully symlinked missing node_modules from: ${mainNodeModules}`);
+        return;
+      }
+    }
+  } catch {
+    // Fallback if git rev-parse fails
+  }
+
+  const fallback = "/Users/mac/cyq/Code/开源/html-manager/node_modules";
+  if (fs.existsSync(fallback) && fallback !== localNodeModules) {
+    try {
+      fs.symlinkSync(fallback, localNodeModules, "junction");
+      console.log(`[Auto-Heal] Successfully symlinked missing node_modules from fallback: ${fallback}`);
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+autoHealWorktreeNodeModules();
 
 interface Violation {
   file: string;
