@@ -6,6 +6,7 @@ export const translations = {
       showcase: "画廊",
       explore: "专题合辑",
       pricing: "定价方案",
+      pricingDiscountBadge: "8折",
       workspace: "工作区",
       console: "控制台",
       login: "登录",
@@ -359,6 +360,9 @@ export const translations = {
     },
     pricing: {
       badge: "终身买断 · 透明方案",
+      earlyBirdBadge: "首发早鸟特惠 · 终身方案限时 8 折",
+      discountBadge: "20% OFF",
+      earlyBirdNotice: "首批早鸟 8 折特惠已自动生效，结账时直接按折后价结算。",
       title: "为前端开发者与创作者打造的透明定价",
       desc: "一次性买断，永久使用。无出站流量费，硬件级沙箱隔离，按需选择存储配额。",
       freePlan: {
@@ -379,7 +383,8 @@ export const translations = {
       litePlan: {
         name: "进阶终身版 (Lite)",
         badge: "10 GB 存储",
-        price: "$4.90",
+        price: "$3.90",
+        originalPrice: "$4.90",
         period: "/ 一次性买断",
         desc: "适合需要归档更多原型、工具与单页应用的开发者。",
         cta: "选择 Lite 终身版",
@@ -395,7 +400,8 @@ export const translations = {
       proPlan: {
         name: "专业终身版 (Pro)",
         badge: "最受欢迎",
-        price: "$9.90",
+        price: "$7.90",
+        originalPrice: "$9.90",
         period: "/ 一次性买断",
         desc: "适合需要独立二级子域名、白标模式与充沛存储的独立开发者。",
         cta: "选择 Pro 终身版",
@@ -557,6 +563,7 @@ export const translations = {
       showcase: "Showcase",
       explore: "Collections",
       pricing: "Pricing",
+      pricingDiscountBadge: "20% OFF",
       workspace: "Workspace",
       console: "Console",
       login: "Log in",
@@ -910,6 +917,9 @@ export const translations = {
     },
     pricing: {
       badge: "Lifetime Deals · Transparent",
+      earlyBirdBadge: "Early Adopter Offer · 20% OFF Lifetime Plans",
+      discountBadge: "20% OFF",
+      earlyBirdNotice: "Early bird 20% discount is automatically applied at checkout.",
       title: "Built for Front-end Creators & Builders",
       desc: "Pay once, own forever. 0 egress fees, hardware-isolated sandboxes, and flexible storage quotas.",
       freePlan: {
@@ -930,7 +940,8 @@ export const translations = {
       litePlan: {
         name: "Lite Lifetime",
         badge: "10 GB Storage",
-        price: "$4.90",
+        price: "$3.90",
+        originalPrice: "$4.90",
         period: "/ one-time payment",
         desc: "Perfect for builders archiving dozens of web tools, games, and prototypes.",
         cta: "Get Lite Lifetime",
@@ -946,7 +957,8 @@ export const translations = {
       proPlan: {
         name: "Pro Lifetime",
         badge: "Most Popular",
-        price: "$9.90",
+        price: "$7.90",
+        originalPrice: "$9.90",
         period: "/ one-time payment",
         desc: "For serious creators who want white-label presentation and custom subdomains.",
         cta: "Get Pro Lifetime",

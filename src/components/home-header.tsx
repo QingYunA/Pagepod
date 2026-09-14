@@ -119,6 +119,11 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                 >
                   <Icon className="w-4 h-4 opacity-70" />
                   <span>{item.label}</span>
+                  {item.href === "/pricing" && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium border border-border bg-muted/80 text-foreground">
+                      {t.nav.pricingDiscountBadge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -238,7 +243,12 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                           className="flex items-center gap-2.5 w-full cursor-pointer py-1.5"
                         >
                           <Icon className="w-4 h-4 opacity-70" />
-                          <span>{item.label}</span>
+                          <span className="flex-1">{item.label}</span>
+                          {item.href === "/pricing" && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-mono font-medium border border-border bg-muted/80 text-foreground">
+                              {t.nav.pricingDiscountBadge}
+                            </span>
+                          )}
                         </Link>
                       </DropdownMenuItem>
                     );

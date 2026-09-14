@@ -14,13 +14,15 @@ export const PLAN_PRICING = {
   lite: {
     tier: "lite" as const,
     name: "Pagepod Lite Lifetime Deal",
-    amount: "4.90",
+    amount: "3.90",
+    originalAmount: "4.90",
     currency: "USD",
   },
   pro: {
     tier: "pro" as const,
     name: "Pagepod Pro Lifetime Deal",
-    amount: "9.90",
+    amount: "7.90",
+    originalAmount: "9.90",
     currency: "USD",
   },
 };
