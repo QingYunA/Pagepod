@@ -392,7 +392,7 @@ export function InstantUploadCard() {
                   <>
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                     <span>
-                      {isZh ? "已直接保存至你的个人空间。" : "Directly saved to your workspace."}
+                      {isZh ? "已直接保存至你的工作台。" : "Directly saved to your workspace."}
                     </span>
                     <Link
                       href="/workspace"

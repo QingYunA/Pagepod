@@ -203,7 +203,7 @@ export const TOOLS_SEO: Record<string, ProjectSeoProfile> = {
       },
       {
         question: "排版时会弄乱代码块或链接吗？",
-        answer: "不会。排版引擎会自动识别并保留 Markdown 代码块（```）、行内代码（`code`）以及 URL 链接不受影响。",
+        answer: "不会。排版规则会自动识别并保留 Markdown 代码块（```）、行内代码（`code`）以及 URL 链接不受影响。",
       },
     ],
     author: { name: "vinta & pangu.js contributors", url: "https://github.com/vinta/pangu.js" },
@@ -299,7 +299,7 @@ export const TOOLS_SEO: Record<string, ProjectSeoProfile> = {
     targetKeyword: "中文文案排版格式化",
     secondaryKeywords: ["中文文案排版指北", "中英文空格格式化", "文案排版工具", "标点符号规范工具"],
     headline: "中文文案排版格式化工具 - 遵循中文排版规范",
-    summary: "依据《中文文案排版指北》规范，自动处理汉字与英文字母、数字之间的空格，智能纠正全角半角标点符号混用，支持多余空行清理与一键复制。",
+    summary: "依据《中文文案排版指北》规范，自动处理汉字与英文字母、数字之间的空格，智能纠正全角半角标点符号混用，支持多余空行清理与复制结果。",
     category: "tools",
     language: "zh",
     useCases: [
@@ -309,12 +309,12 @@ export const TOOLS_SEO: Record<string, ProjectSeoProfile> = {
       },
       {
         title: "标点与多余空行清理",
-        description: "一键规范全角半角标点符号，清理文段中多余连续空行，保持文面整洁规范。",
+        description: "自动规范全角半角标点符号，清理文段中多余连续空行，保持文面整洁规范。",
       },
     ],
     shortcuts: [
-      { key: "一键排版", action: "格式化输入框内全部文本" },
-      { key: "一键复制", action: "将排版好的文本复制到剪贴板" },
+      { key: "点击排版", action: "格式化输入框内全部文本" },
+      { key: "复制结果", action: "将排版好的文本复制到剪贴板" },
     ],
     faqs: [
       {

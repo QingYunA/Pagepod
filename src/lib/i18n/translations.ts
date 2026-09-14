@@ -436,17 +436,17 @@ export const translations = {
     explore: {
       badge: "专题合辑 · Collections",
       title: "发现启发灵感的交互实验与网页原型",
-      desc: "精选实用工具、生成艺术、网页轻游戏与产品概念雏形，在隔离沙箱中即时沉浸体验。",
+      desc: "精选实用工具、生成艺术、网页轻游戏与产品概念雏形，在隔离沙箱中即时运行体验。",
       viewAll: "前往画廊浏览全量项目",
       openInRunner: "在沙箱中运行",
-      popularTags: "按生态与技术栈探索",
+      popularTags: "按技术栈与分类探索",
       filterCategory: "按应用场景探索",
       itemsCount: "个作品",
     },
     aboutPage: {
       badge: "设计初衷 · Rationale",
       title: "为什么构建 Pagepod",
-      subtitle: "无论是日常编写的互动小工具、网页轻游戏，还是前端界面原型与实验，Pagepod 为这些 HTML 代码提供持久的容器、纯净的沙箱与优雅的展示空间。",
+      subtitle: "无论是日常编写的互动小工具、网页轻游戏，还是前端界面原型与实验，Pagepod 为这些 HTML 代码提供持久的容器、纯净的沙箱与优雅的展示画廊。",
       pillars: [
         {
           title: "瞬时就绪 (Instant Runtime)",
