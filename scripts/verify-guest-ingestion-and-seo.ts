@@ -177,6 +177,48 @@ async function runTests() {
     }
   }
 
+
+  console.log("\n=== 5. Umami Custom Event Telemetry Tests ===");
+  const { trackEvent } = await import("../src/lib/analytics");
+
+  // 1. SSR / headless safety without window object
+  let ssrThrows = false;
+  try {
+    trackEvent("test_ssr_event", { foo: "bar" });
+  } catch {
+    ssrThrows = true;
+  }
+  assert(!ssrThrows, "trackEvent safely executes without window in SSR context");
+
+  // 2. Client-side window.umami dispatch
+  const recordedEvents: Array<{ name: string; data?: any }> = [];
+  (globalThis as any).window = {
+    umami: {
+      track: (name: string, data?: any) => {
+        recordedEvents.push({ name, data });
+      },
+    },
+  };
+
+  trackEvent("drop_html_success", { visibility: "unlisted", file_size_kb: 32 });
+  assert(recordedEvents.length === 1, "Dispatches event to window.umami.track");
+  assert(recordedEvents[0].name === "drop_html_success", "Preserves exact event name");
+  assert(recordedEvents[0].data?.visibility === "unlisted", "Preserves event payload");
+
+  // 3. Resilient silent fail when umami throws
+  (globalThis as any).window.umami.track = () => {
+    throw new Error("Ad-blocker / network blocked script");
+  };
+  let errorCaught = false;
+  try {
+    trackEvent("drop_html_failed", { reason: "test" });
+  } catch {
+    errorCaught = true;
+  }
+  assert(!errorCaught, "trackEvent safely catches and silences analytics runtime exceptions");
+
+  delete (globalThis as any).window;
+
   console.log(`\n========================================`);
   console.log(`Total: ${passed + failed} | Passed: ${passed} | Failed: ${failed}`);
   if (failed > 0) {

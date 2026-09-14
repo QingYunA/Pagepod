@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { scanForSecrets, type SecretFinding } from "@/lib/security/secret-guard";
 import { submitGuestUpload } from "@/app/actions/guest";
 import { useLanguage } from "@/lib/i18n/context";
+import { trackEvent } from "@/lib/analytics";
 
 const LOCAL_STORAGE_KEY = "pagepod_guest_claims";
 
@@ -63,11 +64,13 @@ export function InstantUploadCard() {
       setErrorMsg(null);
 
       if (!file.name.toLowerCase().endsWith(".html") && !file.name.toLowerCase().endsWith(".htm")) {
+        trackEvent("drop_html_failed", { reason: "invalid_extension" });
         setErrorMsg("Guest quick-host only supports single .html files (max 2MB). Please sign in for zip bundles.");
         return;
       }
 
       if (file.size > 2 * 1024 * 1024) {
+        trackEvent("drop_html_failed", { reason: "file_too_large", size_bytes: file.size });
         setErrorMsg("File exceeds 2MB guest limit. Please sign in to upload larger files.");
         return;
       }
@@ -79,6 +82,10 @@ export function InstantUploadCard() {
         if (!force) {
           const finding = scanForSecrets(content);
           if (finding) {
+            trackEvent("drop_html_secret_blocked", {
+              secret_type: finding.type,
+              visibility,
+            });
             setPendingSecretFile({ content, file, finding });
             return;
           }
@@ -91,8 +98,16 @@ export function InstantUploadCard() {
 
         const res = await submitGuestUpload(formData, force);
         if (!res.success) {
+          trackEvent("drop_html_failed", {
+            reason: res.error || "upload_failed",
+            visibility,
+          });
           setErrorMsg(res.error || "Upload failed");
         } else if (res.slug && res.url && res.claimToken) {
+          trackEvent("drop_html_success", {
+            visibility: res.visibility || visibility,
+            file_size_kb: Math.round(file.size / 1024),
+          });
           setUploadedResult({
             slug: res.slug,
             url: res.url,
@@ -105,6 +120,7 @@ export function InstantUploadCard() {
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "An unexpected error occurred during upload.";
+        trackEvent("drop_html_failed", { reason: "exception" });
         setErrorMsg(msg);
       } finally {
         setIsPending(false);
@@ -144,6 +160,9 @@ export function InstantUploadCard() {
     if (!uploadedResult) return;
     const fullUrl = `${window.location.origin}${uploadedResult.url}`;
     navigator.clipboard.writeText(fullUrl);
+    trackEvent("drop_html_copy_link", {
+      visibility: uploadedResult.visibility || "unlisted",
+    });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -382,6 +401,11 @@ export function InstantUploadCard() {
                 href={uploadedResult.url}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => {
+                  trackEvent("drop_html_open_runner", {
+                    visibility: uploadedResult.visibility || "unlisted",
+                  });
+                }}
                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium shrink-0 ml-2"
               >
                 {isZh ? "在线运行" : "Run Online"}
