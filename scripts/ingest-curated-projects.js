@@ -31,11 +31,11 @@ const MANIFEST = [
   // 1. Tools (Chinese)
   {
     file: "examples/curated/chinese-copywriting-formatter.html",
-    title: "中文文案排版美化器",
+    title: "中文文案排版格式化工具",
     slug: "chinese-copywriting-formatter",
     category: "tools",
     tags: ["tools", "chinese", "typesetting", "markdown", "opensource", "mit"],
-    description: "依据《中文文案排版指北》自动在中英文之间添加盘古空格、规范全角半角标点、清理连续多余空行，并支持实时 Markdown 转换与一键复制。纯前端离线运行。(Provenance: Pagepod Open Source Initiative / License: MIT)",
+    description: "依据《中文文案排版指北》自动在中英文之间添加空格、规范全角半角标点、清理连续多余空行，并支持实时 Markdown 转换与一键复制。纯前端离线运行。(Provenance: Pagepod Open Source Initiative / License: MIT)",
   },
   // 2. Tools (English)
   {

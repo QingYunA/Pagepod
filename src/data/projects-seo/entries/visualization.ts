@@ -260,42 +260,42 @@ export const VISUALIZATION_SEO: Record<string, ProjectSeoProfile> = {
   // 7. Chinese Poetry Zen Card (Chinese)
   "chinese-poetry-zen-card": {
     slug: "chinese-poetry-zen-card",
-    targetKeyword: "全唐诗宋词排版工坊",
-    secondaryKeywords: ["水墨诗笺生成器", "古诗词活字印刷排版", "禅意中文字体排版", "古诗文名句海报生成"],
-    headline: "全唐诗宋词·水墨诗笺与活字排版工坊",
-    summary: "精选全唐诗与宋词经典名篇，采用东方传统水墨意境与传统竖排活字排版美学，提供宣纸纹理、落款朱印、印章刻字与极简高分辨率图片导出。",
+    targetKeyword: "古诗词卡片生成器",
+    secondaryKeywords: ["诗词卡片制作", "古诗词配图生成", "诗词壁纸排版", "唐诗宋词排版"],
+    headline: "古诗词卡片生成器 - 在线制作精美诗词卡片",
+    summary: "收录唐诗宋词经典名篇，支持古典竖排版式、宣纸质感底色与印章落款，可自定义诗词内容并一键导出高清无水印图片。",
     category: "prototypes",
     language: "zh",
     useCases: [
       {
-        title: "社交媒体禅意配图制作",
-        description: "一键生成小红书、微信朋友圈、即刻高点赞古典文学意境海报，宣纸底纹与活字朱印相得益彰。",
+        title: "社交平台诗词配图制作",
+        description: "一键生成适合小红书、微信朋友圈的高清古风文学卡片，版式典雅大方。",
       },
       {
-        title: "诗词鉴赏与书法灵感参考",
-        description: "品味唐风宋韵经典诗篇，观察古典竖排留白、落款纪年与红印点缀的构图平衡。",
+        title: "诗词鉴赏与手机壁纸制作",
+        description: "重温唐宋经典名篇，支持导出高分辨率 PNG 图像，用作手机锁屏或壁纸。",
       },
       {
-        title: "高清无损图片导出",
-        description: "支持双倍像素超高清渲染，直接下载适合手机壁纸或印刷书签的无水印 PNG 图片。",
+        title: "自定义文案排版",
+        description: "支持在输入框内自由替换为您喜爱的诗词、格言或心情文字，自动调整排版布局。",
       },
     ],
     shortcuts: [
-      { key: "空格键", action: "随机切换下一首古典诗词名篇" },
-      { key: "点击导出", action: "下载高清水墨诗笺图片" },
+      { key: "换一首按钮", action: "随机切换下一首古典诗词" },
+      { key: "导出按钮", action: "下载高清无水印诗词卡片图片" },
     ],
     faqs: [
       {
-        question: "可以自定义输入我自己的诗句或格言吗？",
-        answer: "可以。在输入框键入任意中文字句，排版工坊将自动根据字数智能调整行间距、字体比例与竖排折行。",
+        question: "可以自定义输入我自己的诗句吗？",
+        answer: "可以。在输入框键入任意文字，页面将自动按竖排版式调整行距与折行，并支持同步导出图片。",
       },
       {
-        question: "导出的图片分辨率是多少？",
-        answer: "默认采用 Retina 2x 高清物理像素倍率渲染导出，文字边缘极其锐利，即使在高分屏手机上作为壁纸也清晰无模糊。",
+        question: "导出的图片清晰度如何？",
+        answer: "默认采用 Retina 2x 高清物理像素倍率导出，文字边缘清晰锐利，适合直接用于壁纸或社交媒体分享。",
       },
       {
-        question: "使用的中文字体有版权风险吗？",
-        answer: "排版采用开源商用许可字体与系统古典字形回退栈，可放心生成并分享。",
+        question: "诗词卡片上的字体有版权问题吗？",
+        answer: "排版采用开源可商用字体及系统古典字形回退，可放心生成、保存和公开发布。",
       },
     ],
     author: { name: "Pagepod Cultural Lab", url: "https://github.com/chinese-poetry/chinese-poetry" },
@@ -343,33 +343,33 @@ export const VISUALIZATION_SEO: Record<string, ProjectSeoProfile> = {
   // 9. Solar Terms Lunar Clock (Chinese)
   "solar-terms-lunar-clock": {
     slug: "solar-terms-lunar-clock",
-    targetKeyword: "二十四节气与农历罗盘",
-    secondaryKeywords: ["农历日月运转罗盘", "节气天体钟", "中国传统历法时钟", "太阳黄经天文罗盘"],
-    headline: "二十四节气与农历日月运转罗盘 - 天文力学动态罗盘",
-    summary: "融合中国古代历法与现代天体公转力学的动态罗盘。实时计算当前太阳黄经、二十四节气定位、月相盈亏阶段与农历干支纪日，支持交互旋转与时光穿梭。",
+    targetKeyword: "二十四节气时钟",
+    secondaryKeywords: ["二十四节气罗盘", "农历时钟网页版", "节气罗盘时钟", "传统历法动态展示"],
+    headline: "二十四节气时钟罗盘 - 农历与节气动态展示",
+    summary: "动态呈现中国传统二十四节气、农历日期与月相盈亏的时钟罗盘。结合太阳黄经算法与地球公转轨迹，支持拖拽旋转与全屏屏保展示。",
     category: "visualization",
     language: "zh",
     useCases: [
       {
-        title: "传统天文历法研习",
-        description: "直观观察太阳黄经（0°春分到345°惊蛰）与地球公转轨道的周期几何关系。",
+        title: "传统节气与农历查询",
+        description: "直观查看当前节气交节时间、农历干支纪日以及月相圆缺阶段。",
       },
       {
-        title: "国风桌面动态时钟",
-        description: "全屏作为极具东方哲思与天文美感的数字屏保，展现日月盈亏律动。",
+        title: "国风动态桌面时钟",
+        description: "全屏展示作为富有文化意蕴的动态桌面背景或数字时钟屏保。",
       },
     ],
     shortcuts: [
-      { key: "鼠标拖拽", action: "旋转观察历法天体角度" },
+      { key: "鼠标拖拽", action: "旋转罗盘查看历法天体角度" },
     ],
     faqs: [
       {
         question: "二十四节气是如何计算的？",
-        answer: "现代天文历法将太阳黄经每走 15° 划分为一个节气，从春分（0°）开始，历经清明、谷雨等 24 个周期，合共 360° 黄道一圈。",
+        answer: "依据现代天文学规范，将太阳黄经每旋转 15° 划为一个节气，自春分（0°）始，循环 24 个节气，合为 360° 黄道一圈。",
       },
       {
-        question: "罗盘上的日月盈亏是如何计算的？",
-        answer: "基于朔望月周期算法计算月球相位角，精确映射新月、上弦月、满月与下弦月的阴影面积与运转方位。",
+        question: "罗盘上的月相是如何展示的？",
+        answer: "根据朔望月周期实时计算月球相位角，动态呈现新月、娥眉月、满月与残月的阴影变化。",
       },
     ],
     author: { name: "Pagepod Astronomy Lab", url: "https://github.com/topics/lunar-calendar" },
@@ -417,33 +417,33 @@ export const VISUALIZATION_SEO: Record<string, ProjectSeoProfile> = {
   // 11. Ink Fluid Mountain (Chinese)
   "ink-fluid-mountain": {
     slug: "ink-fluid-mountain",
-    targetKeyword: "水墨流体山水粒子模拟器",
-    secondaryKeywords: ["水墨粒子山峦生成器", "东方山水画Canvas动画", "流体水墨交互网页"],
-    headline: "水墨流体山水粒子模拟器 - 东方意境生成工坊",
-    summary: "基于粒子动力学与水墨晕染算法的动态山水画卷生成器。数万颗微墨滴随鼠标引力流淌汇聚为层峦叠嶂，呈现云雾缭绕的水墨东方美学。",
+    targetKeyword: "水墨粒子动画",
+    secondaryKeywords: ["动态水墨山水", "Canvas水墨特效", "水墨流体动画", "网页水墨粒子"],
+    headline: "水墨山水粒子动画 - Canvas 动态水墨山水生成",
+    summary: "基于 HTML5 Canvas 的动态水墨山水粒子特效。数万颗微小墨滴随鼠标互动流动聚散，自然晕染出山峦起伏的写意画卷，支持导出高清图片。",
     category: "visualization",
     language: "zh",
     useCases: [
       {
-        title: "东方美学交互体验",
-        description: "在鼠标移动引导下，观赏墨滴如烟似雾般流淌凝结成崇山峻岭的生成过程。",
+        title: "动态水墨视觉体验",
+        description: "滑动鼠标引导墨滴流动聚散，感受墨汁在虚拟宣纸上晕染成山的动态过程。",
       },
       {
-        title: "国潮设计灵感激发",
-        description: "为品牌国潮视觉、水墨概念设计提供流体流动与留白艺术的动态参考。",
+        title: "视觉设计灵感参考",
+        description: "为国风海报、水墨概念与动效设计提供流体运动与留白构图的直观参考。",
       },
     ],
     shortcuts: [
-      { key: "鼠标移动", action: "引导水墨流体聚散流动" },
+      { key: "鼠标移动", action: "引导水墨粒子聚散流动" },
     ],
     faqs: [
       {
-        question: "这个模拟器需要 GPU 独立显卡吗？",
-        answer: "不需要。采用高度优化的 2D Canvas 粒子追踪算法，集成轻量物理速度阻尼，在普通笔记本集显上即可保持 60 FPS 流畅运转。",
+        question: "运行这个动画需要独立显卡吗？",
+        answer: "不需要。采用轻量 Canvas 粒子算法，在普通电脑和手机浏览器上均可保持 60 FPS 流畅运行。",
       },
       {
-        question: "可以导出当前生成的水墨画面吗？",
-        answer: "可以。在工具栏中点击一键导出，即可将当前画布上凝结的水墨山水渲染为高清 PNG 图像保存至本地。",
+        question: "可以保存生成的画面吗？",
+        answer: "可以。点击工具栏中的导出按钮，即可将当前画布渲染为高清 PNG 图片保存到本地。",
       },
     ],
     author: { name: "Pagepod Cultural Lab", url: "https://github.com/topics/chinese-ink" },

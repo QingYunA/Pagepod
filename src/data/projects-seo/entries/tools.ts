@@ -172,38 +172,38 @@ export const TOOLS_SEO: Record<string, ProjectSeoProfile> = {
   // 5. Chinese Typesetting Pangu (Chinese)
   "chinese-typesetting-pangu": {
     slug: "chinese-typesetting-pangu",
-    targetKeyword: "中文文案排版美化器",
-    secondaryKeywords: ["盘古之白 在线排版", "中英文空格自动规范", "markdown 文案清洗工具", "pangu.js 在线版"],
-    headline: "盘古之白 - 中文排版与文案规范实验室 (pangu.js)",
-    summary: "依据《中文文案排版指北》自动在中英文之间添加盘古之白空格，规范全角半角标点混用，清理连续多余空行，支持 Markdown 实时转换与一键复制。纯前端离线安全运行。",
+    targetKeyword: "中英文排版加空格",
+    secondaryKeywords: ["中英文之间加空格", "盘古之白在线版", "文案排版工具", "中文英文空格工具"],
+    headline: "中英文排版自动加空格工具 - 盘古之白 (pangu.js)",
+    summary: "依据《中文文案排版指北》规范，自动在中文汉字与英文、数字之间添加空格（盘古之白），纠正全角半角标点混用，支持 Markdown 实时排版转换与一键复制。纯本地离线运行。",
     category: "tools",
     language: "zh",
     useCases: [
       {
-        title: "自媒体与公众号文案规范",
-        description: "一键消除中英文及数字挤在一起的视觉压迫感，令文章版面呼吸感倍增，达到出版级精致视觉标准。",
+        title: "公众号与文章文案排版",
+        description: "一键消除汉字与英文字母、数字挤在一起的不适感，让文字版面疏密得当、更加易读。",
       },
       {
         title: "技术文档与 README 格式化",
-        description: "自动修正 Markdown 中英文标点混用问题，统一保留代码块与内联反引号，提升团队工程文档审美。",
+        description: "自动规范 Markdown 中的中英文间距与标点符号，智能避开代码块和内联反引号。",
       },
       {
-        title: "零数据泄露离线安全保障",
-        description: "所有文本排版正则清洗纯在浏览器本地内存完成，敏感未公开稿件绝不上传任何服务器。",
+        title: "纯本地运行保障隐私安全",
+        description: "所有文本排版均在浏览器本地内存中完成，任何文稿内容均不会上传到服务器。",
       },
     ],
     shortcuts: [
       { key: "Ctrl / Cmd + Enter", action: "立即执行中英文自动排版" },
-      { key: "Ctrl / Cmd + C", action: "一键复制排版完成的纯净正文" },
+      { key: "Ctrl / Cmd + C", action: "一键复制排版完成的正文" },
     ],
     faqs: [
       {
         question: "什么是「盘古之白」？",
-        answer: "「盘古之白」是指在中文汉字与西文字符（英文、数字、符号）之间保留适当间距（通常为一个半角空格），让中西文混排时字形舒展，消除视觉粘连。",
+        answer: "「盘古之白」是指在中文汉字与西文字符（英文字母、数字、半角符号）之间留出一个空格的间隙，使混排更清晰舒展、避免视觉粘连。",
       },
       {
-        question: "排版时会破坏代码块或 Markdown 语法吗？",
-        answer: "不会。排版引擎具备语法智能感知能力，会自动避开 Markdown 的代码块（```）、内联代码标签（`code`）以及 URL 链接。",
+        question: "排版时会弄乱代码块或链接吗？",
+        answer: "不会。排版引擎会自动识别并保留 Markdown 代码块（```）、行内代码（`code`）以及 URL 链接不受影响。",
       },
     ],
     author: { name: "vinta & pangu.js contributors", url: "https://github.com/vinta/pangu.js" },
@@ -296,34 +296,34 @@ export const TOOLS_SEO: Record<string, ProjectSeoProfile> = {
   // 8. Chinese Copywriting Formatter (Chinese)
   "chinese-copywriting-formatter": {
     slug: "chinese-copywriting-formatter",
-    targetKeyword: "中文文案排版指北格式化",
-    secondaryKeywords: ["中英文空格工具", "文案排版指北 在线", "全角半角标点纠偏", "Markdown 规范排版"],
-    headline: "中文文案排版格式化工具 - 出版级中英文排版规范",
-    summary: "严格遵循《中文文案排版指北》国际规范，自动消除汉字与英文字母、阿拉伯数字的挤压感，智能保留代码与外链，提供出版级中文文案排版美化。",
+    targetKeyword: "中文文案排版格式化",
+    secondaryKeywords: ["中文文案排版指北", "中英文空格格式化", "文案排版工具", "标点符号规范工具"],
+    headline: "中文文案排版格式化工具 - 遵循中文排版规范",
+    summary: "依据《中文文案排版指北》规范，自动处理汉字与英文字母、数字之间的空格，智能纠正全角半角标点符号混用，支持多余空行清理与一键复制。",
     category: "tools",
     language: "zh",
     useCases: [
       {
-        title: "公众号与文章润色",
-        description: "让中英文、数字混排的文段自然舒展，大幅提升文章在手机屏幕上的可读性与高级感。",
+        title: "文章与文案快速规范",
+        description: "消除中英文、数字混排的拥挤感，让文段在手机与电脑屏幕上阅读更加舒适顺畅。",
       },
       {
-        title: "多余空行与废标点清除",
-        description: "批量清除多余空行、连续多个感叹号、错误的全半角引号，一键规范文面整洁度。",
+        title: "标点与多余空行清理",
+        description: "一键规范全角半角标点符号，清理文段中多余连续空行，保持文面整洁规范。",
       },
     ],
     shortcuts: [
       { key: "一键排版", action: "格式化输入框内全部文本" },
-      { key: "一键复制", action: "将格式化结果拷入剪贴板" },
+      { key: "一键复制", action: "将排版好的文本复制到剪贴板" },
     ],
     faqs: [
       {
         question: "排版规范依据是什么？",
-        answer: "遵循 GitHub 著名开源规范《中文文案排版指北》，包括中英文之间空一格、全角中文标点与英文标点的统一用法。",
+        answer: "遵循开源规范《中文文案排版指北》，包括中英文之间空一格、全角中文标点与英文半角标点的正确用法。",
       },
       {
         question: "排版过程会上传我的文稿内容吗？",
-        answer: "绝对不会。整个排版算法完全在你的浏览器本地 JavaScript 内存中执行，断网状态下也能正常使用，绝不回传任何数据。",
+        answer: "不会。整个排版过程完全在浏览器本地 JavaScript 运行，断网也可正常使用，不上传任何数据。",
       },
     ],
     author: { name: "sparanoid & chinese-copywriting-guidelines", url: "https://github.com/sparanoid/chinese-copywriting-guidelines" },

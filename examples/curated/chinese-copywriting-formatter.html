@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中文文案排版美化器 - Chinese Copywriting Formatter</title>
+  <title>中文文案排版格式化工具 - Chinese Copywriting Formatter</title>
   <style>
     :root {
       --bg: #fafafa;
@@ -237,13 +237,13 @@
     <div class="brand">
       <div class="brand-icon">文</div>
       <div>
-        <h1>中文文案排版美化器</h1>
+        <h1>中文文案排版格式化</h1>
       </div>
       <span class="badge">MIT Open Source</span>
-      <span class="badge">100% 离线自包含</span>
+      <span class="badge">100% 离线运行</span>
     </div>
     <div class="actions-group">
-      <button id="btnLoadSample">载入排版范例</button>
+      <button id="btnLoadSample">载入示例文本</button>
       <button id="btnClear">清空</button>
     </div>
   </header>
@@ -252,20 +252,20 @@
     <div class="toolbar">
       <div class="options-group">
         <label class="option-item">
-          <input type="checkbox" id="optPangu" checked> 中英文与数字盘古空格
+          <input type="checkbox" id="optPangu" checked> 中英文与数字间加空格
         </label>
         <label class="option-item">
-          <input type="checkbox" id="optPunctuation" checked> 全半角标点智能修正
+          <input type="checkbox" id="optPunctuation" checked> 全角半角标点智能纠正
         </label>
         <label class="option-item">
-          <input type="checkbox" id="optTrimLines" checked> 压缩连续多余空行
+          <input type="checkbox" id="optTrimLines" checked> 清理多余连续空行
         </label>
         <label class="option-item">
-          <input type="checkbox" id="optProperNouns" checked> 专有名词大小写纠错
+          <input type="checkbox" id="optProperNouns" checked> 专有名词大小写纠正
         </label>
       </div>
       <div class="actions-group">
-        <button id="btnFormat" class="primary">立即美化格式</button>
+        <button id="btnFormat" class="primary">立即排版</button>
         <button id="btnCopy">复制排版结果</button>
       </div>
     </div>
