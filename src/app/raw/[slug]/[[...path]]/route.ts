@@ -3,6 +3,7 @@ import { getProjectBySlug, incrementViewCount } from "@/db";
 import { getProjectStorage } from "@/lib/storage";
 import { getCurrentUser, isExactProjectCreator } from "@/lib/auth";
 import { verifySnapshotToken } from "@/lib/services/screenshot-service";
+import { verifyProjectAccessToken } from "@/lib/services/guest-upload";
 
 interface RouteParams {
   params: Promise<{
@@ -34,12 +35,13 @@ export async function GET(request: Request, context: RouteParams) {
     );
   }
 
-  // 2. Compute creator ownership once if access is restricted (pending review or private)
-  const isProtected = project.visibility === "private";
+  // 2. Compute creator ownership once if access is restricted (pending review, private, or unlisted)
+  const isPrivate = project.visibility === "private";
+  const isUnlisted = project.visibility === "unlisted";
   const isPending = project.reviewStatus === "pending";
 
   let isExactCreator = false;
-  if (isProtected || isPending) {
+  if (isPrivate || isUnlisted || isPending) {
     const currentUser = await getCurrentUser();
     isExactCreator = isExactProjectCreator(currentUser, project);
   }
@@ -66,10 +68,29 @@ export async function GET(request: Request, context: RouteParams) {
   // 4. Strict Privacy Enforcement:
   // If a project is private, ONLY the exact project creator can access raw endpoints.
   // Platform admins CANNOT inspect or access other users' private projects!
-  if (isProtected && !isExactCreator) {
+  if (isPrivate && !isExactCreator) {
     return new NextResponse("403 Forbidden: Private Resource. Only the project owner can access this content.", {
       status: 403,
     });
+  }
+
+  // 5. Unlisted Token Gate Enforcement:
+  // If a project is unlisted, require valid ?token= or creator ownership
+  if (isUnlisted && !isAuthorizedSnapshot) {
+    const token = url.searchParams.get("token");
+    const hasToken = verifyProjectAccessToken(project, token, isExactCreator);
+    if (!hasToken) {
+      return new NextResponse(
+        "403 Forbidden: Protected Unlisted Project. A valid access token is required to view this resource.",
+        {
+          status: 403,
+          headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "X-Content-Type-Options": "nosniff",
+          },
+        }
+      );
+    }
   }
 
   const subpath = subPaths && subPaths.length > 0 ? subPaths.join("/") : project.entryPath;
@@ -107,12 +128,15 @@ export async function GET(request: Request, context: RouteParams) {
     return new NextResponse(null, { status: 304, headers });
   }
 
-  // Private resources must never be cached by shared proxies/CDNs
-  if (isProtected) {
+  // Private or unlisted resources must never be cached by shared proxies/CDNs
+  if (isPrivate || isUnlisted) {
     headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
     headers.set("Pragma", "no-cache");
     headers.set("Expires", "0");
     headers.set("Vary", "Cookie, Authorization");
+    headers.set("X-Robots-Tag", "noindex, nofollow");
+  } else if (project.isGuestTransient) {
+    headers.set("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=600");
     headers.set("X-Robots-Tag", "noindex, nofollow");
   } else if (isImageOrMedia) {
     // Static media & screenshots: 1 day in browser, 30 days on CDN edge

@@ -38,6 +38,9 @@ export async function submitGuestUpload(
   const categoryRaw = formData.get("category")?.toString() || "tools";
   const catParsed = categorySchema.safeParse(categoryRaw);
   const category = catParsed.success ? catParsed.data : "tools";
+  const visibility = formData.get("visibility") === "public" ? "public" : "unlisted";
+
+  const currentUser = await getCurrentUser();
 
   try {
     return await handleGuestUpload({
@@ -46,7 +49,9 @@ export async function submitGuestUpload(
       title,
       slug,
       category,
+      visibility,
       forcePublishWithSecret,
+      currentUser,
     });
   } catch (err: any) {
     return {
@@ -56,22 +61,61 @@ export async function submitGuestUpload(
   }
 }
 
-export async function claimUserGuestProjects(
+export interface ReconcileClaimsResult {
+  authenticated: boolean;
+  success: boolean;
+  claimedCount: number;
+  resolvedSlugs: string[];
+  errors?: string[];
+}
+
+/**
+ * Reconciles and claims browser-persisted guest projects when an authenticated session exists.
+ * Safely returns resolvedSlugs (both claimed and stale/unclaimable items) so the client can purge them.
+ */
+export async function reconcileGuestProjectsAction(
   claims: Array<{ slug: string; claimToken: string }>
-): Promise<{ success: boolean; claimedCount: number; errors?: string[] }> {
+): Promise<ReconcileClaimsResult> {
   const user = await getCurrentUser();
-  if (!user) {
-    return { success: false, claimedCount: 0, errors: ["Authentication required"] };
+  if (!user || !user.id || user.id.startsWith("guest:")) {
+    return {
+      authenticated: false,
+      success: true,
+      claimedCount: 0,
+      resolvedSlugs: [],
+    };
   }
 
   if (!claims || claims.length === 0) {
-    return { success: true, claimedCount: 0 };
+    return {
+      authenticated: true,
+      success: true,
+      claimedCount: 0,
+      resolvedSlugs: [],
+    };
   }
 
   const result = await claimGuestProjects(user, claims);
   return {
+    authenticated: true,
     success: true,
     claimedCount: result.claimedCount,
+    resolvedSlugs: result.resolvedSlugs,
     errors: result.errors.length > 0 ? result.errors : undefined,
+  };
+}
+
+export async function claimUserGuestProjects(
+  claims: Array<{ slug: string; claimToken: string }>
+): Promise<{ success: boolean; claimedCount: number; resolvedSlugs?: string[]; errors?: string[] }> {
+  const res = await reconcileGuestProjectsAction(claims);
+  if (!res.authenticated) {
+    return { success: false, claimedCount: 0, errors: ["Authentication required"] };
+  }
+  return {
+    success: res.success,
+    claimedCount: res.claimedCount,
+    resolvedSlugs: res.resolvedSlugs,
+    errors: res.errors,
   };
 }

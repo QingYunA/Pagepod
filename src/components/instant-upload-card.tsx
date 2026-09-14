@@ -1,14 +1,25 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
-import { UploadCloud, Link as LinkIcon, Check, Copy, ExternalLink, AlertTriangle, ShieldCheck, Loader2 } from "lucide-react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import Link from "next/link";
+import {
+  UploadCloud,
+  Link as LinkIcon,
+  Check,
+  Copy,
+  ExternalLink,
+  AlertTriangle,
+  Loader2,
+  Lock,
+  Globe,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { scanForSecrets, type SecretFinding } from "@/lib/security/secret-guard";
 import { submitGuestUpload } from "@/app/actions/guest";
 import { useLanguage } from "@/lib/i18n/context";
-
-const LOCAL_STORAGE_KEY = "pagepod_guest_claims";
+import { trackEvent } from "@/lib/analytics";
+import { saveGuestClaim, GUEST_CLAIMED_EVENT } from "@/lib/storage/guest-claim";
 
 export function InstantUploadCard() {
   const { locale } = useLanguage();
@@ -16,13 +27,35 @@ export function InstantUploadCard() {
   const [isDragging, setIsDragging] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [visibility, setVisibility] = useState<"unlisted" | "public">("unlisted");
   const [uploadedResult, setUploadedResult] = useState<{
     slug: string;
     url: string;
     title: string;
-    claimToken: string;
+    claimToken?: string;
+    accessToken?: string;
+    visibility?: "public" | "unlisted";
+    isDirectClaimed?: boolean;
   } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Dynamically sync status if guest upload is claimed while staying on current page
+  useEffect(() => {
+    const handleClaimed = (e: Event) => {
+      const customEvent = e as CustomEvent<{ resolvedSlugs?: string[] }>;
+      const resolvedSlugs = customEvent.detail?.resolvedSlugs || [];
+      setUploadedResult((prev) => {
+        if (!prev) return null;
+        if (resolvedSlugs.length === 0 || resolvedSlugs.includes(prev.slug)) {
+          return { ...prev, isDirectClaimed: true };
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener(GUEST_CLAIMED_EVENT, handleClaimed);
+    return () => window.removeEventListener(GUEST_CLAIMED_EVENT, handleClaimed);
+  }, []);
 
   // Secret leak dialog state
   const [pendingSecretFile, setPendingSecretFile] = useState<{
@@ -34,63 +67,81 @@ export function InstantUploadCard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const saveClaimToStorage = (slug: string, claimToken: string) => {
-    try {
-      const existingRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const list: Array<{ slug: string; claimToken: string }> = existingRaw ? JSON.parse(existingRaw) : [];
-      list.push({ slug, claimToken });
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(list));
-    } catch {
-      // Non-fatal localStorage error
-    }
+    saveGuestClaim({ slug, claimToken });
   };
 
-  const processUpload = async (file: File, force = false) => {
-    setErrorMsg(null);
+  const processUpload = useCallback(
+    async (file: File, force = false) => {
+      setErrorMsg(null);
 
-    if (!file.name.toLowerCase().endsWith(".html") && !file.name.toLowerCase().endsWith(".htm")) {
-      setErrorMsg("Guest quick-host only supports single .html files (max 2MB). Please sign in for zip bundles.");
-      return;
-    }
+      if (!file.name.toLowerCase().endsWith(".html") && !file.name.toLowerCase().endsWith(".htm")) {
+        trackEvent("drop_html_failed", { reason: "invalid_extension" });
+        setErrorMsg("Guest quick-host only supports single .html files (max 2MB). Please sign in for zip bundles.");
+        return;
+      }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setErrorMsg("File exceeds 2MB guest limit. Please sign in to upload larger files.");
-      return;
-    }
+      if (file.size > 2 * 1024 * 1024) {
+        trackEvent("drop_html_failed", { reason: "file_too_large", size_bytes: file.size });
+        setErrorMsg("File exceeds 2MB guest limit. Please sign in to upload larger files.");
+        return;
+      }
 
-    try {
-      const content = await file.text();
+      try {
+        const content = await file.text();
 
-      // Client-side instant pre-flight secret leak scan
-      if (!force) {
-        const finding = scanForSecrets(content);
-        if (finding) {
-          setPendingSecretFile({ content, file, finding });
-          return;
+        // Client-side instant pre-flight secret leak scan
+        if (!force) {
+          const finding = scanForSecrets(content);
+          if (finding) {
+            trackEvent("drop_html_secret_blocked", {
+              secret_type: finding.type,
+              visibility,
+            });
+            setPendingSecretFile({ content, file, finding });
+            return;
+          }
         }
-      }
 
-      setIsPending(true);
-      const formData = new FormData();
-      formData.append("file", file);
+        setIsPending(true);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("visibility", visibility);
 
-      const res = await submitGuestUpload(formData, force);
-      if (!res.success) {
-        setErrorMsg(res.error || "Upload failed");
-      } else if (res.slug && res.url && res.claimToken) {
-        setUploadedResult({
-          slug: res.slug,
-          url: res.url,
-          title: res.title || res.slug,
-          claimToken: res.claimToken,
-        });
-        saveClaimToStorage(res.slug, res.claimToken);
+        const res = await submitGuestUpload(formData, force);
+        if (!res.success) {
+          trackEvent("drop_html_failed", {
+            reason: res.error || "upload_failed",
+            visibility,
+          });
+          setErrorMsg(res.error || "Upload failed");
+        } else if (res.slug && res.url) {
+          trackEvent("drop_html_success", {
+            visibility: res.visibility || visibility,
+            file_size_kb: Math.round(file.size / 1024),
+          });
+          setUploadedResult({
+            slug: res.slug,
+            url: res.url,
+            title: res.title || res.slug,
+            claimToken: res.claimToken,
+            accessToken: res.accessToken,
+            visibility: res.visibility,
+            isDirectClaimed: res.isDirectClaimed,
+          });
+          if (res.claimToken) {
+            saveClaimToStorage(res.slug, res.claimToken);
+          }
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "An unexpected error occurred during upload.";
+        trackEvent("drop_html_failed", { reason: "exception" });
+        setErrorMsg(msg);
+      } finally {
+        setIsPending(false);
       }
-    } catch (err: any) {
-      setErrorMsg(err?.message || "An unexpected error occurred during upload.");
-    } finally {
-      setIsPending(false);
-    }
-  };
+    },
+    [visibility]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -102,13 +153,16 @@ export function InstantUploadCard() {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processUpload(e.dataTransfer.files[0]);
-    }
-  }, []);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        processUpload(e.dataTransfer.files[0]);
+      }
+    },
+    [processUpload]
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -120,6 +174,9 @@ export function InstantUploadCard() {
     if (!uploadedResult) return;
     const fullUrl = `${window.location.origin}${uploadedResult.url}`;
     navigator.clipboard.writeText(fullUrl);
+    trackEvent("drop_html_copy_link", {
+      visibility: uploadedResult.visibility || "unlisted",
+    });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -137,8 +194,16 @@ export function InstantUploadCard() {
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 {isZh
-                  ? `发现 ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet})。游客上传默认向全球公开展示，公开私有密钥可能导致非预期的 API 账单扣费。`
-                  : `Found ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet}). Guest uploads are publicly visible to everyone. Publishing keys may lead to unauthorized API usage.`}
+                  ? `发现 ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet})。${
+                      visibility === "unlisted"
+                        ? "尽管该项目配置为口令保护，仍强烈建议在分享前清除敏感信息，避免密钥泄露。"
+                        : "公开项目将在画廊向全球展示，公开私有密钥可能导致非预期的 API 账单扣费。"
+                    }`
+                  : `Found ${pendingSecretFile.finding.label} (${pendingSecretFile.finding.snippet}). ${
+                      visibility === "unlisted"
+                        ? "Although protected by an access token, it is strongly advised to remove keys before sharing."
+                        : "Guest uploads with public showcase are visible to everyone. Publishing keys may lead to unauthorized API charges."
+                    }`}
               </p>
             </div>
           </div>
@@ -161,7 +226,7 @@ export function InstantUploadCard() {
                 processUpload(f, true);
               }}
             >
-              {isZh ? "我已知晓风险，继续公开" : "I Understand, Publish Anyway"}
+              {isZh ? "我已知晓风险，继续上传" : "I Understand, Upload Anyway"}
             </Button>
           </div>
         </div>
@@ -204,9 +269,37 @@ export function InstantUploadCard() {
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 {isZh
-                  ? "无需登录 · 安全沙箱隔离 · 2MB 免费免配置"
-                  : "No sign-up required · Sandboxed runner · Up to 2MB free"}
+                  ? "无需登录 · 单文件 HTML 最大 2MB"
+                  : "No sign-up required · Single HTML up to 2MB"}
               </p>
+            </div>
+
+            {/* Visibility Mode Selector */}
+            <div className="flex items-center justify-center p-0.5 rounded-lg border border-border/80 bg-muted/40 text-xs w-fit mx-auto select-none">
+              <button
+                type="button"
+                onClick={() => setVisibility("unlisted")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium cursor-pointer ${
+                  visibility === "unlisted"
+                    ? "bg-background text-foreground shadow-xs border border-border/70"
+                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                }`}
+              >
+                <Lock className="w-3.5 h-3.5 text-emerald-500" />
+                <span>{isZh ? "仅凭链接访问 (口令保护)" : "Unlisted (Token Protected)"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility("public")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium cursor-pointer ${
+                  visibility === "public"
+                    ? "bg-background text-foreground shadow-xs border border-border/70"
+                    : "text-muted-foreground hover:text-foreground border border-transparent"
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5 text-primary" />
+                <span>{isZh ? "公开展示 (画廊收录)" : "Public (Showcase Index)"}</span>
+              </button>
             </div>
 
             {errorMsg && (
@@ -226,7 +319,7 @@ export function InstantUploadCard() {
                 {isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-                    {isZh ? "正在部署沙箱..." : "Deploying Sandbox..."}
+                    {isZh ? "正在生成链接..." : "Generating Link..."}
                   </>
                 ) : isZh ? (
                   "选择 HTML 文件"
@@ -235,26 +328,23 @@ export function InstantUploadCard() {
                 )}
               </Button>
             </div>
-
-            <div className="pt-2 flex items-center gap-3 text-xs text-muted-foreground/80">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                {isZh ? "严格 CSP 物理隔离" : "Hardened CSP Isolation"}
-              </span>
-              <span>·</span>
-              <span>{isZh ? "默认公开画廊" : "Public by Default"}</span>
-              <span>·</span>
-              <span>{isZh ? "永久访问链接" : "Instant Share URL"}</span>
-            </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs font-mono px-2.5 py-0.5 border-emerald-500/30 text-emerald-500 bg-emerald-500/5">
-                  LIVE & SANDBOXED
-                </Badge>
-                <span className="text-sm font-medium text-foreground truncate max-w-[220px]">
+                {uploadedResult.visibility === "unlisted" ? (
+                  <Badge variant="outline" className="text-xs font-mono px-2.5 py-0.5 border-emerald-500/30 text-emerald-500 bg-emerald-500/5 flex items-center gap-1.5">
+                    <Lock className="w-3 h-3" />
+                    <span>UNLISTED · PROTECTED</span>
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs font-mono px-2.5 py-0.5 border-blue-500/30 text-blue-500 bg-blue-500/5 flex items-center gap-1.5">
+                    <Globe className="w-3 h-3" />
+                    <span>PUBLIC SHOWCASE</span>
+                  </Badge>
+                )}
+                <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
                   {uploadedResult.title}
                 </span>
               </div>
@@ -296,17 +386,45 @@ export function InstantUploadCard() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <p className="text-xs text-muted-foreground">
-                {isZh
-                  ? "管理凭据已保存在本机，随时登录即可认领合并。"
-                  : "Ownership token stored in browser. Sign in anytime to manage."}
-              </p>
+            <div className="flex items-center justify-between pt-1 gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground leading-relaxed">
+                {uploadedResult.isDirectClaimed ? (
+                  <>
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span>
+                      {isZh ? "已直接保存至你的个人空间。" : "Directly saved to your workspace."}
+                    </span>
+                    <Link
+                      href="/workspace"
+                      className="text-foreground hover:underline font-medium ml-1 inline-flex items-center gap-0.5"
+                    >
+                      {isZh ? "前往工作台管理" : "Manage"}
+                    </Link>
+                  </>
+                ) : uploadedResult.visibility === "unlisted" ? (
+                  <span>
+                    {isZh
+                      ? "已生成专属访问口令，未在公开画廊展示。随时登录可认领管理。"
+                      : "Protected by access token and excluded from showcase. Sign in anytime to manage."}
+                  </span>
+                ) : (
+                  <span>
+                    {isZh
+                      ? "已在公共画廊上线展示。管理凭据已保存在本机，随时登录可认领管理。"
+                      : "Live on public showcase. Ownership token stored in browser. Sign in anytime to manage."}
+                  </span>
+                )}
+              </div>
               <a
                 href={uploadedResult.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
+                onClick={() => {
+                  trackEvent("drop_html_open_runner", {
+                    visibility: uploadedResult.visibility || "unlisted",
+                  });
+                }}
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium shrink-0 ml-2"
               >
                 {isZh ? "在线运行" : "Run Online"}
                 <ExternalLink className="w-3.5 h-3.5" />

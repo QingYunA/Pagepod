@@ -1,5 +1,5 @@
-import { getAllProjects } from "@/db";
-import type { Project } from "@/db/schema";
+import { getAllProjects, getFolders } from "@/db";
+import type { Project, Folder } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import AdminTable from "./admin-table";
 import { HomeHeader } from "@/components/home-header";
@@ -18,16 +18,22 @@ export default async function WorkspacePage() {
   //    - If standard user: ONLY views projects belonging to their own userId.
   //    - If platform admin: ONLY permitted to manage and inspect PUBLIC projects. User-private projects are strictly hidden!
   let projects: Project[] = [];
+  let folders: Folder[] = [];
 
   if (currentUser?.id === "selfhost-admin") {
-    projects = await getAllProjects({ includePrivate: true, isWorkspace: true, allowAllReviewStatuses: true });
+    [projects, folders] = await Promise.all([
+      getAllProjects({ includePrivate: true, isWorkspace: true, allowAllReviewStatuses: true }),
+      getFolders("selfhost-admin"),
+    ]);
   } else if (currentUser?.id) {
     if (currentUser.role === "admin") {
       // Platform admin also sees public items from everyone for moderation (including pending & rejected), but NEVER others' private items!
-      const [myProjects, publicProjects] = await Promise.all([
+      const [myProjects, publicProjects, userFolders] = await Promise.all([
         getAllProjects({ userId: currentUser.id, isWorkspace: true, allowAllReviewStatuses: true }),
         getAllProjects({ includePrivate: false, isWorkspace: false, allowAllReviewStatuses: true }),
+        getFolders(currentUser.id),
       ]);
+      folders = userFolders;
       const map = new Map<string, Project>();
       myProjects.forEach((p) => map.set(p.id, p));
       publicProjects.forEach((p) => {
@@ -42,7 +48,10 @@ export default async function WorkspacePage() {
       projects = Array.from(map.values());
     } else {
       // User sees their own projects (including their own private ones)
-      projects = await getAllProjects({ userId: currentUser.id, isWorkspace: true, allowAllReviewStatuses: true });
+      [projects, folders] = await Promise.all([
+        getAllProjects({ userId: currentUser.id, isWorkspace: true, allowAllReviewStatuses: true }),
+        getFolders(currentUser.id),
+      ]);
     }
   } else {
     projects = await getAllProjects({ includePrivate: false, isWorkspace: true, allowAllReviewStatuses: true });
@@ -71,6 +80,7 @@ export default async function WorkspacePage() {
         {/* Projects Management Table */}
         <AdminTable
           initialProjects={projects}
+          initialFolders={folders}
           isAdmin={currentUser?.role === "admin" || currentUser?.id === "selfhost-admin"}
           currentUserId={currentUser?.id}
         />

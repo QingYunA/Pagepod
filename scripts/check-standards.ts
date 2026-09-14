@@ -19,13 +19,20 @@ const violations: Violation[] = [];
 
 const SRC_DIR = path.resolve(process.cwd(), "src");
 
+interface ForbiddenSlopRule {
+  label: string;
+  pattern: RegExp | string;
+  message: string;
+}
+
 // 1. Anti-Slop banned keywords (AGENTS.md Section 1.4)
-const FORBIDDEN_SLOP_WORDS = [
-  { word: "尊享", message: "Banned casino/VIP slop word: '尊享'. Use '权益' or '功能' instead." },
-  { word: "特权", message: "Banned casino/VIP slop word: '特权'. Use '权益' or '功能' instead." },
-  { word: "自由扩容", message: "Banned exaggerated claim: '自由扩容'. Use specific quota numbers." },
-  { word: "神级", message: "Banned exaggerated slang: '神级'." },
-  { word: "无敌", message: "Banned exaggerated slang: '无敌'." },
+const FORBIDDEN_SLOP_WORDS: ForbiddenSlopRule[] = [
+  { pattern: /\bVIP\b/i, label: "VIP", message: "Banned casino/VIP slop word: 'VIP'. Use 'PRO', '权益' or '功能' instead." },
+  { pattern: "尊享", label: "尊享", message: "Banned casino/VIP slop word: '尊享'. Use '权益' or '功能' instead." },
+  { pattern: "特权", label: "特权", message: "Banned casino/VIP slop word: '特权'. Use '权益' or '功能' instead." },
+  { pattern: "自由扩容", label: "自由扩容", message: "Banned exaggerated claim: '自由扩容'. Use specific quota numbers." },
+  { pattern: "神级", label: "神级", message: "Banned exaggerated slang: '神级'." },
+  { pattern: "无敌", label: "无敌", message: "Banned exaggerated slang: '无敌'." },
 ];
 
 // 2. Anti-Pattern banned Tailwind aesthetic classes (AGENTS.md Section 1.1)
@@ -54,12 +61,24 @@ function scanFile(filePath: string) {
 
     // Check anti-slop vocabulary
     for (const slop of FORBIDDEN_SLOP_WORDS) {
-      if (lineText.includes(slop.word)) {
+      let matchedText: string | null = null;
+      if (typeof slop.pattern === "string") {
+        if (lineText.includes(slop.pattern)) {
+          matchedText = slop.pattern;
+        }
+      } else {
+        const m = lineText.match(slop.pattern);
+        if (m) {
+          matchedText = m[0];
+        }
+      }
+
+      if (matchedText) {
         violations.push({
           file: relPath,
           line: lineNum,
           rule: "AGENTS.md 1.4 (Anti-Slop & Editorial Voice)",
-          match: slop.word,
+          match: matchedText,
           message: slop.message,
         });
       }
@@ -90,8 +109,34 @@ function scanFile(filePath: string) {
           message: "Hardcoded Chinese fallback '管理员' detected. Must dynamically support 'Admin' in English mode.",
         });
       }
+
+      // Check banned emoji icons in UI code (AGENTS.md 1.1)
+      const cleanLine = lineText.replace(/\/\/.*$/, "").replace(/\/\*.*?\*\//g, "");
+      const emojiMatch = cleanLine.match(/[\u{1F300}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u);
+      if (emojiMatch) {
+        violations.push({
+          file: relPath,
+          line: lineNum,
+          rule: "AGENTS.md 1.1 (Anti-Patterns / No Emojis in UI)",
+          match: emojiMatch[0],
+          message: `Banned emoji '${emojiMatch[0]}' detected in UI component. AGENTS.md strictly forbids emoji icons; use lucide-react line icons instead.`,
+        });
+      }
     }
   });
+
+  // Whole-file multi-line checks for all files
+  const conflictMatch = content.match(/^(<{7}|={7}|>{7})(\s|$)/m);
+  if (conflictMatch && conflictMatch.index !== undefined) {
+    const lineNum = content.slice(0, conflictMatch.index).split("\n").length;
+    violations.push({
+      file: relPath,
+      line: lineNum,
+      rule: "Git Hygiene & Integrity (Unresolved Conflict Marker)",
+      match: conflictMatch[0].trim(),
+      message: "Stray git merge conflict marker detected. Clean up unresolved conflict artifacts.",
+    });
+  }
 
   // Whole-file multi-line checks for TSX/JSX
   if (filePath.endsWith(".tsx") || filePath.endsWith(".jsx")) {
@@ -110,6 +155,22 @@ function scanFile(filePath: string) {
           message: "Illegal nested interactive control: <button> contains <Link> or <a>, which traps clicks and violates HTML specification.",
         });
       }
+    }
+
+    // 4. Check native internal <a href="/..."> links (must use Next.js <Link>)
+    const internalLinkRegex = /<a\b[^>]*\bhref=["']\/([a-zA-Z0-9_\-\/]+)["'][^>]*>/g;
+    let linkMatch: RegExpExecArray | null;
+    while ((linkMatch = internalLinkRegex.exec(content)) !== null) {
+      const matchStr = linkMatch[0];
+      if (matchStr.includes("/raw/")) continue;
+      const lineNum = content.slice(0, linkMatch.index).split("\n").length;
+      violations.push({
+        file: relPath,
+        line: lineNum,
+        rule: "Next.js SPA Navigation Invariant (<Link> over <a>)",
+        match: matchStr.slice(0, 80),
+        message: "Native <a> tag used for internal route. Use Next.js <Link> to ensure smooth client-side SPA navigation.",
+      });
     }
   }
 

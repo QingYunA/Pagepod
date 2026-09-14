@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/lib/i18n/context";
 import { TopLoader } from "@/components/top-loader";
+import { GuestClaimReconciler } from "@/components/guest-claim-reconciler";
 import { Analytics } from "@vercel/analytics/next";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
@@ -136,6 +137,7 @@ export default function RootLayout({
           <TopLoader />
           <LanguageProvider>
             {children}
+            <GuestClaimReconciler />
           </LanguageProvider>
         </ThemeProvider>
         <Analytics />

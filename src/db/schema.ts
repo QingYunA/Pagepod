@@ -23,6 +23,13 @@ export const projects = pgTable(
     viewCount: integer("view_count").notNull().default(0),
     screenshotUrl: text("screenshot_url"),
 
+    // Pro-Tier Project Customization
+    isWhiteLabel: boolean("is_white_label").notNull().default(false),
+    customSubdomain: text("custom_subdomain").unique(),
+
+    // Ingress & Guest Lifecycle
+    isGuestTransient: boolean("is_guest_transient").notNull().default(false),
+
     // End-to-End Encryption fields (zero-knowledge)
     isEncrypted: boolean("is_encrypted").notNull().default(false),
     encryptionIv: text("encryption_iv"), // Base64url 12-byte IV for AES-GCM (public)
@@ -37,6 +44,9 @@ export const projects = pgTable(
     moderationCategory: text("moderation_category"),
     moderationSummary: text("moderation_summary"),
 
+    // Hierarchical Folder Organization
+    folderId: text("folder_id"), // Nullable: null represents root/uncategorized
+
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -44,6 +54,24 @@ export const projects = pgTable(
     index("projects_user_id_idx").on(table.userId),
     index("projects_global_pinned_idx").on(table.isGlobalPinned, table.globalPinnedAt),
     index("projects_language_idx").on(table.language),
+    index("projects_folder_id_idx").on(table.folderId),
+  ]
+);
+
+export const folders = pgTable(
+  "folders",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(), // Exact owner (Supabase user id or 'selfhost-admin')
+    name: text("name").notNull(),
+    parentId: text("parent_id"), // Self-referencing foreign key for nested hierarchy (null = root level)
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("folders_user_id_idx").on(table.userId),
+    index("folders_parent_id_idx").on(table.parentId),
   ]
 );
 
@@ -111,3 +139,6 @@ export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type NewUserSubscription = typeof userSubscriptions.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+export type Folder = typeof folders.$inferSelect;
+export type NewFolder = typeof folders.$inferInsert;
+

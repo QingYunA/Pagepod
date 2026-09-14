@@ -17,7 +17,10 @@ export async function updateProjectFullAction(
     visibility: "public" | "private";
     isPinned: boolean;
     isGlobalPinned?: boolean;
+    isWhiteLabel?: boolean;
+    customSubdomain?: string | null;
     language?: "zh" | "en" | "other";
+    folderId?: string | null;
     htmlCode?: string;
   }
 ) {

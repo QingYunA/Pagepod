@@ -25,8 +25,11 @@ import {
   Bot,
   Palette,
   Globe,
+  Folder as FolderIcon,
 } from "lucide-react";
 import { handleUploadAction } from "@/app/actions/upload";
+import { getUserFoldersAction } from "@/app/actions/manage";
+import type { Folder } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +43,7 @@ import { scanHtmlForSensitiveData, type SensitiveRiskMatch } from "@/lib/scanner
 import { PublicRiskDialog } from "@/components/public-risk-dialog";
 import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 import { sandboxPool } from "@/lib/sandbox-pool";
+import { buildIndentedFolderList } from "@/lib/utils";
 import { detectHtmlLanguage } from "@/lib/parser/language-detector";
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -70,6 +74,8 @@ export default function WorkspaceUploadPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("tools");
   const [language, setLanguage] = useState<string>("auto");
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [detectedLangHint, setDetectedLangHint] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -77,15 +83,39 @@ export default function WorkspaceUploadPage() {
   const [isPinned, setIsPinned] = useState(false);
   const [isGlobalPinned, setIsGlobalPinned] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [isWhiteLabel, setIsWhiteLabel] = useState(false);
+  const [customSubdomain, setCustomSubdomain] = useState("");
   const [copiedUrl, setCopiedUrl] = useState(false);
 
   useEffect(() => {
     fetch("/api/user/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.user && (data.user.role === "admin" || data.user.id === "selfhost-admin")) {
-          setIsAdmin(true);
+        if (data?.user) {
+          if (data.user.role === "admin" || data.user.id === "selfhost-admin") {
+            setIsAdmin(true);
+          }
+          if (data.user.planTier === "pro" || data.user.role === "admin" || data.user.id === "selfhost-admin") {
+            setIsPro(true);
+          }
         }
+      })
+      .catch(() => {});
+
+    // Context-aware pre-selection from URL query parameter ?folderId=...
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const fid = params.get("folderId");
+      if (fid) {
+        setSelectedFolderId(fid);
+      }
+    }
+
+    // Fetch user folders for dropdown selection
+    getUserFoldersAction()
+      .then((data) => {
+        if (Array.isArray(data)) setFolders(data);
       })
       .catch(() => {});
   }, []);
@@ -246,11 +276,18 @@ export default function WorkspaceUploadPage() {
         if (language !== "auto") {
           formData.append("language", language);
         }
+        if (selectedFolderId) {
+          formData.append("folderId", selectedFolderId);
+        }
         formData.append("tags", tags.join(","));
         formData.append("visibility", targetVisibility);
         formData.append("isPinned", String(isPinned));
         if (isAdmin) {
           formData.append("isGlobalPinned", String(isGlobalPinned));
+        }
+        formData.append("isWhiteLabel", String(isWhiteLabel));
+        if (customSubdomain) {
+          formData.append("customSubdomain", customSubdomain.trim().toLowerCase());
         }
 
         if (mode === "file" && file) {
@@ -283,11 +320,18 @@ export default function WorkspaceUploadPage() {
             if (language !== "auto") {
               apiFormData.append("language", language);
             }
+            if (selectedFolderId) {
+              apiFormData.append("folderId", selectedFolderId);
+            }
             apiFormData.append("tags", tags.join(","));
             apiFormData.append("visibility", targetVisibility);
             apiFormData.append("isPinned", String(isPinned));
             if (isAdmin) {
               apiFormData.append("isGlobalPinned", String(isGlobalPinned));
+            }
+            apiFormData.append("isWhiteLabel", String(isWhiteLabel));
+            if (customSubdomain) {
+              apiFormData.append("customSubdomain", customSubdomain.trim().toLowerCase());
             }
 
             const apiRes = await fetch("/api/upload", {
@@ -327,9 +371,11 @@ export default function WorkspaceUploadPage() {
 
       // Perform static credential & token scan
       const scanResult = scanHtmlForSensitiveData(codeToScan);
-      setDetectedRisks(scanResult.matches);
-      setShowRiskDialog(true);
-      return;
+      if (scanResult.matches.length > 0) {
+        setDetectedRisks(scanResult.matches);
+        setShowRiskDialog(true);
+        return;
+      }
     }
 
     await performActualSubmit();
@@ -638,6 +684,31 @@ export default function WorkspaceUploadPage() {
                   </div>
                 </div>
 
+                {/* Folder Selection */}
+                <div>
+                  <Label htmlFor="upload-folder" className="block mb-1.5">
+                    {t.workspace?.folders || "所属文件夹"}
+                  </Label>
+                  <div className="flex items-center gap-2.5">
+                    <Select
+                      id="upload-folder"
+                      value={selectedFolderId || ""}
+                      onChange={(e) => setSelectedFolderId(e.target.value ? e.target.value : null)}
+                      className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-52"
+                    >
+                      <option value="">{t.workspace?.rootFolderOption || "未归类 / 根目录"}</option>
+                      {buildIndentedFolderList(folders).map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {"\u00A0\u00A0".repeat(f.depth)}{f.depth > 0 ? "└─ " : ""}{f.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <span className="text-xs text-muted-foreground">
+                      {t.workspace?.selectTargetFolder || "选择存放项目的文件夹，可在左侧目录树随时移动"}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Language Selection */}
                 <div>
                   <Label htmlFor="upload-language" className="block mb-1.5 text-sm">
@@ -765,6 +836,57 @@ export default function WorkspaceUploadPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Pro Perks: White-label & Custom Subdomain */}
+                {isPro && (
+                  <div className="pt-3 border-t border-border space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-foreground" />
+                        <span>Pro 权益定制 (Pro Perks)</span>
+                      </span>
+                      <Badge variant="outline" className="text-xs font-mono border-border text-foreground">PRO</Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="upload-subdomain" className="block text-sm font-medium text-foreground mb-1.5">
+                          专属二级子域名 (Subdomain)
+                        </label>
+                        <div className="flex items-center rounded-md border border-input bg-background px-3 py-1.5 text-sm text-muted-foreground focus-within:ring-1 focus-within:ring-ring">
+                          <span className="text-xs select-none text-muted-foreground">https://</span>
+                          <input
+                            id="upload-subdomain"
+                            type="text"
+                            value={customSubdomain}
+                            placeholder={slug || "my-app"}
+                            onChange={(e) => setCustomSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                            className="bg-transparent border-0 p-0 text-sm text-foreground focus:outline-none focus:ring-0 w-full ml-1"
+                          />
+                          <span className="text-xs select-none text-muted-foreground">.pagepod.dev</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">留空则默认使用全局 /p/{slug || "slug"} 路由</p>
+                      </div>
+
+                      <div className="flex flex-col justify-center">
+                        <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
+                          <Checkbox
+                            checked={isWhiteLabel}
+                            onChange={(e) => setIsWhiteLabel(e.target.checked)}
+                          />
+                          <div>
+                            <span className="text-sm text-foreground font-medium block">
+                              白标模式 (White-Label)
+                            </span>
+                            <span className="text-xs text-muted-foreground leading-tight block">
+                              隐藏全屏运行台右下角的 "Hosted on Pagepod" 徽标
+                            </span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

@@ -5,21 +5,25 @@ import {
   getProjectById as dbGetProjectById,
   updateProject as dbUpdateProject,
   deleteProject as dbDeleteProject,
+  createFolder as dbCreateFolder,
+  updateFolder as dbUpdateFolder,
+  deleteFolder as dbDeleteFolder,
+  getFolderById as dbGetFolderById,
+  batchMoveProjectsToFolder as dbBatchMoveProjectsToFolder,
+  batchUpdateProjectsVisibility as dbBatchUpdateProjectsVisibility,
+  batchDeleteProjects as dbBatchDeleteProjects,
 } from "@/db";
 import { getProjectStorage, getStorageType } from "@/lib/storage";
 import { extractMetadataFromHtml, unpackZipBundle, detectHtmlLanguage } from "@/lib/parser";
 import {
-  renderProjectScreenshot,
-  captureProjectScreenshot,
   captureProjectScreenshotWithBuffer,
-  generateSnapshotToken,
 } from "@/lib/services/screenshot-service";
 import { assertCanCreateProject } from "@/lib/services/billing-service";
 import { assertCanManageProject, isExactProjectCreator, type CurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import type { Project } from "@/db/schema";
-import type { Language } from "@/lib/validation";
+import { type Language, RESERVED_SUBDOMAINS, SYSTEM_PATHS } from "@/lib/validation";
 import { moderateProjectContent } from "@/lib/moderation/engine";
 import type { ModerationResult } from "@/lib/moderation/types";
 import { createNotification } from "@/db";
@@ -63,7 +67,7 @@ export class ProjectPayloadTooLargeError extends ProjectDomainError {
 
 // --- Interfaces & Types ---
 
-export type ProjectVisibility = "public" | "private";
+export type ProjectVisibility = "public" | "unlisted" | "private";
 
 export function assertCanSetVisibility(
   actor: CurrentUser,
@@ -88,10 +92,14 @@ export interface CreateProjectInput {
   description?: string;
   category?: string;
   language?: Language;
+  folderId?: string | null;
   tags?: string[];
   visibility?: ProjectVisibility;
   isPinned?: boolean;
   isGlobalPinned?: boolean;
+  isWhiteLabel?: boolean;
+  customSubdomain?: string | null;
+  isGuestTransient?: boolean;
   screenshotUrl?: string;
   htmlContent?: string;
   fileBuffer?: Buffer;
@@ -104,11 +112,34 @@ export interface UpdateProjectInput {
   description?: string;
   category?: string;
   language?: Language;
+  folderId?: string | null;
   tags?: string[];
   visibility?: ProjectVisibility;
   isPinned?: boolean;
   isGlobalPinned?: boolean;
+  isWhiteLabel?: boolean;
+  customSubdomain?: string | null;
+  isGuestTransient?: boolean;
   htmlCode?: string;
+}
+
+export function isProActor(actor: CurrentUser): boolean {
+  return actor.planTier === "pro" || actor.role === "admin" || actor.id === "selfhost-admin";
+}
+
+export async function validateCustomSubdomain(subdomain: string, excludeProjectId?: string): Promise<string> {
+  const clean = subdomain.trim().toLowerCase();
+  if (!/^[a-z0-9_-]{2,30}$/.test(clean)) {
+    throw new ProjectValidationError("Subdomain must be 2-30 lowercase letters, numbers, or hyphens");
+  }
+  if (RESERVED_SUBDOMAINS.has(clean) || SYSTEM_PATHS.has(clean)) {
+    throw new ProjectValidationError(`Subdomain "${clean}" is a reserved system name`);
+  }
+  const existing = await dbGetProjectBySlug(clean);
+  if (existing && existing.id !== excludeProjectId) {
+    throw new ProjectValidationError(`Subdomain "${clean}" is already taken`);
+  }
+  return clean;
 }
 
 export function sanitizeSlug(input: string): string {
@@ -228,28 +259,25 @@ export async function createProject(
     title = "Untitled Project";
   }
 
-  // 4. Generate poster screenshot directly before initial DB write (Single Atomic Commit)
+  // 4. Decoupled Poster Screenshot Ingestion (Sub-50ms Instant Link Response)
+  // Synchronous blocking headless capture is bypassed to guarantee instant link delivery.
+  // Public projects automatically trigger background capture asynchronously via after(runCapture) below.
   let screenshotUrl = input.screenshotUrl || null;
-  let imgBuffer: Buffer | null = null;
-  if (!screenshotUrl && initialHtml) {
-    try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
-      const publicUrl = (input.visibility || "public") === "public" ? `${siteUrl}/raw/${slug}` : undefined;
-      imgBuffer = await renderProjectScreenshot(initialHtml, publicUrl);
-      if (imgBuffer) {
-        await projectStorage.writeAsset("screenshot.png", imgBuffer, "image/png");
-        screenshotUrl = `/raw/${slug}/screenshot.png?v=${Date.now()}`;
-      }
-    } catch (screenshotErr) {
-      console.warn(`[ProjectService] Auto screenshot capture skipped for ${slug}:`, screenshotErr);
-    }
-  }
 
   const projectUserId = actor.id === "selfhost-admin" ? null : actor.id;
   const declaredLanguage = input.language || (initialHtml ? detectHtmlLanguage(initialHtml) : "zh");
 
   if (input.isGlobalPinned && actor.role !== "admin" && actor.id !== "selfhost-admin") {
     throw new ProjectForbiddenError("Forbidden: Only administrators can set global showcase pin");
+  }
+  if (input.isWhiteLabel || input.customSubdomain) {
+    if (!isProActor(actor)) {
+      throw new ProjectForbiddenError("Forbidden: Custom subdomain and White-label mode are exclusive to Pro creators");
+    }
+  }
+  let validatedCustomSubdomain: string | null = null;
+  if (input.customSubdomain) {
+    validatedCustomSubdomain = await validateCustomSubdomain(input.customSubdomain);
   }
   const isGlobalPinned = Boolean(input.isGlobalPinned);
   const isPinned = Boolean(input.isPinned);
@@ -262,6 +290,7 @@ export async function createProject(
     description,
     category: input.category || "tools",
     language: declaredLanguage,
+    folderId: input.folderId ?? null,
     tags: input.tags || [],
     assetType,
     entryPath,
@@ -272,6 +301,9 @@ export async function createProject(
     pinnedAt: isPinned ? new Date() : null,
     isGlobalPinned,
     globalPinnedAt: isGlobalPinned ? new Date() : null,
+    isWhiteLabel: input.isWhiteLabel ?? false,
+    customSubdomain: validatedCustomSubdomain,
+    isGuestTransient: Boolean(input.isGuestTransient),
     viewCount: 0,
     screenshotUrl,
     isEncrypted: false,
@@ -292,7 +324,7 @@ export async function createProject(
       slug: project.slug,
       title: project.title,
       html: initialHtml,
-      screenshotBuffer: imgBuffer,
+      screenshotBuffer: null,
       creatorUserId: projectUserId,
     });
   }
@@ -454,31 +486,12 @@ export async function updateProject(
   }
 
   const projectStorage = getProjectStorage(project.slug);
-  let newScreenshotUrl: string | undefined = undefined;
   let codeChanged = false;
-  let imgBuffer: Buffer | null = null;
 
-  // If HTML code is provided and it's single_html, update storage and re-capture screenshot
+  // If HTML code is provided and it's single_html, update storage (poster capture handled asynchronously)
   if (input.htmlCode && project.assetType === "single_html") {
     codeChanged = true;
     await projectStorage.writeEntryFile(input.htmlCode, project.entryPath);
-
-    try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
-      const targetVisibility = input.visibility !== undefined ? input.visibility : project.visibility;
-      let publicUrl: string | undefined;
-      if (targetVisibility === "public") {
-        const snapshotToken = generateSnapshotToken(project.slug);
-        publicUrl = `${siteUrl}/raw/${project.slug}?_snapshot_token=${encodeURIComponent(snapshotToken)}`;
-      }
-      imgBuffer = await renderProjectScreenshot(input.htmlCode, publicUrl);
-      if (imgBuffer) {
-        await projectStorage.writeAsset("screenshot.png", imgBuffer, "image/png");
-        newScreenshotUrl = `/raw/${project.slug}/screenshot.png?v=${Date.now()}`;
-      }
-    } catch (screenshotErr) {
-      console.warn(`[ProjectService] Re-capture screenshot skipped for ${project.slug}:`, screenshotErr);
-    }
   }
 
   const patch: Partial<Project> = {};
@@ -486,6 +499,7 @@ export async function updateProject(
   if (input.description !== undefined) patch.description = input.description;
   if (input.category !== undefined) patch.category = input.category;
   if (input.language !== undefined) patch.language = input.language;
+  if (input.folderId !== undefined) patch.folderId = input.folderId;
   if (input.tags !== undefined) patch.tags = input.tags;
   if (input.visibility !== undefined) patch.visibility = input.visibility;
   if (input.isPinned !== undefined) {
@@ -499,7 +513,22 @@ export async function updateProject(
     patch.isGlobalPinned = input.isGlobalPinned;
     patch.globalPinnedAt = input.isGlobalPinned ? new Date() : null;
   }
-  if (newScreenshotUrl) patch.screenshotUrl = newScreenshotUrl;
+  if (input.isWhiteLabel !== undefined || input.customSubdomain !== undefined) {
+    if (!isProActor(actor)) {
+      throw new ProjectForbiddenError("Forbidden: Custom subdomain and White-label mode are exclusive to Pro creators");
+    }
+    if (input.isWhiteLabel !== undefined) patch.isWhiteLabel = input.isWhiteLabel;
+    if (input.customSubdomain !== undefined) {
+      if (input.customSubdomain) {
+        patch.customSubdomain = await validateCustomSubdomain(input.customSubdomain, project.id);
+      } else {
+        patch.customSubdomain = null;
+      }
+    }
+  }
+  if (input.isGuestTransient !== undefined) {
+    patch.isGuestTransient = input.isGuestTransient;
+  }
 
   if (codeChanged) {
     patch.reviewStatus = "pending";
@@ -520,14 +549,13 @@ export async function updateProject(
       slug: project.slug,
       title: patch.title || project.title,
       html: input.htmlCode,
-      screenshotBuffer: imgBuffer,
+      screenshotBuffer: null,
       creatorUserId: project.userId,
     });
 
-    // Fallback: If screenshot wasn't captured synchronously (e.g. cloud headless missing),
-    // trigger background capture and feed back into visual moderation.
+    // Trigger post-update background screenshot capture and feed back into visual moderation
     const finalVisibility = patch.visibility || project.visibility;
-    if (!imgBuffer && finalVisibility === "public") {
+    if (finalVisibility === "public") {
       const runCapture = async () => {
         try {
           const captured = await captureProjectScreenshotWithBuffer(project.slug);
@@ -752,3 +780,184 @@ export async function updateProjectHtml(
     : { id: "selfhost-admin", role: "admin" };
   return updateProject(actor, id, { htmlCode: newHtml });
 }
+
+/* =========================================================================
+ * FOLDER & BATCH ACTION DOMAIN SERVICES
+ * ========================================================================= */
+
+export async function createFolder(
+  actor: CurrentUser,
+  name: string,
+  parentId?: string | null
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required to create a folder");
+  }
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    throw new ProjectValidationError("Folder name cannot be empty");
+  }
+
+  const folder = await dbCreateFolder({
+    id: nanoid(10),
+    userId: actor.id,
+    name: trimmedName,
+    parentId: parentId || null,
+    sortOrder: 0,
+  });
+
+  revalidateProjectPaths();
+  return folder;
+}
+
+export async function updateFolder(
+  actor: CurrentUser,
+  folderId: string,
+  updates: { name?: string; parentId?: string | null }
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  const folder = await dbGetFolderById(folderId);
+  if (!folder) {
+    throw new ProjectNotFoundError("Folder not found");
+  }
+  if (actor.role !== "admin" && actor.id !== "selfhost-admin" && folder.userId !== actor.id) {
+    throw new ProjectForbiddenError("Forbidden: Cannot modify another user's folder");
+  }
+
+  const patch: { name?: string; parentId?: string | null } = {};
+  if (updates.name !== undefined) {
+    const trimmed = updates.name.trim();
+    if (!trimmed) throw new ProjectValidationError("Folder name cannot be empty");
+    patch.name = trimmed;
+  }
+  if (updates.parentId !== undefined) {
+    patch.parentId = updates.parentId;
+  }
+
+  const updated = await dbUpdateFolder(folderId, actor.id, patch);
+  revalidateProjectPaths();
+  return updated;
+}
+
+export async function deleteFolder(actor: CurrentUser, folderId: string) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  const folder = await dbGetFolderById(folderId);
+  if (!folder) {
+    throw new ProjectNotFoundError("Folder not found");
+  }
+  if (actor.role !== "admin" && actor.id !== "selfhost-admin" && folder.userId !== actor.id) {
+    throw new ProjectForbiddenError("Forbidden: Cannot delete another user's folder");
+  }
+
+  const result = await dbDeleteFolder(folderId, actor.id);
+  revalidateProjectPaths();
+  return result;
+}
+
+export async function batchMoveProjects(
+  actor: CurrentUser,
+  projectIds: string[],
+  folderId: string | null
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  if (!projectIds || projectIds.length === 0) {
+    return 0;
+  }
+  if (folderId) {
+    const targetFolder = await dbGetFolderById(folderId);
+    if (!targetFolder) {
+      throw new ProjectNotFoundError("Target folder not found");
+    }
+    if (actor.role !== "admin" && actor.id !== "selfhost-admin" && targetFolder.userId !== actor.id) {
+      throw new ProjectForbiddenError("Forbidden: Target folder does not belong to you");
+    }
+  }
+
+  const projectsToMove: Project[] = [];
+  for (const id of projectIds) {
+    const p = await dbGetProjectById(id);
+    if (!p) continue;
+    assertCanManageProject(actor, p);
+    projectsToMove.push(p);
+  }
+
+  if (projectsToMove.length === 0) return 0;
+  const validIds = projectsToMove.map((p) => p.id);
+  const count = await dbBatchMoveProjectsToFolder(validIds, folderId, actor.id);
+  revalidateProjectPaths();
+  return count;
+}
+
+export async function batchUpdateVisibility(
+  actor: CurrentUser,
+  projectIds: string[],
+  visibility: "public" | "private"
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  if (!projectIds || projectIds.length === 0) {
+    return 0;
+  }
+
+  const projectsToUpdate: Project[] = [];
+  for (const id of projectIds) {
+    const p = await dbGetProjectById(id);
+    if (!p) continue;
+    assertCanManageProject(actor, p);
+    assertCanSetVisibility(actor, p, visibility);
+    projectsToUpdate.push(p);
+  }
+
+  if (projectsToUpdate.length === 0) return 0;
+  const validIds = projectsToUpdate.map((p) => p.id);
+  const count = await dbBatchUpdateProjectsVisibility(validIds, visibility, actor.id);
+  revalidateProjectPaths();
+  return count;
+}
+
+export async function batchDeleteProjects(
+  actor: CurrentUser,
+  projectIds: string[]
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  if (!projectIds || projectIds.length === 0) {
+    return 0;
+  }
+
+  const projectsToDelete: Project[] = [];
+  for (const id of projectIds) {
+    const p = await dbGetProjectById(id);
+    if (!p) continue;
+    assertCanManageProject(actor, p);
+    projectsToDelete.push(p);
+  }
+
+  if (projectsToDelete.length === 0) return 0;
+
+  // Clean up physical storage files in R2 / Blob / local storage
+  await Promise.allSettled(
+    projectsToDelete.map(async (p) => {
+      const storage = getProjectStorage(p.slug);
+      try {
+        await storage.deleteProjectFiles();
+      } catch (err) {
+        console.error(`[ProjectService] Failed to clean up storage for ${p.slug}:`, err);
+      }
+    })
+  );
+
+  const validIds = projectsToDelete.map((p) => p.id);
+  const count = await dbBatchDeleteProjects(validIds, actor.id);
+  revalidateProjectPaths();
+  return count;
+}
+

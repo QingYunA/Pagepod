@@ -59,10 +59,13 @@ export async function POST(request: Request) {
         description: body.description,
         category: body.category,
         language: body.language,
+        folderId: body.folderId,
         tags: body.tags,
         visibility: body.visibility,
         isPinned: body.isPinned,
         isGlobalPinned: body.isGlobalPinned,
+        isWhiteLabel: body.isWhiteLabel,
+        customSubdomain: body.customSubdomain,
         htmlContent,
       });
     } else if (isMultipart && parsedFormData) {
@@ -74,6 +77,7 @@ export async function POST(request: Request) {
       const rawVisibility = formData.get("visibility");
       const rawTags = formData.get("tags");
       const rawLang = formData.get("language");
+      const rawFolderId = formData.get("folderId");
 
       const parseResult = uploadPayloadSchema.safeParse({
         title: typeof formData.get("title") === "string" ? (formData.get("title") as string) : undefined,
@@ -81,10 +85,13 @@ export async function POST(request: Request) {
         description: typeof formData.get("description") === "string" ? (formData.get("description") as string) : undefined,
         category: typeof formData.get("category") === "string" ? (formData.get("category") as string) : undefined,
         language: typeof rawLang === "string" && rawLang !== "auto" ? rawLang : undefined,
+        folderId: typeof rawFolderId === "string" && rawFolderId.trim() ? rawFolderId.trim() : null,
         tags: typeof rawTags === "string" ? rawTags : [],
         visibility: typeof rawVisibility === "string" ? rawVisibility : "public",
         isPinned: formData.get("isPinned") === "true",
         isGlobalPinned: formData.get("isGlobalPinned") === "true",
+        isWhiteLabel: formData.get("isWhiteLabel") === "true",
+        customSubdomain: typeof formData.get("customSubdomain") === "string" ? (formData.get("customSubdomain") as string) : undefined,
       });
 
       if (!parseResult.success) {
@@ -112,10 +119,13 @@ export async function POST(request: Request) {
           description: body.description,
           category: body.category,
           language: body.language,
+          folderId: body.folderId,
           tags: body.tags,
           visibility: body.visibility,
           isPinned: body.isPinned,
           isGlobalPinned: body.isGlobalPinned,
+          isWhiteLabel: body.isWhiteLabel,
+          customSubdomain: body.customSubdomain,
           fileBuffer,
           fileName: file.name,
         });
@@ -126,10 +136,13 @@ export async function POST(request: Request) {
           description: body.description,
           category: body.category,
           language: body.language,
+          folderId: body.folderId,
           tags: body.tags,
           visibility: body.visibility,
           isPinned: body.isPinned,
           isGlobalPinned: body.isGlobalPinned,
+          isWhiteLabel: body.isWhiteLabel,
+          customSubdomain: body.customSubdomain,
           htmlContent,
         });
       } else {

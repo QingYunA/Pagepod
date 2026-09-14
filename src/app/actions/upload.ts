@@ -30,10 +30,13 @@ export async function handleUploadAction(
     description: str("description"),
     category: str("category"),
     language: str("language"),
+    folderId: str("folderId") || null,
     tags: str("tags") ?? "",
     visibility: str("visibility") ?? "public",
     isPinned: formData.get("isPinned") === "true",
     isGlobalPinned: formData.get("isGlobalPinned") === "true",
+    isWhiteLabel: formData.get("isWhiteLabel") === "true",
+    customSubdomain: str("customSubdomain"),
   });
 
   if (!parseResult.success) {
@@ -47,10 +50,13 @@ export async function handleUploadAction(
     description,
     category,
     language,
+    folderId,
     tags,
     visibility,
     isPinned,
     isGlobalPinned,
+    isWhiteLabel,
+    customSubdomain,
   } = parseResult.data;
 
   try {
@@ -69,10 +75,13 @@ export async function handleUploadAction(
         description,
         category,
         language,
+        folderId,
         tags,
         visibility,
         isPinned,
         isGlobalPinned,
+        isWhiteLabel,
+        customSubdomain,
         htmlContent,
       });
 
@@ -95,10 +104,13 @@ export async function handleUploadAction(
         description,
         category,
         language,
+        folderId,
         tags,
         visibility,
         isPinned,
         isGlobalPinned,
+        isWhiteLabel,
+        customSubdomain,
         fileBuffer,
         fileName: file.name,
       });
