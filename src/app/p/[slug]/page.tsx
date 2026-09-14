@@ -6,13 +6,19 @@ import { incrementViewCount, getAllProjects } from "@/db";
 import { getStorage } from "@/lib/storage";
 import { getCurrentUser, isExactProjectCreator } from "@/lib/auth";
 import Link from "next/link";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createAppealMailtoUrl } from "@/lib/moderation/types";
+import { verifyProjectAccessToken } from "@/lib/services/guest-upload";
+import { TokenGateInput } from "@/components/token-gate-input";
 import RunnerClient from "./runner-client";
 
 interface PageProps {
   params: Promise<{
     slug: string;
+  }>;
+  searchParams?: Promise<{
+    token?: string;
   }>;
 }
 
@@ -30,14 +36,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  // If private or not yet approved, disallow search engine indexing
-  if (project.visibility === "private" || project.reviewStatus === "rejected" || project.reviewStatus === "pending") {
+  // If private, unlisted, or not yet approved, disallow search engine indexing
+  if (
+    project.visibility === "private" ||
+    project.visibility === "unlisted" ||
+    project.reviewStatus === "rejected" ||
+    project.reviewStatus === "pending"
+  ) {
     return {
       title:
         project.reviewStatus === "rejected"
           ? "Project Removed / 项目已违规下架 - Pagepod"
+          : project.visibility === "unlisted"
+          ? "Unlisted Project / 未公开保护项目 - Pagepod"
           : "Private Project / 私有保护项目 - Pagepod",
-      description: "Content is not publicly available on Pagepod.",
+      description: "Content is not publicly indexed on Pagepod.",
       robots: { index: false, follow: false },
     };
   }
@@ -80,8 +93,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function ProjectRunnerPage({ params }: PageProps) {
+export default async function ProjectRunnerPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const token = resolvedSearchParams.token;
   const project = await getProjectBySlugCached(slug);
 
   if (!project) {
@@ -93,11 +108,15 @@ export default async function ProjectRunnerPage({ params }: PageProps) {
   // Strict Ownership: Platform admins DO NOT have permission to decrypt or peek at another user's private/encrypted project.
   // Only the exact user who created the project is granted owner rights!
   const isExactCreator = isExactProjectCreator(currentUser, project);
+  const isTokenValid = verifyProjectAccessToken(project, token, isExactCreator);
 
   // Record the view only after the response is sent, and never for unauthorized
-  // requests to a private project. This keeps a non-critical write off the render path.
+  // requests to a private or unlisted project. This keeps a non-critical write off the render path.
   after(() => {
-    if (project.visibility !== "private" || isExactCreator) {
+    if (
+      (project.visibility === "public" || isExactCreator || (project.visibility === "unlisted" && isTokenValid)) &&
+      project.visibility !== "private"
+    ) {
       incrementViewCount(slug).catch(() => {});
     }
   });
@@ -169,6 +188,24 @@ export default async function ProjectRunnerPage({ params }: PageProps) {
             Sign In to Access / 登录账号访问
           </Link>
         </Button>
+      </div>
+    );
+  }
+
+  // 4. If project is unlisted, require valid access token (or creator ownership)
+  if (project.visibility === "unlisted" && !isTokenValid) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background text-foreground p-6 text-center antialiased">
+        <div className="w-12 h-12 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center mb-4 border border-zinc-700 font-mono font-bold text-xs">
+          <Lock className="w-5 h-5 text-zinc-400" />
+        </div>
+        <h1 className="text-base font-semibold">Protected Unlisted Project / 未公开保护项目</h1>
+        <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-5 leading-relaxed">
+          This project is unlisted and requires a valid access token to run and view.
+          <br />
+          该项目为未公开分享，需要持有专属访问口令（Access Token）方可运行查看。
+        </p>
+        <TokenGateInput slug={project.slug} />
       </div>
     );
   }
@@ -253,6 +290,7 @@ export default async function ProjectRunnerPage({ params }: PageProps) {
         initialSourceCode={sourceCode}
         isOwner={isExactCreator}
         relatedProjects={relatedProjects}
+        token={token}
       />
     </>
   );
