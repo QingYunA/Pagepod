@@ -33,7 +33,7 @@ export default async function HomePage() {
 
       {/* Main Showcase Gallery */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8">
-        <ShowcaseGallery initialProjects={projects} />
+        <ShowcaseGallery initialProjects={projects} initialLocale={serverLocale} />
       </main>
     </>
   );
