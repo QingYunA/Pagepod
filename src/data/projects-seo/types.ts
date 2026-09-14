@@ -1,3 +1,5 @@
+import type { Category } from "@/lib/validation";
+
 export interface SeoUseCase {
   title: string;
   description: string;
@@ -24,8 +26,7 @@ export interface ProjectSeoProfile {
   secondaryKeywords: string[];
   headline: string;
   summary: string;
-  detailedDescription?: string;
-  category: string;
+  category: Category;
   language: "zh" | "en";
   useCases: SeoUseCase[];
   shortcuts?: SeoShortcut[];

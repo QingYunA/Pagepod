@@ -1,3 +1,4 @@
+import { CATEGORIES_ENUM, type Category } from "@/lib/validation";
 import type { ProjectSeoProfile } from "./types";
 import { GAMES_SEO } from "./entries/games";
 import { TOOLS_SEO } from "./entries/tools";
@@ -32,7 +33,11 @@ export function getProjectSeoProfile(
   }
 
   const title = fallbackProject?.title || slug;
-  const category = fallbackProject?.category || "tools";
+  const rawCategory = fallbackProject?.category;
+  const category: Category =
+    rawCategory && (CATEGORIES_ENUM as readonly string[]).includes(rawCategory)
+      ? (rawCategory as Category)
+      : "tools";
   const isZh = fallbackProject?.language === "zh";
 
   return {

@@ -63,11 +63,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const profile = getProjectSeoProfile(slug, project);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
   const canonicalUrl = `${siteUrl}/p/${slug}`;
-  const metaTitle = `${profile.headline} | Pagepod`;
+  const fullMetaTitle = `${profile.headline} | Pagepod`;
   const metaDesc = profile.summary.slice(0, 160);
 
   return {
-    title: metaTitle,
+    title: profile.headline, // Root layout template will append " | Pagepod"
     description: metaDesc,
     keywords: [
       profile.targetKeyword,
@@ -81,14 +81,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: metaTitle,
+      title: fullMetaTitle,
       description: metaDesc,
       url: canonicalUrl,
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title: metaTitle,
+      title: fullMetaTitle,
       description: metaDesc,
     },
     robots: {
@@ -96,6 +96,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       follow: true,
     },
   };
+}
+
+async function fetchRelatedProjects(slug: string, category?: string | null) {
+  try {
+    const allPublic = await getAllProjects({ category: category || undefined });
+    let related = allPublic
+      .filter((p) => p.slug !== slug && p.visibility === "public")
+      .slice(0, 4);
+
+    if (related.length < 3) {
+      const moreProjects = await getAllProjects();
+      const extra = moreProjects
+        .filter((p) => p.slug !== slug && p.visibility === "public" && !related.some((r) => r.slug === p.slug))
+        .slice(0, 4 - related.length);
+      related = [...related, ...extra];
+    }
+    return related;
+  } catch {
+    return [];
+  }
 }
 
 export default async function ProjectRunnerPage({ params, searchParams }: PageProps) {
@@ -319,24 +339,7 @@ export default async function ProjectRunnerPage({ params, searchParams }: PagePr
     : null;
 
   // Fetch related public projects for internal linking & recommendations
-  let relatedProjects: import("@/db/schema").Project[] = [];
-  try {
-    const allPublic = await getAllProjects({ category: project.category });
-    relatedProjects = allPublic
-      .filter((p) => p.slug !== slug && p.visibility === "public")
-      .slice(0, 4);
-    
-    // If not enough in category, fetch from all categories
-    if (relatedProjects.length < 3) {
-      const moreProjects = await getAllProjects();
-      const extra = moreProjects
-        .filter((p) => p.slug !== slug && p.visibility === "public" && !relatedProjects.some(r => r.slug === p.slug))
-        .slice(0, 4 - relatedProjects.length);
-      relatedProjects = [...relatedProjects, ...extra];
-    }
-  } catch {
-    relatedProjects = [];
-  }
+  const relatedProjects = await fetchRelatedProjects(slug, project.category);
 
   // Safe JSON-LD serialization preventing </script> breakout & XSS
   const safeJsonLdString = jsonLd

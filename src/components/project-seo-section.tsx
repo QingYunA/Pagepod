@@ -32,11 +32,20 @@ function GithubIcon({ className = "w-3 h-3" }: { className?: string }) {
   );
 }
 
+const CATEGORY_LOCALIZED: Record<string, { en: string; zh: string }> = {
+  tools: { en: "Tools", zh: "工具" },
+  games: { en: "Games", zh: "游戏" },
+  visualization: { en: "Visualization", zh: "可视化" },
+  prototypes: { en: "Prototypes", zh: "原型" },
+  ai: { en: "AI", zh: "AI" },
+  creative: { en: "Creative", zh: "创意" },
+};
+
 interface ProjectSeoSectionProps {
   profile: ProjectSeoProfile;
   project: Project;
   relatedProjects?: Project[];
-  rawUrl: string;
+  rawUrl?: string;
 }
 
 export function ProjectSeoSection({
@@ -46,6 +55,7 @@ export function ProjectSeoSection({
   rawUrl,
 }: ProjectSeoSectionProps) {
   const isZh = profile.language === "zh";
+  const resolvedRawUrl = rawUrl || `/raw/${project.slug}/`;
 
   const labels = isZh
     ? {
@@ -59,12 +69,10 @@ export function ProjectSeoSection({
         relatedTitle: "同类作品推荐",
         viewAll: "查看全部",
         play: "运行体验",
-        embedSnippet: "嵌入代码",
         offlineBadge: "纯前端安全沙箱",
         zeroInstallBadge: "免安装秒开",
         authorPrefix: "原作者",
-        upstreamPrefix: "开源仓库",
-        licensePrefix: "开源许可",
+        upstreamPrefix: "开源出处",
         sourceInspection: "源码审查",
       }
     : {
@@ -78,16 +86,18 @@ export function ProjectSeoSection({
         relatedTitle: "Related Projects",
         viewAll: "View all in",
         play: "Play",
-        embedSnippet: "Embed Snippet",
         offlineBadge: "Hardened Sandbox",
         zeroInstallBadge: "Zero-Install Instant Run",
         authorPrefix: "Author",
-        upstreamPrefix: "Upstream Repository",
-        licensePrefix: "License",
+        upstreamPrefix: "Upstream Source",
         sourceInspection: "Inspect Source",
       };
 
-  const embedCode = `<iframe src="${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev"}/raw/${project.slug}/" width="100%" height="600" frameborder="0" sandbox="allow-scripts allow-forms allow-downloads allow-popups allow-modals" allow="fullscreen; clipboard-write" allowfullscreen></iframe>`;
+  const localizedCategory = project.category
+    ? CATEGORY_LOCALIZED[project.category]?.[isZh ? "zh" : "en"] || project.category
+    : isZh
+    ? "工具"
+    : "Tools";
 
   return (
     <section
@@ -109,9 +119,9 @@ export function ProjectSeoSection({
               <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
               <Link
                 href={`/explore/${project.category}`}
-                className="hover:text-foreground transition-colors capitalize font-medium"
+                className="hover:text-foreground transition-colors font-medium capitalize"
               >
-                {project.category}
+                {localizedCategory}
               </Link>
             </>
           )}
@@ -125,7 +135,7 @@ export function ProjectSeoSection({
         <div className="space-y-4 pb-8 border-b border-border">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="text-xs font-mono uppercase">
-              {project.category || "Tool"}
+              {localizedCategory}
             </Badge>
             <Badge variant="secondary" className="text-xs font-mono">
               {labels.offlineBadge}
@@ -139,7 +149,7 @@ export function ProjectSeoSection({
               </Badge>
             )}
             <span className="text-xs text-muted-foreground font-mono ml-auto">
-              {project.viewCount} views
+              {project.viewCount} {isZh ? "次浏览" : "views"}
             </span>
           </div>
 
@@ -251,7 +261,7 @@ export function ProjectSeoSection({
             </div>
             {profile.license && (
               <Badge variant="outline" className="font-mono text-xs">
-                {profile.license} License
+                {profile.license} {isZh ? "开源协议" : "License"}
               </Badge>
             )}
           </div>
@@ -287,8 +297,16 @@ export function ProjectSeoSection({
                   rel="noopener noreferrer"
                   className="font-medium text-foreground hover:underline inline-flex items-center gap-1 truncate"
                 >
-                  <GithubIcon className="w-3 h-3 shrink-0" />
-                  <span className="truncate">GitHub Repository</span>
+                  {profile.upstreamUrl.includes("github.com") ? (
+                    <GithubIcon className="w-3 h-3 shrink-0" />
+                  ) : (
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                  )}
+                  <span className="truncate">
+                    {profile.upstreamUrl.includes("github.com")
+                      ? (isZh ? "GitHub 源码仓库" : "GitHub Repository")
+                      : (isZh ? "官方文档 / 源码出处" : "Official Source & Docs")}
+                  </span>
                   <ExternalLink className="w-3 h-3 shrink-0" />
                 </a>
               </div>
@@ -297,13 +315,13 @@ export function ProjectSeoSection({
             <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex flex-col gap-1">
               <span className="text-muted-foreground font-mono">{labels.sourceInspection}</span>
               <a
-                href={rawUrl}
+                href={resolvedRawUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-foreground hover:underline inline-flex items-center gap-1 truncate"
               >
                 <Code2 className="w-3 h-3 shrink-0" />
-                <span>Raw Standalone HTML</span>
+                <span>{isZh ? "独立单文件 HTML 源码" : "Raw Standalone HTML"}</span>
                 <ExternalLink className="w-3 h-3 shrink-0" />
               </a>
             </div>
