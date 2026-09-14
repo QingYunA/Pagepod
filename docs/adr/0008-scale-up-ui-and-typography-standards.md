@@ -1,4 +1,4 @@
-# ADR 0006: Scale Up UI and Typography Standards (Standard Industrial Scale)
+# ADR 0008: Scale Up UI and Typography Standards (Standard Industrial Scale)
 
 - **Status**: accepted
 - **Date**: 2026-09-14

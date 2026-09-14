@@ -8,7 +8,11 @@
 - **分类专题聚合与静态页**：[`src/app/(marketing)/explore/[category]/page.tsx`](src/app/(marketing)/explore/[category]/page.tsx) 与 [`category-client.tsx`](src/app/(marketing)/explore/[category]/category-client.tsx)
 - **独立全屏运行台**：[`src/app/p/[slug]/page.tsx`](src/app/p/[slug]/page.tsx)
 - **安全沙箱隔离端点**：[`src/app/raw/[slug]/[[...path]]/route.ts`](src/app/raw/[slug]/[[...path]]/route.ts)
-- **创作者工作台**：[`src/app/workspace/page.tsx`](src/app/workspace/page.tsx)
+- **创作者双栏工作台 (Workspace Hub)**：[`src/app/workspace/page.tsx`](src/app/workspace/page.tsx)
+  - 核心协同宿主：[`src/app/workspace/components/workspace-client.tsx`](src/app/workspace/components/workspace-client.tsx)
+  - 左侧层级目录树：[`src/app/workspace/components/workspace-folder-tree.tsx`](src/app/workspace/components/workspace-folder-tree.tsx)
+  - 右侧项目网格/表格：[`src/app/workspace/components/admin-table.tsx`](src/app/workspace/components/admin-table.tsx)
+  - 批量操作浮动栏：[`src/app/workspace/components/batch-action-bar.tsx`](src/app/workspace/components/batch-action-bar.tsx)
 - **项目代码与元数据编辑器 (Project Editor)**：[`src/app/workspace/projects/[id]/edit/editor-client.tsx`](src/app/workspace/projects/[id]/edit/editor-client.tsx)
 - **Edge 中间件与子域名路由网关**：[`src/proxy.ts`](src/proxy.ts)
 - **匿名访客摄入与临时态流转管道**：[`src/lib/services/guest-upload.ts`](src/lib/services/guest-upload.ts)
@@ -35,7 +39,7 @@
 - **全套 shadcn/ui & Radix UI 组件驱动与标准工业级标度 (Standard Industrial Scale)**：
   - 页面全部交互元素必须调用 `src/components/ui/*` 规范原语：`Button`、`Badge`、`Card`、`Input`、`Tabs`、`Dialog`。
   - 组件尺寸遵循标准工业级标度（`Button`/`Input` 标准 36px `h-9` 高度，次要/小号 32px `h-8`，大号 40px `h-10`；正文与输入 14px `text-sm`，标题 16px `text-base` 以上，次要元数据与角标 12px `text-xs`）。
-  - **全站字号物理红线**：坚决禁止在全站任何界面使用低于 12px 的微缩字号（彻底清除并禁止 `text-[10px]`、`text-[11px]`、`text-[9px]`），消除视觉疲劳与微雕感，遵循 ADR-0006 规范。
+  - **全站字号物理红线与标准标度**：正文与输入统一采用 14px（`text-sm`），次级标签、徽章与元数据采用 12px（`text-xs`）；全站字号物理下限为 12px，低于 12px 的微缩字号由 `scripts/check-standards.ts` 静态门禁硬拦截，遵循 ADR-0008 规范。
 - **静态底图与双核悬浮胶囊操作体系 (Static Poster with Dual-Action Capsule & Resilience Shield)**：
   - **严禁在列表/网格中无差别直出全量 iframe**（彻底避免多重并发大型 HTML/WebGL 造成的 GPU/CPU 峰值、风扇狂转与内存爆炸）；
   - 展示型卡片统一采用 `HoverSandboxPreview`：默认呈现 Zinc 高定技术点阵底图与分类专属线框海报（零网络开销、首屏极速加载）；
@@ -130,7 +134,7 @@
     - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`；
     - **GitHub CLI 代理与 REST 接口避坑**：本地存在代理端口（如 `127.0.0.1:10808`）时，执行 `gh` 命令前须显式配置 `https_proxy=http://127.0.0.1:10808 http_proxy=http://127.0.0.1:10808`；PR 合并优先采用稳定 REST API 路径（`gh api -X PUT /repos/QingYunA/Pagepod/pulls/<id>/merge -f merge_method=squash`），避免 GraphQL 连接重置失败；
     - **子进程工具链 PATH 显式保护**：非交互式子 shell 执行命令时确保 PATH 包含 Node 解释器路径（如 `/Users/mac/.nvm/versions/node/v24.14.1/bin`），生产探针使用 `npm run probe:prod`（内部基于 Node `tsx` 原生 Undici 执行，消灭底层 Socket 偶发断联）；
-    - **静态工程门禁前置校验**：代码提交前统一运行 `npm run check:standards` 自动校验冲突标记（`<<<<<<<`）、原生 `<a>` 标签违规及反模式文案。
+    - **静态工程门禁前置校验**：代码提交前统一运行 `npm run check:standards` 自动校验冲突标记（`<<<<<<<`）、亚 12px 微缩字号（`text-[10px]` 等）、原生 `<a>` 标签违规及反模式文案。
 
 11. **批量操作全等防线准则 (Batch Operation Parity Invariant)**：
     - **领域与风控断言全等**：任何批量操作（如 `batchDelete`、`batchUpdateVisibility`、`batchMove`）绝非仅是底层数据库执行，必须与单项领域服务保持 100% 语义全等；
@@ -140,6 +144,9 @@
     - **响应主链路绝对非阻塞**：面向用户的项目创建（`createProject`）、代码更新（`updateProject`）及游客即时上传等交互主链路，**严禁在请求/响应生命周期内同步 `await` 重型无头浏览器渲染**（Headless Chrome、Puppeteer、Playwright 或外部截屏抓取 API）；
     - **海报截图全权异步化**：所有海报截图与缩略图捕获必须统一委托至 Next.js `after(runCapture)` 或后台异步队列静默执行，并在生成后以异步形式回填更新数据库，保证服务端创建与更新操作在 **< 50ms（毫秒级）** 内完成响应返回；
     - **未公开项目免除无谓开销**：`unlisted`（口令保护）及 `private` 项目因其隐私属性及不进入公共画廊，严禁触发外网无头截图抓取，节省服务器与第三方算力。
+
+13. **跨分支合并后设计一致性回检 (Post-Merge Design Parity Invariant)**：
+    - 在执行 `git merge origin/main` 同步远端最新主分支后，必须扩大自检范围，对拉入的所有新增或受影响 UI 组件执行静态标准门禁（`npm run check:standards`）；严禁只审查手头修改的文件而忽略上游合入组件的反模式污染。
 
 ---
 
