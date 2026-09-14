@@ -6,14 +6,14 @@
   <title>水墨禅意五子棋 - Zen Gomoku AI</title>
   <style>
     :root {
-      --bg: #121214;
-      --board-bg: #d7c4a3;
-      --board-line: #5c4b37;
-      --panel-bg: #1a1a1e;
-      --border: #2e2e36;
-      --text: #e4e4e7;
-      --text-muted: #a1a1aa;
-      --accent: #d4a373;
+      --bg: #f8f6f0;
+      --board-bg: #eddcc4;
+      --board-line: #6b553e;
+      --panel-bg: #ffffff;
+      --border: #e6dfd5;
+      --text: #1c1917;
+      --text-muted: #78716c;
+      --accent: #b45309;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -47,7 +47,7 @@
       letter-spacing: 1px;
     }
     .badge {
-      font-size: 11px;
+      font-size: 12px;
       padding: 2px 8px;
       border-radius: 999px;
       border: 1px solid var(--border);
@@ -66,7 +66,7 @@
       background: #cbb493;
       padding: 12px;
       border-radius: 8px;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08), inset 0 0 16px rgba(0, 0, 0, 0.04);
       border: 2px solid #8c7355;
     }
     canvas {
@@ -96,7 +96,7 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
     .stone-black { background: radial-gradient(circle at 30% 30%, #555, #111); }
     .stone-white { background: radial-gradient(circle at 30% 30%, #fff, #bbb); border: 1px solid #aaa; }
@@ -107,7 +107,7 @@
       gap: 8px;
     }
     button, select {
-      background: #25252b;
+      background: #f8f6f0;
       color: var(--text);
       border: 1px solid var(--border);
       padding: 6px 12px;
@@ -119,13 +119,13 @@
       transition: all 0.15s ease;
     }
     button:hover, select:hover {
-      background: #32323a;
-      border-color: #4a4a56;
+      background: #ede8df;
+      border-color: #d1c7ba;
     }
     .modal {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(18, 18, 20, 0.85);
+      background: rgba(248, 246, 240, 0.92);
       backdrop-filter: blur(4px);
       display: flex;
       flex-direction: column;
@@ -143,7 +143,7 @@
     .modal h2 {
       font-size: 22px;
       margin-bottom: 8px;
-      color: #fff;
+      color: #1c1917;
     }
     .modal p {
       font-size: 13px;
