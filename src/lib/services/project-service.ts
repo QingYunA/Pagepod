@@ -5,6 +5,13 @@ import {
   getProjectById as dbGetProjectById,
   updateProject as dbUpdateProject,
   deleteProject as dbDeleteProject,
+  createFolder as dbCreateFolder,
+  updateFolder as dbUpdateFolder,
+  deleteFolder as dbDeleteFolder,
+  getFolderById as dbGetFolderById,
+  batchMoveProjectsToFolder as dbBatchMoveProjectsToFolder,
+  batchUpdateProjectsVisibility as dbBatchUpdateProjectsVisibility,
+  batchDeleteProjects as dbBatchDeleteProjects,
 } from "@/db";
 import { getProjectStorage, getStorageType } from "@/lib/storage";
 import { extractMetadataFromHtml, unpackZipBundle, detectHtmlLanguage } from "@/lib/parser";
@@ -88,6 +95,7 @@ export interface CreateProjectInput {
   description?: string;
   category?: string;
   language?: Language;
+  folderId?: string | null;
   tags?: string[];
   visibility?: ProjectVisibility;
   isPinned?: boolean;
@@ -104,6 +112,7 @@ export interface UpdateProjectInput {
   description?: string;
   category?: string;
   language?: Language;
+  folderId?: string | null;
   tags?: string[];
   visibility?: ProjectVisibility;
   isPinned?: boolean;
@@ -262,6 +271,7 @@ export async function createProject(
     description,
     category: input.category || "tools",
     language: declaredLanguage,
+    folderId: input.folderId ?? null,
     tags: input.tags || [],
     assetType,
     entryPath,
@@ -486,6 +496,7 @@ export async function updateProject(
   if (input.description !== undefined) patch.description = input.description;
   if (input.category !== undefined) patch.category = input.category;
   if (input.language !== undefined) patch.language = input.language;
+  if (input.folderId !== undefined) patch.folderId = input.folderId;
   if (input.tags !== undefined) patch.tags = input.tags;
   if (input.visibility !== undefined) patch.visibility = input.visibility;
   if (input.isPinned !== undefined) {
@@ -752,3 +763,184 @@ export async function updateProjectHtml(
     : { id: "selfhost-admin", role: "admin" };
   return updateProject(actor, id, { htmlCode: newHtml });
 }
+
+/* =========================================================================
+ * FOLDER & BATCH ACTION DOMAIN SERVICES
+ * ========================================================================= */
+
+export async function createFolder(
+  actor: CurrentUser,
+  name: string,
+  parentId?: string | null
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required to create a folder");
+  }
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    throw new ProjectValidationError("Folder name cannot be empty");
+  }
+
+  const folder = await dbCreateFolder({
+    id: nanoid(10),
+    userId: actor.id,
+    name: trimmedName,
+    parentId: parentId || null,
+    sortOrder: 0,
+  });
+
+  revalidateProjectPaths();
+  return folder;
+}
+
+export async function updateFolder(
+  actor: CurrentUser,
+  folderId: string,
+  updates: { name?: string; parentId?: string | null }
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  const folder = await dbGetFolderById(folderId);
+  if (!folder) {
+    throw new ProjectNotFoundError("Folder not found");
+  }
+  if (actor.role !== "admin" && actor.id !== "selfhost-admin" && folder.userId !== actor.id) {
+    throw new ProjectForbiddenError("Forbidden: Cannot modify another user's folder");
+  }
+
+  const patch: { name?: string; parentId?: string | null } = {};
+  if (updates.name !== undefined) {
+    const trimmed = updates.name.trim();
+    if (!trimmed) throw new ProjectValidationError("Folder name cannot be empty");
+    patch.name = trimmed;
+  }
+  if (updates.parentId !== undefined) {
+    patch.parentId = updates.parentId;
+  }
+
+  const updated = await dbUpdateFolder(folderId, actor.id, patch);
+  revalidateProjectPaths();
+  return updated;
+}
+
+export async function deleteFolder(actor: CurrentUser, folderId: string) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  const folder = await dbGetFolderById(folderId);
+  if (!folder) {
+    throw new ProjectNotFoundError("Folder not found");
+  }
+  if (actor.role !== "admin" && actor.id !== "selfhost-admin" && folder.userId !== actor.id) {
+    throw new ProjectForbiddenError("Forbidden: Cannot delete another user's folder");
+  }
+
+  const result = await dbDeleteFolder(folderId, actor.id);
+  revalidateProjectPaths();
+  return result;
+}
+
+export async function batchMoveProjects(
+  actor: CurrentUser,
+  projectIds: string[],
+  folderId: string | null
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  if (!projectIds || projectIds.length === 0) {
+    return 0;
+  }
+  if (folderId) {
+    const targetFolder = await dbGetFolderById(folderId);
+    if (!targetFolder) {
+      throw new ProjectNotFoundError("Target folder not found");
+    }
+    if (actor.role !== "admin" && actor.id !== "selfhost-admin" && targetFolder.userId !== actor.id) {
+      throw new ProjectForbiddenError("Forbidden: Target folder does not belong to you");
+    }
+  }
+
+  const projectsToMove: Project[] = [];
+  for (const id of projectIds) {
+    const p = await dbGetProjectById(id);
+    if (!p) continue;
+    assertCanManageProject(actor, p);
+    projectsToMove.push(p);
+  }
+
+  if (projectsToMove.length === 0) return 0;
+  const validIds = projectsToMove.map((p) => p.id);
+  const count = await dbBatchMoveProjectsToFolder(validIds, folderId, actor.id);
+  revalidateProjectPaths();
+  return count;
+}
+
+export async function batchUpdateVisibility(
+  actor: CurrentUser,
+  projectIds: string[],
+  visibility: "public" | "private"
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  if (!projectIds || projectIds.length === 0) {
+    return 0;
+  }
+
+  const projectsToUpdate: Project[] = [];
+  for (const id of projectIds) {
+    const p = await dbGetProjectById(id);
+    if (!p) continue;
+    assertCanManageProject(actor, p);
+    assertCanSetVisibility(actor, p, visibility);
+    projectsToUpdate.push(p);
+  }
+
+  if (projectsToUpdate.length === 0) return 0;
+  const validIds = projectsToUpdate.map((p) => p.id);
+  const count = await dbBatchUpdateProjectsVisibility(validIds, visibility, actor.id);
+  revalidateProjectPaths();
+  return count;
+}
+
+export async function batchDeleteProjects(
+  actor: CurrentUser,
+  projectIds: string[]
+) {
+  if (!actor || !actor.id) {
+    throw new ProjectForbiddenError("Unauthorized: Authentication required");
+  }
+  if (!projectIds || projectIds.length === 0) {
+    return 0;
+  }
+
+  const projectsToDelete: Project[] = [];
+  for (const id of projectIds) {
+    const p = await dbGetProjectById(id);
+    if (!p) continue;
+    assertCanManageProject(actor, p);
+    projectsToDelete.push(p);
+  }
+
+  if (projectsToDelete.length === 0) return 0;
+
+  // Clean up physical storage files in R2 / Blob / local storage
+  await Promise.allSettled(
+    projectsToDelete.map(async (p) => {
+      const storage = getProjectStorage(p.slug);
+      try {
+        await storage.deleteProjectFiles();
+      } catch (err) {
+        console.error(`[ProjectService] Failed to clean up storage for ${p.slug}:`, err);
+      }
+    })
+  );
+
+  const validIds = projectsToDelete.map((p) => p.id);
+  const count = await dbBatchDeleteProjects(validIds, actor.id);
+  revalidateProjectPaths();
+  return count;
+}
+

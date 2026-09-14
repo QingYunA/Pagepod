@@ -9,6 +9,7 @@
 - **独立全屏运行台**：[`src/app/p/[slug]/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/p/[slug]/page.tsx)
 - **安全沙箱隔离端点**：[`src/app/raw/[slug]/[[...path]]/route.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/raw/[slug]/[[...path]]/route.ts)
 - **创作者工作台**：[`src/app/workspace/page.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/app/workspace/page.tsx)
+- **项目代码与元数据编辑器 (Project Editor)**：[`src/app/workspace/projects/[id]/edit/editor-client.tsx`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/workspace_folder_file_management/src/app/workspace/projects/[id]/edit/editor-client.tsx)
 - **数据访问层与迁移**：[`src/db/index.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/db/index.ts) 与 [`src/db/schema.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/src/db/schema.ts)
 - **生产健康自动化探针**：[`scripts/probe-prod.ts`](file:///Users/mac/.gemini/antigravity/worktrees/html-manager/fix_tool_navigation/scripts/probe-prod.ts)（`npm run probe:prod`）
 
@@ -121,6 +122,10 @@
     - **Worktree 冲突合并防伪冲突原则 (Worktree Merge Over Interactive Rebase)**：当远端主分支（`origin/main`）发生并发更新时，Worktree 特性分支拉取最新主分支更新**优先采用 `git merge origin/main`**（或前置将分支历史本地 commit squash 为单一提交后再 rebase）；严禁在包含多阶段迭代提交的分支上执行逐个 commit 交互式 rebase，彻底杜绝历史废弃提交引发的重复伪冲突；
     - 分支合并遵循无冲突流程：Worktree 提 PR 并通过 `gh pr merge <id> --squash` 合并（**严禁携带 `--delete-branch`**，避免 Git 尝试自动检出已被主仓库锁定的 main 分支触发 `fatal: 'main' is already checked out` 错误）。主仓库 `git pull origin main` 后，Worktree 执行 `git reset --hard origin/main` 对齐，远端分支在 Web 界面或主仓库安全清理；
     - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`。
+
+11. **批量操作全等防线准则 (Batch Operation Parity Invariant)**：
+    - **领域与风控断言全等**：任何批量操作（如 `batchDelete`、`batchUpdateVisibility`、`batchMove`）绝非仅是底层数据库执行，必须与单项领域服务保持 100% 语义全等；
+    - **强制逐项校验与副作用闭环**：必须在执行底层变更前对受影响的每个项目逐一执行 Seam RBAC 权限核验（`assertCanManageProject`）与业务合规断言（如 `assertCanSetVisibility` 阻断标记争议项目直接公开），并完整触发物理存储清理等关键生命周期副作用（如 `deleteProjectFiles()` 清除 R2/Blob 孤儿资产），严禁绕过领域服务防线。
 
 ---
 

@@ -18,6 +18,7 @@ export async function updateProjectFullAction(
     isPinned: boolean;
     isGlobalPinned?: boolean;
     language?: "zh" | "en" | "other";
+    folderId?: string | null;
     htmlCode?: string;
   }
 ) {

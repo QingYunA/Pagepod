@@ -90,6 +90,19 @@ function scanFile(filePath: string) {
           message: "Hardcoded Chinese fallback '管理员' detected. Must dynamically support 'Admin' in English mode.",
         });
       }
+
+      // Check banned emoji icons in UI code (AGENTS.md 1.1)
+      const cleanLine = lineText.replace(/\/\/.*$/, "").replace(/\/\*.*?\*\//g, "");
+      const emojiMatch = cleanLine.match(/[\u{1F300}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u);
+      if (emojiMatch) {
+        violations.push({
+          file: relPath,
+          line: lineNum,
+          rule: "AGENTS.md 1.1 (Anti-Patterns / No Emojis in UI)",
+          match: emojiMatch[0],
+          message: `Banned emoji '${emojiMatch[0]}' detected in UI component. AGENTS.md strictly forbids emoji icons; use lucide-react line icons instead.`,
+        });
+      }
     }
   });
 

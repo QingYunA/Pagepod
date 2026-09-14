@@ -3,12 +3,14 @@ import os from "node:os";
 import path from "node:path";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, desc, asc, and, or, isNull, sql } from "drizzle-orm";
+import { eq, desc, asc, and, or, isNull, inArray, sql } from "drizzle-orm";
 import { calculateTrendingScore } from "@/lib/scoring";
 import * as schema from "./schema";
 import type {
   Project,
   NewProject,
+  Folder,
+  NewFolder,
   ApiToken,
   NewApiToken,
   Order,
@@ -50,6 +52,7 @@ function resolveLocalDbFile(): string {
 
 interface LocalData {
   projects: Project[];
+  folders?: Folder[];
   settings: Record<string, string>;
   apiTokens?: ApiToken[];
   orders?: Order[];
@@ -67,6 +70,7 @@ function readLocalData(): LocalData {
     if (!fs.existsSync(dbFile)) {
       const initial: LocalData = {
         projects: [],
+        folders: [],
         settings: {},
         apiTokens: [],
         orders: [],
@@ -83,6 +87,7 @@ function readLocalData(): LocalData {
     const data = JSON.parse(raw) as LocalData;
     data.projects = (data.projects || []).map((p) => ({
       ...p,
+      folderId: p.folderId ?? null,
       isPinned: p.isPinned ?? false,
       pinnedAt: p.pinnedAt ? new Date(p.pinnedAt) : null,
       isGlobalPinned: p.isGlobalPinned ?? (p.isPinned ?? false),
@@ -98,6 +103,13 @@ function readLocalData(): LocalData {
       kdfIterations: p.kdfIterations ?? null,
       createdAt: new Date(p.createdAt),
       updatedAt: new Date(p.updatedAt),
+    }));
+    data.folders = (data.folders || []).map((f) => ({
+      ...f,
+      parentId: f.parentId ?? null,
+      sortOrder: f.sortOrder ?? 0,
+      createdAt: new Date(f.createdAt),
+      updatedAt: new Date(f.updatedAt),
     }));
     data.apiTokens = (data.apiTokens || []).map((t) => ({
       ...t,
@@ -120,7 +132,7 @@ function readLocalData(): LocalData {
     return data;
   } catch (err) {
     console.error("Failed to read local data:", err);
-    return { projects: [], settings: {}, apiTokens: [], orders: [], userSubscriptions: [], notifications: [] };
+    return { projects: [], folders: [], settings: {}, apiTokens: [], orders: [], userSubscriptions: [], notifications: [] };
   }
 }
 
@@ -208,13 +220,29 @@ const SQL_PROJECTS_MIGRATIONS = [
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'approved';`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_category TEXT;`,
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS moderation_summary TEXT;`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS folder_id TEXT;`,
   `CREATE INDEX IF NOT EXISTS projects_user_id_idx ON projects (user_id);`,
   `CREATE INDEX IF NOT EXISTS projects_global_pinned_idx ON projects (is_global_pinned, global_pinned_at);`,
   `CREATE INDEX IF NOT EXISTS projects_language_idx ON projects (language);`,
+  `CREATE INDEX IF NOT EXISTS projects_folder_id_idx ON projects (folder_id);`,
   `UPDATE projects SET is_global_pinned = true, global_pinned_at = created_at WHERE is_pinned = true AND is_global_pinned = false;`,
   `UPDATE projects SET visibility = 'private' WHERE visibility = 'unlisted';`,
   `UPDATE projects SET review_status = 'approved' WHERE (review_status = 'pending' OR review_status IS NULL) AND moderation_category IS NULL;`,
 ];
+
+const SQL_FOLDERS = `
+  CREATE TABLE IF NOT EXISTS folders (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    parent_id TEXT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+  CREATE INDEX IF NOT EXISTS folders_user_id_idx ON folders (user_id);
+  CREATE INDEX IF NOT EXISTS folders_parent_id_idx ON folders (parent_id);
+`;
 
 const SQL_SETTINGS = `
   CREATE TABLE IF NOT EXISTS settings (
@@ -314,6 +342,7 @@ async function ensurePostgresTables() {
     // Execute separately to prevent multi-statement transaction pooler/PgBouncer failures
     for (const sql of [
       SQL_PROJECTS,
+      SQL_FOLDERS,
       SQL_SETTINGS,
       SQL_API_TOKENS,
       SQL_ORDERS,
@@ -379,6 +408,7 @@ export async function getAllProjects(options?: {
   reviewStatus?: string;
   category?: string;
   language?: string;
+  folderId?: string | null;
   tag?: string;
   search?: string;
   sortBy?: ProjectSortOption;
@@ -420,6 +450,14 @@ export async function getAllProjects(options?: {
 
         if (options?.language && options.language !== "all") {
           conditions.push(eq(schema.projects.language, options.language));
+        }
+
+        if (options?.folderId !== undefined) {
+          if (options.folderId === null) {
+            conditions.push(isNull(schema.projects.folderId));
+          } else {
+            conditions.push(eq(schema.projects.folderId, options.folderId));
+          }
         }
 
         const baseQuery = db.select().from(schema.projects);
@@ -514,6 +552,14 @@ export async function getAllProjects(options?: {
 
     if (options?.language && options.language !== "all") {
       list = list.filter((p) => (p.language || "zh") === options.language);
+    }
+
+    if (options?.folderId !== undefined) {
+      if (options.folderId === null) {
+        list = list.filter((p) => !p.folderId);
+      } else {
+        list = list.filter((p) => p.folderId === options.folderId);
+      }
     }
 
     const now = Date.now();
@@ -645,6 +691,7 @@ export async function createProject(data: NewProject): Promise<Project> {
     reviewStatus: data.reviewStatus ?? "approved",
     moderationCategory: data.moderationCategory ?? null,
     moderationSummary: data.moderationSummary ?? null,
+    folderId: data.folderId ?? null,
     createdAt: now,
     updatedAt: now,
   };
@@ -1303,4 +1350,303 @@ export async function markAllNotificationsAsRead(userId: string): Promise<void> 
   });
   writeLocalData(local);
 }
+
+/* =========================================================================
+ * FOLDER & BATCH PROJECT DOMAIN OPERATIONS
+ * ========================================================================= */
+
+export async function getFolders(userId?: string): Promise<Folder[]> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      return await withTableFallback(() => {
+        const query = db.select().from(schema.folders);
+        if (userId && userId !== "selfhost-admin") {
+          return query
+            .where(eq(schema.folders.userId, userId))
+            .orderBy(asc(schema.folders.sortOrder), asc(schema.folders.createdAt));
+        }
+        return query.orderBy(asc(schema.folders.sortOrder), asc(schema.folders.createdAt));
+      });
+    } catch (err) {
+      console.error("getFolders DB query error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  let list = local.folders || [];
+  if (userId && userId !== "selfhost-admin") {
+    list = list.filter((f) => f.userId === userId);
+  }
+  return list.sort((a, b) => {
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return a.createdAt.getTime() - b.createdAt.getTime();
+  });
+}
+
+export async function getFolderById(id: string): Promise<Folder | null> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      const rows = await withTableFallback(() =>
+        db.select().from(schema.folders).where(eq(schema.folders.id, id)).limit(1)
+      );
+      return rows[0] || null;
+    } catch (err) {
+      console.error("getFolderById DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  return (local.folders || []).find((f) => f.id === id) || null;
+}
+
+export async function createFolder(data: NewFolder): Promise<Folder> {
+  const db = getDatabase();
+  const now = new Date();
+  const newFolder: Folder = {
+    id: data.id,
+    userId: data.userId,
+    name: data.name,
+    parentId: data.parentId ?? null,
+    sortOrder: data.sortOrder ?? 0,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  if (db) {
+    try {
+      const rows = await withTableFallback(() =>
+        db.insert(schema.folders).values(newFolder).returning()
+      );
+      return rows[0];
+    } catch (err) {
+      console.error("createFolder DB error, saving to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.folders) local.folders = [];
+  local.folders.push(newFolder);
+  writeLocalData(local);
+  return newFolder;
+}
+
+export async function updateFolder(
+  id: string,
+  userId: string,
+  data: Partial<NewFolder>
+): Promise<Folder> {
+  const db = getDatabase();
+  const now = new Date();
+  const patch: Partial<NewFolder> = { ...data, updatedAt: now };
+
+  if (db) {
+    try {
+      const condition =
+        userId === "selfhost-admin"
+          ? eq(schema.folders.id, id)
+          : and(eq(schema.folders.id, id), eq(schema.folders.userId, userId));
+      const updated = await withTableFallback(() =>
+        db.update(schema.folders).set(patch).where(condition).returning()
+      );
+      if (updated[0]) return updated[0];
+    } catch (err) {
+      console.error("updateFolder DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.folders) local.folders = [];
+  const idx = local.folders.findIndex(
+    (f) => f.id === id && (userId === "selfhost-admin" || f.userId === userId)
+  );
+  if (idx === -1) {
+    throw new Error("Folder not found or unauthorized");
+  }
+  const updatedFolder: Folder = {
+    ...local.folders[idx],
+    ...patch,
+    updatedAt: now,
+  };
+  local.folders[idx] = updatedFolder;
+  writeLocalData(local);
+  return updatedFolder;
+}
+
+export async function deleteFolder(
+  id: string,
+  userId: string
+): Promise<{ success: boolean; affectedProjects: number }> {
+  const allFolders = await getFolders(userId);
+  // Collect target folder and all recursive subfolder IDs
+  const targetFolderIds = new Set<string>([id]);
+  let added = true;
+  while (added) {
+    added = false;
+    for (const f of allFolders) {
+      if (f.parentId && targetFolderIds.has(f.parentId) && !targetFolderIds.has(f.id)) {
+        targetFolderIds.add(f.id);
+        added = true;
+      }
+    }
+  }
+  const folderIdList = Array.from(targetFolderIds);
+
+  const db = getDatabase();
+  let affectedProjects = 0;
+
+  if (db) {
+    try {
+      await withTableFallback(async () => {
+        // Safe Unlink: update all projects in these folders to folderId = null
+        for (const fid of folderIdList) {
+          await db
+            .update(schema.projects)
+            .set({ folderId: null, updatedAt: new Date() })
+            .where(eq(schema.projects.folderId, fid));
+        }
+        // Delete all gathered folders
+        for (const fid of folderIdList) {
+          const condition =
+            userId === "selfhost-admin"
+              ? eq(schema.folders.id, fid)
+              : and(eq(schema.folders.id, fid), eq(schema.folders.userId, userId));
+          await db.delete(schema.folders).where(condition);
+        }
+      });
+    } catch (err) {
+      console.error("deleteFolder DB error, falling back to local:", err);
+    }
+  }
+
+  // Also apply Safe Unlink in local data
+  const local = readLocalData();
+  let localAffected = 0;
+  local.projects = (local.projects || []).map((p) => {
+    if (p.folderId && targetFolderIds.has(p.folderId)) {
+      localAffected++;
+      return { ...p, folderId: null, updatedAt: new Date() };
+    }
+    return p;
+  });
+
+  if (local.folders) {
+    local.folders = local.folders.filter(
+      (f) => !targetFolderIds.has(f.id) || (userId !== "selfhost-admin" && f.userId !== userId)
+    );
+  }
+  writeLocalData(local);
+
+  return { success: true, affectedProjects: affectedProjects || localAffected };
+}
+
+export async function batchMoveProjectsToFolder(
+  projectIds: string[],
+  folderId: string | null,
+  userId: string
+): Promise<number> {
+  if (projectIds.length === 0) return 0;
+  const db = getDatabase();
+  const now = new Date();
+
+  if (db) {
+    try {
+      await withTableFallback(async () => {
+        const condition =
+          userId === "selfhost-admin"
+            ? inArray(schema.projects.id, projectIds)
+            : and(inArray(schema.projects.id, projectIds), eq(schema.projects.userId, userId));
+        await db
+          .update(schema.projects)
+          .set({ folderId, updatedAt: now })
+          .where(condition);
+      });
+    } catch (err) {
+      console.error("batchMoveProjectsToFolder DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  let count = 0;
+  local.projects = (local.projects || []).map((p) => {
+    if (projectIds.includes(p.id) && (userId === "selfhost-admin" || p.userId === userId)) {
+      count++;
+      return { ...p, folderId, updatedAt: now };
+    }
+    return p;
+  });
+  writeLocalData(local);
+  return count;
+}
+
+export async function batchUpdateProjectsVisibility(
+  projectIds: string[],
+  visibility: "public" | "private",
+  userId: string
+): Promise<number> {
+  if (projectIds.length === 0) return 0;
+  const db = getDatabase();
+  const now = new Date();
+
+  if (db) {
+    try {
+      await withTableFallback(async () => {
+        const condition =
+          userId === "selfhost-admin"
+            ? inArray(schema.projects.id, projectIds)
+            : and(inArray(schema.projects.id, projectIds), eq(schema.projects.userId, userId));
+        await db
+          .update(schema.projects)
+          .set({ visibility, updatedAt: now })
+          .where(condition);
+      });
+    } catch (err) {
+      console.error("batchUpdateProjectsVisibility DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  let count = 0;
+  local.projects = (local.projects || []).map((p) => {
+    if (projectIds.includes(p.id) && (userId === "selfhost-admin" || p.userId === userId)) {
+      count++;
+      return { ...p, visibility, updatedAt: now };
+    }
+    return p;
+  });
+  writeLocalData(local);
+  return count;
+}
+
+export async function batchDeleteProjects(
+  projectIds: string[],
+  userId: string
+): Promise<number> {
+  if (projectIds.length === 0) return 0;
+  const db = getDatabase();
+
+  if (db) {
+    try {
+      await withTableFallback(async () => {
+        const condition =
+          userId === "selfhost-admin"
+            ? inArray(schema.projects.id, projectIds)
+            : and(inArray(schema.projects.id, projectIds), eq(schema.projects.userId, userId));
+        await db.delete(schema.projects).where(condition);
+      });
+    } catch (err) {
+      console.error("batchDeleteProjects DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  const origLen = (local.projects || []).length;
+  local.projects = (local.projects || []).filter(
+    (p) => !(projectIds.includes(p.id) && (userId === "selfhost-admin" || p.userId === userId))
+  );
+  writeLocalData(local);
+  return origLen - local.projects.length;
+}
+
 

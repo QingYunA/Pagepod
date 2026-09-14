@@ -50,6 +50,7 @@ export const uploadPayloadSchema = z.object({
   description: z.string().trim().max(2000).optional(),
   category: categorySchema,
   language: languageSchema.optional(),
+  folderId: z.string().trim().max(100).nullable().optional(),
   tags: tagsSchema,
   visibility: visibilitySchema.default("public"),
   isPinned: z.boolean().default(false),
@@ -62,11 +63,37 @@ export const updateProjectInputSchema = z.object({
   description: z.string().trim().max(2000).default(""),
   category: categorySchema,
   language: languageSchema.optional(),
+  folderId: z.string().trim().max(100).nullable().optional(),
   tags: z.array(z.string().trim().max(50)).default([]),
   visibility: visibilitySchema,
   isPinned: z.boolean().default(false),
   isGlobalPinned: z.boolean().optional(),
   htmlCode: z.string().max(20_000_000).optional(),
+});
+
+export const createFolderSchema = z.object({
+  name: z.string().trim().min(1, "文件夹名称不能为空").max(100, "文件夹名称过长"),
+  parentId: z.string().trim().max(100).nullable().optional(),
+});
+
+export const updateFolderSchema = z.object({
+  name: z.string().trim().min(1, "文件夹名称不能为空").max(100, "文件夹名称过长").optional(),
+  parentId: z.string().trim().max(100).nullable().optional(),
+  sortOrder: z.number().int().optional(),
+});
+
+export const batchMoveProjectsSchema = z.object({
+  projectIds: z.array(z.string().trim().min(1)).min(1, "请至少选择一个项目"),
+  folderId: z.string().trim().max(100).nullable(),
+});
+
+export const batchUpdateVisibilitySchema = z.object({
+  projectIds: z.array(z.string().trim().min(1)).min(1, "请至少选择一个项目"),
+  visibility: z.enum(["public", "private"]),
+});
+
+export const batchDeleteProjectsSchema = z.object({
+  projectIds: z.array(z.string().trim().min(1)).min(1, "请至少选择一个项目"),
 });
 
 export const tokenNameSchema = z
@@ -79,3 +106,4 @@ export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
 export const MAX_HTML_PASTE_BYTES = 20 * 1024 * 1024; // 20MB
 export const MAX_ZIP_EXTRACTED_BYTES = 100 * 1024 * 1024; // 100MB decompression limit
 export const MAX_ZIP_ENTRIES = 500; // ZIP bomb protection
+

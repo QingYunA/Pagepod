@@ -39,6 +39,10 @@ This file is the single source of truth for the domain glossary and architectura
 - **Secret Leak Guard**: Client-side and server-side heuristic scanners detecting accidentally exposed credentials (OpenAI, Anthropic, AWS, GitHub PATs, private keys) before public publication, enforcing soft-gating or privacy downgrade.
 - **Curated Hub (Pillar & Cluster)**: Purpose-built topical showcase routes (e.g. `/explore/tools`, `/explore/games`) organizing public micro-apps by intent rather than abstract tech stacks, adhering to an 80% card grid / 20% concise technical spec ratio.
 - **Anti-Bounce Drawer**: An unobtrusive collapsible info-and-recommendation layer on `/p/[slug]` presenting creator metadata, 3~4 related showcase projects, and source inspection to maximize user engagement and session depth.
+- **Folder (Folder Tree)**: A user-scoped hierarchical container allowing creators to organize, nest, and structure large collections of hosted HTML applications independently of public showcase taxonomy.
+- **Uncategorized (`folderId: null`)**: The default virtual root scope containing all projects not explicitly assigned to a user-created folder, guaranteeing zero-data-loss for legacy records.
+- **Batch Action Bar**: A floating contextual command bar triggered by multi-selection in grid or table views, supporting bulk movement into folders, bulk visibility toggling, and bulk deletion.
+
 
 ---
 
