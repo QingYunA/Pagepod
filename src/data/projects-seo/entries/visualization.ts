@@ -345,8 +345,8 @@ export const VISUALIZATION_SEO: Record<string, ProjectSeoProfile> = {
     slug: "solar-terms-lunar-clock",
     targetKeyword: "二十四节气时钟",
     secondaryKeywords: ["二十四节气罗盘", "农历时钟网页版", "节气罗盘时钟", "传统历法动态展示"],
-    headline: "二十四节气时钟罗盘 - 农历与节气动态展示",
-    summary: "动态呈现中国传统二十四节气、农历日期与月相盈亏的时钟罗盘。结合太阳黄经算法与地球公转轨迹，支持拖拽旋转与全屏屏保展示。",
+    headline: "二十四节气时钟 - 农历与节气动态展示",
+    summary: "动态呈现中国传统二十四节气、农历日期与月相盈亏的网页时钟。结合太阳黄经算法与地球公转轨迹，支持拖拽旋转与全屏展示。",
     category: "visualization",
     language: "zh",
     useCases: [

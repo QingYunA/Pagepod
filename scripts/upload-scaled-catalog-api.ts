@@ -50,7 +50,7 @@ function resolveHtmlFile(slug: string): string | null {
   return null;
 }
 
-async function apiRequest(endpoint: string, apiPath: string, token: string, options: RequestInit = {}) {
+async function apiRequest(endpoint: string, apiPath: string, token: string, options: RequestInit = {}, retries = 3) {
   const url = `${endpoint}${apiPath}`;
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -58,15 +58,24 @@ async function apiRequest(endpoint: string, apiPath: string, token: string, opti
     ...(options.headers || {}),
   };
 
-  const res = await fetch(url, { ...options, headers });
-  let data: any = null;
-  try {
-    data = await res.json();
-  } catch {
-    // ignore
-  }
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, { ...options, headers });
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        // ignore
+      }
 
-  return { status: res.status, ok: res.ok, data };
+      return { status: res.status, ok: res.ok, data };
+    } catch (err) {
+      if (attempt === retries) throw err;
+      console.warn(`  [Network warning] Attempt ${attempt} failed (${(err as any)?.message || err}), retrying in 2s...`);
+      await sleep(2000);
+    }
+  }
+  return { status: 500, ok: false, data: null };
 }
 
 async function sleep(ms: number) {

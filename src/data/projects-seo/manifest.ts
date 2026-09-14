@@ -68,7 +68,7 @@ export function getProjectSeoProfile(
           },
           {
             title: "多端自适应运行台",
-            description: "支持桌面、平板、手机等多种视口分辨率实时缩放与全屏沉浸式运行。",
+            description: "支持桌面、平板、手机等多种视口分辨率实时缩放与全屏独立运行。",
           },
         ]
       : [
