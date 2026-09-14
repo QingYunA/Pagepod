@@ -17,10 +17,10 @@ export default function AdminLoading() {
 
             {/* Desktop Navigation Skeleton */}
             <div className="hidden md:flex items-center gap-1">
-              <Skeleton className="h-7 w-14 rounded-md" />
-              <Skeleton className="h-7 w-20 rounded-md" />
-              <Skeleton className="h-7 w-20 rounded-md" />
-              <Skeleton className="h-7 w-16 rounded-md" />
+              <Skeleton className="h-8 w-14 rounded-md" />
+              <Skeleton className="h-8 w-20 rounded-md" />
+              <Skeleton className="h-8 w-20 rounded-md" />
+              <Skeleton className="h-8 w-16 rounded-md" />
             </div>
           </div>
 
@@ -75,10 +75,10 @@ export default function AdminLoading() {
             <Skeleton className="h-8 w-full lg:w-72 shrink-0" />
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 flex-1 lg:justify-center">
               {[...Array(7)].map((_, i) => (
-                <Skeleton key={i} className="h-7 w-18 rounded-md shrink-0" />
+                <Skeleton key={i} className="h-8 w-18 rounded-md shrink-0" />
               ))}
             </div>
-            <Skeleton className="h-7 w-20 rounded-md shrink-0" />
+            <Skeleton className="h-8 w-20 rounded-md shrink-0" />
           </div>
 
           {/* Grid Cards Skeleton */}

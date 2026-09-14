@@ -39,11 +39,10 @@ This file is the single source of truth for the domain glossary and architectura
 - **White-Label Mode (`isWhiteLabel`)**: A Pro-tier project presentation toggle that suppresses the viral "Hosted on Pagepod" floating badge on the project runner (`/p/[slug]`), enabling unbranded commercial and client-facing demos.
 - **Curated Hub (Pillar & Cluster)**: Purpose-built topical showcase routes (e.g. `/explore/tools`, `/explore/games`) organizing public micro-apps by intent rather than abstract tech stacks, adhering to an 80% card grid / 20% concise technical spec ratio.
 - **Anti-Bounce Drawer**: An unobtrusive collapsible info-and-recommendation layer on `/p/[slug]` presenting creator metadata, 3~4 related showcase projects, and source inspection to maximize user engagement and session depth.
+- **Standard Industrial Scale**: The design system token baseline conforming to standard shadcn/ui ergonomics (`h-9` 36px / `h-10` 40px controls, `text-sm` 14px base, `text-base` 16px cards, minimum `text-xs` 12px for badges/metadata), replacing deprecated ultra-compact micro-scales per ADR 0006.
 - **Folder (Folder Tree)**: A user-scoped hierarchical container allowing creators to organize, nest, and structure large collections of hosted HTML applications independently of public showcase taxonomy.
 - **Uncategorized (`folderId: null`)**: The default virtual root scope containing all projects not explicitly assigned to a user-created folder, guaranteeing zero-data-loss for legacy records.
 - **Batch Action Bar**: A floating contextual command bar triggered by multi-selection in grid or table views, supporting bulk movement into folders, bulk visibility toggling, and bulk deletion.
-
-
 
 ---
 
@@ -62,5 +61,6 @@ This file is the single source of truth for the domain glossary and architectura
 11. **Compliance Seam Isolation**: Content moderation executes asynchronously post-commit via dual-core multimodal inspection (HTML DOM text extraction + rendered headless poster audit), preventing illegal content leakage into public discovery feeds without stalling upload latency.
 12. **Guest Quota & Ingestion Boundary**: Guest ingestion is strictly limited to single HTML files $\le 2\text{MB}$, enforces IP rate limiting (10 uploads/hour per IP), and requires automated moderation before public listing.
 13. **Public Exposure Consent & Secret Guard**: Public publication requires clear user disclosure. If client-side or server-side secret guards detect exposed private API keys or certificates, the project is gated with an explicit confirmation dialog or automatically downgraded to `private`.
-14. **Pro Project Customization Invariant**: Custom subdomains and white-label badges are evaluated per project record. Non-pro users attempting to toggle `isWhiteLabel` or register custom subdomains are blocked at the domain service layer.
-15. **Soft-Gated Creator Credential Warning**: Authenticated project creation in `/workspace/upload` scans code on submission for sensitive keys; detected matches present a soft-gating modal offering one-click downgrade to `private` or explicit acknowledged consent before public persistence.
+14. **Standard Industrial UI & Typography Floor**: All UI components and views adhere to standard industrial scales (`h-9` 36px base controls, 14px~16px content typography). To prevent visual fatigue and sub-pixel illegibility, `text-xs` (12px) is the platform-wide minimum font floor; hardcoded micro-typography (`text-[10px]`, `text-[11px]`) is strictly prohibited per ADR 0006.
+15. **Pro Project Customization Invariant**: Custom subdomains and white-label badges are evaluated per project record. Non-pro users attempting to toggle `isWhiteLabel` or register custom subdomains are blocked at the domain service layer.
+16. **Soft-Gated Creator Credential Warning**: Authenticated project creation in `/workspace/upload` scans code on submission for sensitive keys; detected matches present a soft-gating modal offering one-click downgrade to `private` or explicit acknowledged consent before public persistence.

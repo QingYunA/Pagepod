@@ -54,22 +54,22 @@ export default function ApiTokenGuideModal({ configuredTokens: _configuredTokens
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-lg border-border bg-card">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold">
+            <DialogTitle className="text-base font-semibold">
               {isZh ? "API 自动化集成指南" : "API Automation Guide"}
             </DialogTitle>
-            <DialogDescription className="text-xs">
+            <DialogDescription className="text-sm">
               {isZh
                 ? "适合 Cursor、Claude Code 等 AI 工具在生成 HTML 后自动推送入库。"
                 : "Automate HTML uploads directly from AI coding agents (Cursor, Claude Code)."}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 text-xs">
+          <div className="space-y-4 text-sm">
             <div>
-              <div className="font-medium text-foreground mb-1">
+              <div className="font-medium text-foreground mb-1 text-sm">
                 {isZh ? "1. 身份鉴权 (Bearer Token)" : "1. Authentication (Bearer Token)"}
               </div>
-              <p className="text-muted-foreground text-[11px] leading-relaxed">
+              <p className="text-muted-foreground text-xs leading-relaxed">
                 {isZh ? (
                   <>
                     直接使用部署时设置的{" "}
@@ -100,20 +100,20 @@ export default function ApiTokenGuideModal({ configuredTokens: _configuredTokens
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-foreground">
+                <span className="font-medium text-foreground text-sm">
                   {isZh ? "2. cURL 文件上传" : "2. cURL File Upload"}
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 text-[11px] px-2"
+                  className="h-8 text-xs px-3"
                   aria-label={isZh ? "复制 cURL 示例" : "Copy cURL example"}
                   onClick={() => copyToClipboard("curl", curlExample)}
                 >
                   {copiedKey === "curl" ? (
-                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   ) : (
-                    <Copy className="w-3 h-3" />
+                    <Copy className="w-3.5 h-3.5" />
                   )}
                   <span className="ml-1">
                     {copiedKey === "curl"
@@ -122,14 +122,14 @@ export default function ApiTokenGuideModal({ configuredTokens: _configuredTokens
                   </span>
                 </Button>
               </div>
-              <pre className="p-3 rounded-md bg-neutral-950 font-mono text-[11px] text-neutral-300 overflow-x-auto border border-border">
+              <pre className="p-3 rounded-md bg-neutral-950 font-mono text-xs text-neutral-300 overflow-x-auto border border-border">
                 {curlExample}
               </pre>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-foreground">
+                <span className="font-medium text-foreground text-sm">
                   {isZh
                     ? "3. JSON 直接推送 (供 AI 自动化代码流)"
                     : "3. Direct JSON Push (AI Code Stream)"}
@@ -137,14 +137,14 @@ export default function ApiTokenGuideModal({ configuredTokens: _configuredTokens
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 text-[11px] px-2"
+                  className="h-8 text-xs px-3"
                   aria-label={isZh ? "复制 JSON 示例" : "Copy JSON example"}
                   onClick={() => copyToClipboard("json", jsonExample)}
                 >
                   {copiedKey === "json" ? (
-                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   ) : (
-                    <Copy className="w-3 h-3" />
+                    <Copy className="w-3.5 h-3.5" />
                   )}
                   <span className="ml-1">
                     {copiedKey === "json"
@@ -153,7 +153,7 @@ export default function ApiTokenGuideModal({ configuredTokens: _configuredTokens
                   </span>
                 </Button>
               </div>
-              <pre className="p-3 rounded-md bg-neutral-950 font-mono text-[11px] text-neutral-300 overflow-x-auto border border-border">
+              <pre className="p-3 rounded-md bg-neutral-950 font-mono text-xs text-neutral-300 overflow-x-auto border border-border">
                 {jsonExample}
               </pre>
             </div>

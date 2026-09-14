@@ -34,11 +34,11 @@ export default function BatchActionBar({
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200">
       <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-neutral-950/90 text-neutral-100 border border-neutral-800 shadow-2xl backdrop-blur-md text-xs">
         {/* Selected count pill */}
-        <span className="font-medium px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-300 font-mono text-[11px] select-none">
+        <span className="font-medium px-2.5 py-0.5 rounded-md bg-neutral-800 text-neutral-300 font-mono text-xs select-none">
           {countText}
         </span>
 
-        <div className="h-3.5 w-px bg-neutral-800 mx-0.5" />
+        <div className="h-4 w-px bg-neutral-800 mx-0.5" />
 
         {/* Move to folder */}
         <Button
@@ -47,7 +47,7 @@ export default function BatchActionBar({
           size="sm"
           onClick={onMoveClick}
           disabled={isPending}
-          className="h-7 px-2.5 text-xs text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer"
+          className="h-8 px-3 text-xs text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer"
           title={t.workspace?.moveToFolder || "移动至文件夹"}
         >
           <Folder className="w-3.5 h-3.5 mr-1 text-neutral-400" />
@@ -61,7 +61,7 @@ export default function BatchActionBar({
           size="sm"
           onClick={() => onVisibilityChange("public")}
           disabled={isPending}
-          className="h-7 px-2.5 text-xs text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer"
+          className="h-8 px-3 text-xs text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer"
           title={t.workspace?.batchMakePublic || "批量设为公开"}
         >
           <Globe className="w-3.5 h-3.5 mr-1 text-neutral-400" />
@@ -75,7 +75,7 @@ export default function BatchActionBar({
           size="sm"
           onClick={() => onVisibilityChange("private")}
           disabled={isPending}
-          className="h-7 px-2.5 text-xs text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer"
+          className="h-8 px-3 text-xs text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer"
           title={t.workspace?.batchMakePrivate || "批量设为私有"}
         >
           <Lock className="w-3.5 h-3.5 mr-1 text-neutral-400" />
@@ -89,14 +89,14 @@ export default function BatchActionBar({
           size="sm"
           onClick={onDeleteClick}
           disabled={isPending}
-          className="h-7 px-2.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-950/40 cursor-pointer"
+          className="h-8 px-3 text-xs text-red-400 hover:text-red-300 hover:bg-red-950/40 cursor-pointer"
           title={t.workspace?.batchDelete || "批量删除"}
         >
           <Trash2 className="w-3.5 h-3.5 mr-1 text-red-400" />
           <span>{t.workspace?.batchDelete || "删除"}</span>
         </Button>
 
-        <div className="h-3.5 w-px bg-neutral-800 mx-0.5" />
+        <div className="h-4 w-px bg-neutral-800 mx-0.5" />
 
         {/* Clear selection */}
         <Button
@@ -105,7 +105,7 @@ export default function BatchActionBar({
           size="icon"
           onClick={onClearSelection}
           disabled={isPending}
-          className="h-7 w-7 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800"
+          className="h-8 w-8 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800"
           title={t.workspace?.deselectAll || "取消全选"}
         >
           {isPending ? (

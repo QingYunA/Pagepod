@@ -342,19 +342,19 @@ export default function HoverSandboxPreview({
             />
 
             {!iframeLoaded && !hasTimedOut && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-neutral-950/90 text-neutral-400">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/90 text-neutral-400">
                 <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden bg-neutral-900 z-30 pointer-events-none">
                   <div className="h-full bg-neutral-200/90 animate-pulse w-full" />
                 </div>
-                <Loader2 className="w-4 h-4 animate-spin text-neutral-300" />
-                <span className="text-[10px] font-mono">{t.gallery.loadingPreview}</span>
+                <Loader2 className="w-5 h-5 animate-spin text-neutral-300" />
+                <span className="text-xs font-mono">{t.gallery.loadingPreview}</span>
               </div>
             )}
 
             {/* Status Pill */}
-            <div className="absolute top-2 left-2 pointer-events-none z-20">
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-medium bg-black/80 text-emerald-400 border border-emerald-500/30 shadow-xs">
-                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="absolute top-2.5 left-2.5 pointer-events-none z-20">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-black/80 text-emerald-400 border border-emerald-500/30 shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span>{t.gallery.sandboxActive}</span>
               </span>
             </div>
@@ -363,19 +363,19 @@ export default function HoverSandboxPreview({
             <button
               onClick={handleManualClose}
               title="关闭预览"
-              className="absolute top-2 right-2 p-1 rounded-full bg-black/80 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700 transition-colors z-30"
+              className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/80 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700 transition-colors z-30"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
 
             {/* Quick Open Button */}
             <Link
               href={`/p/${slug}`}
               target="_blank"
-              className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded bg-black/80 hover:bg-neutral-900 text-neutral-200 hover:text-white text-[10px] font-medium border border-neutral-700 backdrop-blur-md transition-colors z-20"
+              className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/80 hover:bg-neutral-900 text-neutral-200 hover:text-white text-xs font-medium border border-neutral-700 backdrop-blur-md transition-colors z-20"
             >
               <span>{defaultOpenText}</span>
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>,
           document.body
@@ -427,7 +427,7 @@ export default function HoverSandboxPreview({
                 <div className="h-full bg-neutral-200/90 animate-pulse w-full" />
               </div>
               <Loader2 className="w-5 h-5 animate-spin text-neutral-300" />
-              <span className="text-[11px] font-mono tracking-tight text-neutral-300">
+              <span className="text-xs font-mono tracking-tight text-neutral-300">
                 {t.gallery.loadingPreview}
               </span>
             </div>
@@ -436,10 +436,10 @@ export default function HoverSandboxPreview({
           {/* Timeout Guard Layer */}
           {hasTimedOut && !iframeLoaded && (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-neutral-950/95 border border-amber-500/30 text-center gap-2 z-25 animate-in fade-in duration-200">
-              <div className="w-7 h-7 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400">
+              <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400">
                 <AlertTriangle className="w-4 h-4" />
               </div>
-              <p className="text-[11px] text-neutral-300 font-medium max-w-[220px] leading-tight">
+              <p className="text-xs text-neutral-300 font-medium max-w-[240px] leading-relaxed">
                 {t.gallery.loadTimeout}
               </p>
               <div className="flex items-center gap-2 mt-1">
@@ -447,19 +447,19 @@ export default function HoverSandboxPreview({
                   size="sm"
                   variant="outline"
                   onClick={handleRetry}
-                  className="h-6 px-2 text-[10px] gap-1 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border-neutral-700"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border-neutral-700"
                 >
-                  <RotateCcw className="w-2.5 h-2.5" />
+                  <RotateCcw className="w-3 h-3" />
                   <span>{t.gallery.retry}</span>
                 </Button>
                 <Button
                   size="sm"
                   asChild
-                  className="h-6 px-2 text-[10px] gap-1 bg-neutral-100 hover:bg-white text-neutral-950 font-medium"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-100 hover:bg-white text-neutral-950 font-medium"
                 >
                   <Link href={`/p/${slug}`} target="_blank">
                     <span>{t.gallery.openAnyway}</span>
-                    <ExternalLink className="w-2.5 h-2.5" />
+                    <ExternalLink className="w-3 h-3" />
                   </Link>
                 </Button>
               </div>
@@ -469,10 +469,10 @@ export default function HoverSandboxPreview({
           {/* Script Error Guard Layer */}
           {hasScriptError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-neutral-950/95 border border-red-500/30 text-center gap-2 z-25 animate-in fade-in duration-200">
-              <div className="w-7 h-7 rounded-full bg-red-500/10 flex items-center justify-center text-red-400">
+              <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-400">
                 <AlertTriangle className="w-4 h-4" />
               </div>
-              <p className="text-[11px] text-neutral-300 font-medium max-w-[220px] leading-tight">
+              <p className="text-xs text-neutral-300 font-medium max-w-[240px] leading-relaxed">
                 {t.gallery.scriptError}
               </p>
               <div className="flex items-center gap-2 mt-1">
@@ -480,19 +480,19 @@ export default function HoverSandboxPreview({
                   size="sm"
                   variant="outline"
                   onClick={handleRetry}
-                  className="h-6 px-2 text-[10px] gap-1 bg-neutral-900 text-neutral-200 border-neutral-700"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-900 text-neutral-200 border-neutral-700"
                 >
-                  <RotateCcw className="w-2.5 h-2.5" />
+                  <RotateCcw className="w-3 h-3" />
                   <span>{t.gallery.retry}</span>
                 </Button>
                 <Button
                   size="sm"
                   asChild
-                  className="h-6 px-2 text-[10px] gap-1 bg-neutral-100 text-neutral-950 font-medium"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-100 text-neutral-950 font-medium"
                 >
                   <Link href={`/p/${slug}`} target="_blank">
                     <span>{t.gallery.openAnyway}</span>
-                    <ExternalLink className="w-2.5 h-2.5" />
+                    <ExternalLink className="w-3 h-3" />
                   </Link>
                 </Button>
               </div>
@@ -500,8 +500,8 @@ export default function HoverSandboxPreview({
           )}
 
           {/* Live Indicator Pill & Close Button */}
-          <div className="absolute bottom-2 left-2 flex items-center gap-1.5 z-20">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-black/80 text-emerald-400 border border-emerald-500/30 backdrop-blur-md shadow-xs">
+          <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 z-20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-black/80 text-emerald-400 border border-emerald-500/30 backdrop-blur-md shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>{t.gallery.sandboxActive}</span>
             </span>
@@ -511,7 +511,7 @@ export default function HoverSandboxPreview({
               title={t.gallery.pause}
               className="p-1 rounded-full bg-black/80 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-neutral-700/80 backdrop-blur-md transition-colors cursor-pointer"
             >
-              <X className="w-2.5 h-2.5" />
+              <X className="w-3 h-3" />
             </button>
           </div>
 
@@ -519,11 +519,11 @@ export default function HoverSandboxPreview({
           <Link
             href={`/p/${slug}`}
             target="_blank"
-            className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/80 hover:bg-neutral-900 text-neutral-200 hover:text-white text-[10px] font-medium border border-neutral-700/80 backdrop-blur-md transition-colors z-20 shadow-xs cursor-pointer"
+            className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/80 hover:bg-neutral-900 text-neutral-200 hover:text-white text-xs font-medium border border-neutral-700/80 backdrop-blur-md transition-colors z-20 shadow-xs cursor-pointer"
             title={defaultOpenText}
           >
             <span>{defaultOpenText}</span>
-            <ExternalLink className="w-3 h-3" />
+            <ExternalLink className="w-3.5 h-3.5" />
           </Link>
         </>
       )}
@@ -569,7 +569,7 @@ export default function HoverSandboxPreview({
                     <span className="w-1.5 h-1.5 rounded-full bg-neutral-700" />
                     <span className="w-1.5 h-1.5 rounded-full bg-neutral-700" />
                   </div>
-                  <span className="text-[9px] font-mono text-neutral-500 tracking-wider">
+                  <span className="text-xs font-mono text-neutral-500 tracking-wider">
                     {category.toUpperCase()}
                   </span>
                 </div>
@@ -586,9 +586,9 @@ export default function HoverSandboxPreview({
 
           {/* Large File Warning Badge in top-right of the viewport */}
           {isLargeFile && (
-            <div className="absolute top-2 right-2 z-15 pointer-events-none">
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30 backdrop-blur-md shadow-xs">
-                <AlertTriangle className="w-2.5 h-2.5" />
+            <div className="absolute top-2.5 right-2.5 z-15 pointer-events-none">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30 backdrop-blur-md shadow-xs">
+                <AlertTriangle className="w-3 h-3" />
                 <span>{formattedFileSize}</span>
               </span>
             </div>
@@ -597,14 +597,14 @@ export default function HoverSandboxPreview({
           {/* C. Large File Confirmation Warning Overlay */}
           {showLargeFileConfirm && (
             <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 bg-neutral-950/95 border border-amber-500/40 backdrop-blur-xs text-center gap-2 animate-in fade-in zoom-in-95 duration-150">
-              <div className="w-7 h-7 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-400">
+              <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-400">
                 <AlertTriangle className="w-4 h-4" />
               </div>
               <div className="space-y-0.5">
-                <p className="text-[11px] font-semibold text-neutral-200">
+                <p className="text-xs font-semibold text-neutral-200">
                   {t.gallery.largeFileBadge} ({formattedFileSize})
                 </p>
-                <p className="text-[10px] text-neutral-400 max-w-[210px] leading-relaxed">
+                <p className="text-xs text-neutral-400 max-w-[220px] leading-relaxed">
                   {t.gallery.largeFileNotice}
                 </p>
               </div>
@@ -616,27 +616,27 @@ export default function HoverSandboxPreview({
                     setShowLargeFileConfirm(false);
                     sandboxPool.activate(slug);
                   }}
-                  className="h-6 px-2.5 text-[10px] bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-700"
+                  className="h-8 px-3 text-xs bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-700"
                 >
                   <span>继续预览</span>
                 </Button>
                 <Button
                   size="sm"
                   asChild
-                  className="h-6 px-2.5 text-[10px] gap-1 bg-neutral-100 hover:bg-white text-neutral-950 font-medium"
+                  className="h-8 px-3 text-xs gap-1.5 bg-neutral-100 hover:bg-white text-neutral-950 font-medium"
                 >
                   <Link href={`/p/${slug}`} target="_blank">
                     <span>{defaultOpenText}</span>
-                    <ExternalLink className="w-2.5 h-2.5" />
+                    <ExternalLink className="w-3 h-3" />
                   </Link>
                 </Button>
               </div>
               <button
                 onClick={() => setShowLargeFileConfirm(false)}
-                className="absolute top-2 right-2 text-neutral-500 hover:text-neutral-300 p-1 cursor-pointer"
+                className="absolute top-2.5 right-2.5 text-neutral-500 hover:text-neutral-300 p-1 cursor-pointer"
                 title="关闭提示"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
@@ -650,13 +650,13 @@ export default function HoverSandboxPreview({
                 onClick={triggerActivation}
                 onMouseEnter={handlePreviewHoverStart}
                 onMouseLeave={handlePreviewHoverEnd}
-                className="relative flex items-center gap-1.5 pl-2.5 pr-3 py-1 rounded-full text-xs font-medium text-neutral-200 hover:text-white hover:bg-neutral-800/80 transition-all cursor-pointer overflow-hidden select-none"
+                className="relative flex items-center gap-2 pl-3 pr-3.5 py-1.5 rounded-full text-xs font-medium text-neutral-200 hover:text-white hover:bg-neutral-800/80 transition-all cursor-pointer overflow-hidden select-none"
                 title="点击立即运行沙箱，或悬停蓄力预览"
               >
                 {/* Mini SVG Progress Ring for Hover Charge */}
-                <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+                <div className="relative w-4.5 h-4.5 flex items-center justify-center shrink-0">
                   <svg
-                    className="w-4 h-4 -rotate-90 transform"
+                    className="w-4.5 h-4.5 -rotate-90 transform"
                     viewBox="0 0 28 28"
                     aria-hidden="true"
                   >
@@ -686,25 +686,25 @@ export default function HoverSandboxPreview({
                       }}
                     />
                   </svg>
-                  <Play className="w-2.5 h-2.5 fill-current ml-0.5 absolute text-neutral-300" />
+                  <Play className="w-3.5 h-3.5 fill-current ml-0.5 absolute text-neutral-300" />
                 </div>
-                <span className="font-mono text-[11px] tracking-tight">
+                <span className="font-mono text-xs tracking-tight">
                   {isCharging ? "载入中..." : previewText}
                 </span>
               </button>
 
               {/* Center Divider Hairline */}
-              <div className="w-[1px] h-3.5 bg-neutral-700 shrink-0" />
+              <div className="w-[1px] h-4 bg-neutral-700 shrink-0" />
 
               {/* Right Action: Open Directly Runner Button */}
               <Link
                 href={`/p/${slug}`}
                 target="_blank"
-                className="flex items-center gap-1 pl-2.5 pr-3 py-1 rounded-full text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-all cursor-pointer select-none"
+                className="flex items-center gap-1.5 pl-3 pr-3.5 py-1.5 rounded-full text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-all cursor-pointer select-none"
                 title={`在新标签页打开 ${title}`}
               >
-                <span className="font-mono text-[11px] tracking-tight">{defaultOpenText}</span>
-                <ExternalLink className="w-3 h-3 text-neutral-400" />
+                <span className="font-mono text-xs tracking-tight">{defaultOpenText}</span>
+                <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
               </Link>
             </div>
           )}

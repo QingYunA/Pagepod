@@ -283,7 +283,7 @@ export default function PayPalCheckoutDialog({
               <DialogTitle className="text-base font-semibold text-foreground">
                 {isZh ? "需要登录账号" : "Sign In Required"}
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
                 {isZh
                   ? "请先登录或注册 Pagepod 账号，以便我们在支付完成后即时为您激活终身会员权益。"
                   : "Please sign in or create an account first so we can bind your lifetime privileges immediately upon payment."}
@@ -291,16 +291,16 @@ export default function PayPalCheckoutDialog({
             </DialogHeader>
 
             <div className="pt-2 flex flex-col gap-2">
-              <Button asChild className="w-full h-9 text-xs font-medium gap-2">
+              <Button asChild className="w-full h-9 text-sm font-medium gap-2">
                 <Link href={`/login?from=${encodeURIComponent(`/pricing?tier=${planTier}`)}`}>
                   <span>{isZh ? "立即登录 / 注册" : "Sign In / Register"}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
               <Button
                 variant="ghost"
                 onClick={onClose}
-                className="w-full h-9 text-xs text-muted-foreground hover:text-foreground"
+                className="w-full h-9 text-sm text-muted-foreground hover:text-foreground"
               >
                 {isZh ? "稍后再说" : "Cancel"}
               </Button>
@@ -316,7 +316,7 @@ export default function PayPalCheckoutDialog({
               <h3 className="text-base font-semibold text-foreground">
                 {isZh ? "支付成功，方案已激活" : "Payment Successful!"}
               </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {isZh
                   ? `已成功激活 ${plan.nameZh}，权益已绑定至您的账号。`
                   : `Your account has been permanently upgraded to ${plan.nameEn}. Enjoy your lifetime access!`}
@@ -324,10 +324,10 @@ export default function PayPalCheckoutDialog({
             </div>
 
             <div className="pt-2 flex flex-col gap-2">
-              <Button asChild className="w-full h-9 text-xs font-medium gap-2">
+              <Button asChild className="w-full h-9 text-sm font-medium gap-2">
                 <Link href="/workspace">
                   <span>{isZh ? "进入我的工作台" : "Go to Workspace"}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
             </div>
@@ -339,15 +339,15 @@ export default function PayPalCheckoutDialog({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <PlanIcon className="w-4 h-4 text-foreground" />
-                  <DialogTitle className="text-sm font-semibold tracking-tight text-foreground">
+                  <DialogTitle className="text-base font-semibold tracking-tight text-foreground">
                     {isZh ? plan.nameZh : plan.nameEn}
                   </DialogTitle>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-mono border-border">
+                <Badge variant="outline" className="text-xs font-mono border-border">
                   {isZh ? plan.badgeZh : plan.badgeEn}
                 </Badge>
               </div>
-              <DialogDescription className="text-xs text-muted-foreground">
+              <DialogDescription className="text-sm text-muted-foreground">
                 {isZh ? "一次性安全结账，终身有效无续费" : "One-time secure payment, lifetime access"}
               </DialogDescription>
             </DialogHeader>
@@ -360,11 +360,11 @@ export default function PayPalCheckoutDialog({
                 </span>
                 <div className="text-xl font-bold font-mono text-foreground">
                   {plan.price}{" "}
-                  <span className="text-[11px] font-normal text-muted-foreground">USD</span>
+                  <span className="text-xs font-normal text-muted-foreground">USD</span>
                 </div>
               </div>
               <div className="text-right">
-                <Badge variant="secondary" className="text-[10px] font-mono">
+                <Badge variant="secondary" className="text-xs font-mono">
                   {isZh ? "一次性买断" : "Lifetime"}
                 </Badge>
               </div>
@@ -372,13 +372,13 @@ export default function PayPalCheckoutDialog({
 
             {/* Feature List */}
             <div className="space-y-2">
-              <div className="text-[11px] font-medium text-muted-foreground tracking-wide uppercase">
+              <div className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
                 {isZh ? "包含权益" : "Included Perks"}
               </div>
-              <ul className="space-y-2 text-xs text-foreground/90">
+              <ul className="space-y-2 text-sm text-foreground/90">
                 {(isZh ? plan.featuresZh : plan.featuresEn).map((feat, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                     <span className="leading-tight">{feat}</span>
                   </li>
                 ))}
@@ -397,7 +397,7 @@ export default function PayPalCheckoutDialog({
             {isCapturing && (
               <div className="py-6 flex flex-col items-center justify-center space-y-2.5">
                 <Loader2 className="w-6 h-6 animate-spin text-foreground" />
-                <p className="text-xs text-muted-foreground animate-pulse">
+                <p className="text-sm text-muted-foreground animate-pulse">
                   {isZh ? "正在确认支付并激活权益..." : "Verifying payment with PayPal..."}
                 </p>
               </div>
@@ -408,7 +408,7 @@ export default function PayPalCheckoutDialog({
               {isLoadingScript && (
                 <div className="py-6 flex flex-col items-center justify-center space-y-2">
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     {isZh ? "正在载入 PayPal 安全通道..." : "Loading PayPal secure checkout..."}
                   </span>
                 </div>
@@ -417,8 +417,8 @@ export default function PayPalCheckoutDialog({
             </div>
 
             {/* Trust Footer */}
-            <div className="pt-2 border-t border-border flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-              <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground" />
+            <div className="pt-2 border-t border-border flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-muted-foreground" />
               <span>
                 {isZh
                   ? "PayPal 官方加密保障 · 支持余额与各大信用卡"

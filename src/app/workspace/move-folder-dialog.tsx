@@ -50,11 +50,11 @@ export default function MoveFolderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md bg-card border-border shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-sm font-semibold flex items-center gap-2">
+          <DialogTitle className="text-base font-semibold flex items-center gap-2">
             <Folder className="w-4 h-4 text-foreground" />
             <span>{t.workspace?.moveToFolder || "移动至文件夹"}</span>
           </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
+          <DialogDescription className="text-sm text-muted-foreground">
             {t.workspace?.selectTargetFolder || "选择目标文件夹"} ({selectedCount} 项)
           </DialogDescription>
         </DialogHeader>
@@ -115,7 +115,7 @@ export default function MoveFolderDialog({
             size="sm"
             onClick={() => onOpenChange(false)}
             disabled={isPending}
-            className="text-xs h-8"
+            className="text-sm h-9"
           >
             {t.workspace?.cancel || "取消"}
           </Button>
@@ -124,7 +124,7 @@ export default function MoveFolderDialog({
             size="sm"
             onClick={handleConfirm}
             disabled={isPending}
-            className="text-xs h-8"
+            className="text-sm h-9"
           >
             {isPending ? (
               <>

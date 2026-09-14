@@ -120,7 +120,7 @@ export default function PricingClient() {
             <h3 className="text-base font-semibold tracking-tight text-foreground">
               {t.pricing.freePlan.name}
             </h3>
-            <p className="text-xs text-muted-foreground mt-1 min-h-[32px] leading-relaxed">
+            <p className="text-sm text-muted-foreground mt-1 min-h-[32px] leading-relaxed">
               {t.pricing.freePlan.desc}
             </p>
             <div className="mt-4 flex items-baseline gap-1">
@@ -134,17 +134,17 @@ export default function PricingClient() {
           </div>
 
           <div className="border-t border-border pt-5 mb-6 flex-1">
-            <ul className="space-y-3 text-xs text-muted-foreground">
+            <ul className="space-y-3 text-sm text-muted-foreground">
               {t.pricing.freePlan.features.map((feat, idx) => (
                 <li key={idx} className="flex items-start gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                   <span>{feat}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <Button variant="outline" asChild className="w-full h-9 text-xs font-medium border-border hover:bg-muted">
+          <Button variant="outline" asChild className="w-full h-9 text-sm font-medium border-border hover:bg-muted">
             <Link href="/workspace/upload">
               {t.pricing.freePlan.cta}
             </Link>
@@ -154,7 +154,7 @@ export default function PricingClient() {
         {/* Lite Lifetime Plan */}
         <div className="relative flex flex-col p-6 rounded-xl border border-border bg-card text-card-foreground shadow-xs">
           <div className="absolute -top-3 right-5">
-            <Badge variant="secondary" className="px-2 py-0.5 text-[10px] font-mono border border-border text-foreground">
+            <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-mono border border-border text-foreground">
               {t.pricing.litePlan.badge}
             </Badge>
           </div>
@@ -166,7 +166,7 @@ export default function PricingClient() {
                 {t.pricing.litePlan.name}
               </h3>
             </div>
-            <p className="text-xs text-muted-foreground mt-1 min-h-[32px] leading-relaxed">
+            <p className="text-sm text-muted-foreground mt-1 min-h-[32px] leading-relaxed">
               {t.pricing.litePlan.desc}
             </p>
             <div className="mt-4 flex items-baseline gap-1">
@@ -180,10 +180,10 @@ export default function PricingClient() {
           </div>
 
           <div className="border-t border-border pt-5 mb-6 flex-1">
-            <ul className="space-y-3 text-xs text-muted-foreground">
+            <ul className="space-y-3 text-sm text-muted-foreground">
               {t.pricing.litePlan.features.map((feat, idx) => (
                 <li key={idx} className="flex items-start gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-foreground shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 text-foreground shrink-0 mt-0.5" />
                   <span className="text-foreground/90">{feat}</span>
                 </li>
               ))}
@@ -194,7 +194,7 @@ export default function PricingClient() {
             <Button
               variant="outline"
               disabled
-              className="w-full h-9 text-xs font-medium border-border opacity-70"
+              className="w-full h-9 text-sm font-medium border-border opacity-70"
             >
               {isZh ? "当前生效套餐" : "Current Plan"}
             </Button>
@@ -202,7 +202,7 @@ export default function PricingClient() {
             <Button
               variant="outline"
               disabled
-              className="w-full h-9 text-xs font-medium border-border opacity-70"
+              className="w-full h-9 text-sm font-medium border-border opacity-70"
             >
               {isZh ? "已包含在 Pro 中" : "Included in Pro"}
             </Button>
@@ -210,7 +210,7 @@ export default function PricingClient() {
             <Button
               variant="outline"
               onClick={() => handleBuyClick("lite")}
-              className="w-full h-9 text-xs font-medium border-border hover:bg-muted hover:border-foreground/30 cursor-pointer"
+              className="w-full h-9 text-sm font-medium border-border hover:bg-muted hover:border-foreground/30 cursor-pointer"
             >
               {!currentUser
                 ? (isZh ? "登录后选择 Lite 方案" : "Sign in & Get Lite")
@@ -222,7 +222,7 @@ export default function PricingClient() {
         {/* Pro Lifetime Plan */}
         <div className="relative flex flex-col p-6 rounded-xl border-2 border-foreground bg-card text-card-foreground shadow-md">
           <div className="absolute -top-3 right-5">
-            <Badge className="bg-foreground text-background hover:bg-foreground px-2.5 py-0.5 text-[10px] font-medium tracking-wide">
+            <Badge className="bg-foreground text-background hover:bg-foreground px-2.5 py-0.5 text-xs font-medium tracking-wide">
               {t.pricing.proPlan.badge}
             </Badge>
           </div>
@@ -234,7 +234,7 @@ export default function PricingClient() {
                 {t.pricing.proPlan.name}
               </h3>
             </div>
-            <p className="text-xs text-muted-foreground mt-1 min-h-[32px] leading-relaxed">
+            <p className="text-sm text-muted-foreground mt-1 min-h-[32px] leading-relaxed">
               {t.pricing.proPlan.desc}
             </p>
             <div className="mt-4 flex items-baseline gap-1">
@@ -248,10 +248,10 @@ export default function PricingClient() {
           </div>
 
           <div className="border-t border-border pt-5 mb-6 flex-1">
-            <ul className="space-y-3 text-xs text-muted-foreground">
+            <ul className="space-y-3 text-sm text-muted-foreground">
               {t.pricing.proPlan.features.map((feat, idx) => (
                 <li key={idx} className="flex items-start gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span className="text-foreground font-medium">{feat}</span>
                 </li>
               ))}
@@ -262,14 +262,14 @@ export default function PricingClient() {
             <Button
               variant="outline"
               disabled
-              className="w-full h-9 text-xs font-medium border-border opacity-70"
+              className="w-full h-9 text-sm font-medium border-border opacity-70"
             >
               {isZh ? "当前生效套餐" : "Current Plan"}
             </Button>
           ) : (
             <Button
               onClick={() => handleBuyClick("pro")}
-              className="w-full h-9 text-xs font-medium gap-1.5 shadow-sm cursor-pointer"
+              className="w-full h-9 text-sm font-medium gap-1.5 shadow-sm cursor-pointer"
             >
               <span>
                 {!currentUser
@@ -278,7 +278,7 @@ export default function PricingClient() {
                   ? (isZh ? "升级至 Pro 终身版" : "Upgrade to Pro")
                   : t.pricing.proPlan.cta}
               </span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </Button>
           )}
         </div>
@@ -299,13 +299,13 @@ export default function PricingClient() {
       <div className="max-w-3xl mx-auto pt-6 border-t border-border">
         <div className="text-center mb-10 space-y-1.5">
           <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-            <HelpCircle className="w-3.5 h-3.5" />
+            <HelpCircle className="w-4 h-4" />
             <span>FAQ</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
             {t.pricing.faqTitle}
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {t.pricing.faqDesc}
           </p>
         </div>
@@ -316,11 +316,11 @@ export default function PricingClient() {
               key={index}
               className="p-4 rounded-lg border border-border bg-card/60 space-y-2 hover:border-foreground/30 transition-colors"
             >
-              <h3 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
                 <span className="text-muted-foreground font-mono text-xs">Q{index + 1}.</span>
                 <span>{faq.q}</span>
               </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed pl-6">
+              <p className="text-sm text-muted-foreground leading-relaxed pl-6">
                 {faq.a}
               </p>
             </div>

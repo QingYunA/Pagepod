@@ -15,7 +15,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground">
         <span className="sr-only">Toggle theme</span>
       </Button>
     );
@@ -28,7 +28,7 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      className="relative h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 overflow-hidden"
+      className="relative h-9 w-9 text-muted-foreground hover:text-foreground shrink-0 overflow-hidden"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       title={isDark ? "切换为浅色模式" : "切换为深色模式"}
       aria-label={isDark ? "切换到浅色模式" : "切换到深色模式"}

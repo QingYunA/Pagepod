@@ -21,18 +21,18 @@ export default function RunnerLoading() {
         </div>
 
         {/* Center: Device Switcher Skeleton */}
-        <div className="flex items-center border border-border rounded-md p-0.5 bg-muted/40 opacity-70">
-          <div className="h-7 px-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Monitor className="w-3.5 h-3.5" />
-            <span className="hidden md:inline text-[11px]">桌面</span>
+        <div className="flex items-center border border-border rounded-lg p-0.5 bg-muted/40 opacity-70">
+          <div className="h-8 px-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <Monitor className="w-4 h-4" />
+            <span className="hidden md:inline">桌面</span>
           </div>
-          <div className="h-7 px-2.5 flex items-center gap-1.5 text-xs text-muted-foreground/50">
-            <Tablet className="w-3.5 h-3.5" />
-            <span className="hidden md:inline text-[11px]">平板</span>
+          <div className="h-8 px-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground/50">
+            <Tablet className="w-4 h-4" />
+            <span className="hidden md:inline">平板</span>
           </div>
-          <div className="h-7 px-2.5 flex items-center gap-1.5 text-xs text-muted-foreground/50">
-            <Smartphone className="w-3.5 h-3.5" />
-            <span className="hidden md:inline text-[11px]">手机</span>
+          <div className="h-8 px-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground/50">
+            <Smartphone className="w-4 h-4" />
+            <span className="hidden md:inline">手机</span>
           </div>
         </div>
 
@@ -47,8 +47,8 @@ export default function RunnerLoading() {
           <div className="h-8 w-8 flex items-center justify-center text-muted-foreground/40">
             <Share2 className="w-3.5 h-3.5" />
           </div>
-          <Skeleton className="h-7 w-7 rounded-md ml-1" />
-          <Skeleton className="h-7 w-7 rounded-md ml-1" />
+          <Skeleton className="h-8 w-8 rounded-md ml-1" />
+          <Skeleton className="h-8 w-8 rounded-md ml-1" />
         </div>
       </header>
 

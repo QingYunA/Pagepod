@@ -84,12 +84,12 @@ export function NotificationBell() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-8 w-8 rounded-md text-muted-foreground hover:text-foreground border border-border/50"
+          className="relative h-9 w-9 rounded-md text-muted-foreground hover:text-foreground border border-border/50"
           title={t.notifications?.title || "Notifications"}
         >
           <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black ring-2 ring-background">
+            <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-bold text-black ring-2 ring-background">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -102,9 +102,9 @@ export function NotificationBell() {
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold">{t.notifications?.title || "Notifications"}</span>
+            <span className="text-sm font-semibold">{t.notifications?.title || "Notifications"}</span>
             {unreadCount > 0 && (
-              <Badge variant="outline" className="px-1.5 py-0 text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/20 font-medium">
+              <Badge variant="outline" className="px-2 py-0.5 text-xs bg-amber-500/10 text-amber-500 border-amber-500/20 font-medium">
                 {unreadCount} {t.notifications?.unreadBadge || "unread"}
               </Badge>
             )}
@@ -115,12 +115,12 @@ export function NotificationBell() {
               size="sm"
               onClick={handleMarkAllAsRead}
               disabled={isLoading}
-              className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground"
+              className="h-8 text-xs px-3 text-muted-foreground hover:text-foreground"
             >
               {isLoading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
               ) : (
-                <CheckCheck className="w-3 h-3 mr-1" />
+                <CheckCheck className="w-3.5 h-3.5 mr-1" />
               )}
               {t.notifications?.markAllRead || "Mark all read"}
             </Button>
@@ -167,7 +167,7 @@ export function NotificationBell() {
                     <div className="flex items-center justify-between gap-2">
                       <p
                         className={cn(
-                          "text-xs font-medium truncate",
+                          "text-sm font-medium truncate",
                           !notif.isRead ? "text-foreground font-semibold" : "text-muted-foreground"
                         )}
                       >
@@ -177,10 +177,10 @@ export function NotificationBell() {
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                       {notif.message}
                     </p>
-                    <p className="text-[10px] text-muted-foreground/70 font-mono">
+                    <p className="text-xs text-muted-foreground/70 font-mono">
                       {new Date(notif.createdAt).toLocaleDateString()}{" "}
                       {new Date(notif.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",

@@ -367,14 +367,14 @@ export default function SettingsClient({
                   </span>
                   <Badge
                     variant="outline"
-                    className="text-[10px] font-mono uppercase shrink-0"
+                    className="text-xs font-mono uppercase shrink-0"
                   >
                     {isSelfhost ? "OWNER" : user.role}
                   </Badge>
                   {user.planTier && (
                     <Badge
                       variant={user.planTier === "pro" ? "default" : "secondary"}
-                      className="text-[10px] font-mono uppercase shrink-0"
+                      className="text-xs font-mono uppercase shrink-0"
                     >
                       {user.planTier}
                     </Badge>
@@ -382,7 +382,7 @@ export default function SettingsClient({
                 </div>
                 {user.email && (
                   <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                    <Mail className="w-3 h-3 shrink-0" />
+                    <Mail className="w-3.5 h-3.5 shrink-0" />
                     <span>{user.email}</span>
                   </p>
                 )}
@@ -391,8 +391,8 @@ export default function SettingsClient({
 
             {/* UID Info Pill */}
             <div className="flex items-center gap-2 text-xs bg-muted/40 border border-border px-2.5 py-1.5 rounded-md font-mono self-start sm:self-auto">
-              <span className="text-muted-foreground text-[11px]">UID:</span>
-              <span className="text-foreground text-[11px] truncate max-w-[150px] sm:max-w-[200px]">
+              <span className="text-muted-foreground text-xs">UID:</span>
+              <span className="text-foreground text-xs truncate max-w-[150px] sm:max-w-[200px]">
                 {user.id}
               </span>
               <button
@@ -402,9 +402,9 @@ export default function SettingsClient({
                 className="text-muted-foreground hover:text-foreground transition-colors p-0.5 cursor-pointer ml-1"
               >
                 {copiedUid ? (
-                  <Check className="w-3 h-3 text-emerald-500" />
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
                 ) : (
-                  <Copy className="w-3 h-3" />
+                  <Copy className="w-3.5 h-3.5" />
                 )}
               </button>
             </div>
@@ -417,7 +417,7 @@ export default function SettingsClient({
         <Card>
           <CardHeader className="p-5 pb-4 border-b border-border/50 bg-muted/20">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
               {user.planTier === "pro" ? (
                 <Sparkles className="w-4 h-4 text-foreground" />
               ) : user.planTier === "lite" ? (
@@ -428,20 +428,20 @@ export default function SettingsClient({
               <span>{t.settings.plan.title}</span>
             </CardTitle>
             {user.planTier === "pro" ? (
-              <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold tracking-wider">
+              <Badge variant="outline" className="font-mono text-xs uppercase font-bold tracking-wider">
                 {t.settings.plan.proBadge}
               </Badge>
             ) : user.planTier === "lite" ? (
-              <Badge variant="outline" className="font-mono text-[10px] uppercase font-bold tracking-wider">
+              <Badge variant="outline" className="font-mono text-xs uppercase font-bold tracking-wider">
                 {t.settings.plan.liteBadge}
               </Badge>
             ) : (
-              <Badge variant="outline" className="font-mono text-[10px] uppercase">
+              <Badge variant="outline" className="font-mono text-xs uppercase">
                 {t.settings.plan.freeBadge}
               </Badge>
             )}
           </div>
-          <CardDescription className="text-xs mt-1">
+          <CardDescription className="text-sm mt-1">
             {user.planTier === "pro"
               ? t.settings.plan.proDesc
               : user.planTier === "lite"
@@ -451,17 +451,17 @@ export default function SettingsClient({
         </CardHeader>
         <CardContent className="p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg border border-border bg-card flex items-start gap-2.5">
+            <div className="p-3.5 rounded-lg border border-border bg-card flex items-start gap-2.5">
               <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
               <div>
-                <span className="text-xs font-semibold text-foreground">
+                <span className="text-sm font-semibold text-foreground">
                   {user.planTier === "pro"
                     ? t.settings.plan.proStorageTitle
                     : user.planTier === "lite"
                     ? t.settings.plan.liteStorageTitle
                     : t.settings.plan.freeStorageTitle}
                 </span>
-                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   {user.planTier === "pro"
                     ? t.settings.plan.proStorageDesc
                     : user.planTier === "lite"
@@ -471,17 +471,17 @@ export default function SettingsClient({
               </div>
             </div>
 
-            <div className="p-3 rounded-lg border border-border bg-card flex items-start gap-2.5">
+            <div className="p-3.5 rounded-lg border border-border bg-card flex items-start gap-2.5">
               <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
               <div>
-                <span className="text-xs font-semibold text-foreground">
+                <span className="text-sm font-semibold text-foreground">
                   {user.planTier === "pro"
                     ? t.settings.plan.proFeatureTitle
                     : user.planTier === "lite"
                     ? t.settings.plan.liteFeatureTitle
                     : t.settings.plan.freeFeatureTitle}
                 </span>
-                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   {user.planTier === "pro"
                     ? t.settings.plan.proFeatureDesc
                     : user.planTier === "lite"
@@ -493,19 +493,19 @@ export default function SettingsClient({
           </div>
 
           <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-border/50">
-            <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
               <span>{t.settings.plan.lifetimeNotice}</span>
             </div>
             {user.planTier !== "pro" && (
-              <Button size="sm" asChild className="h-8 text-xs gap-1.5 shadow-sm self-start sm:self-auto">
+              <Button size="sm" asChild className="h-9 text-sm gap-1.5 shadow-sm self-start sm:self-auto">
                 <Link href="/pricing">
                   <span>
                     {user.planTier === "lite"
                       ? t.settings.plan.upgradeToPro
                       : t.settings.plan.upgradePlan}
                   </span>
-                  <ArrowRight className="w-3 h-3" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </Button>
             )}
@@ -550,21 +550,21 @@ export default function SettingsClient({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-foreground">
+                      <span className="text-sm font-semibold text-foreground">
                         GitHub
                       </span>
                       {isGithubConnected ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded font-medium">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           {t.settings?.statusConnected || "已关联"}
                         </span>
                       ) : (
-                        <span className="text-[11px] text-muted-foreground border border-border px-1.5 py-0.5 rounded">
+                        <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded">
                           {t.settings?.statusNotConnected || "未关联"}
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {isGithubConnected
                         ? githubIdentity?.identity_data?.user_name
                           ? `@${githubIdentity.identity_data.user_name}`
@@ -586,7 +586,7 @@ export default function SettingsClient({
                           ? "无法解绑当前唯一的登录方式"
                           : t.settings?.disconnectNotice || "解绑后将无法再通过此账号快捷登录"
                       }
-                      className="h-8 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/30 border-border cursor-pointer gap-1.5"
+                      className="h-8 px-3 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/30 border-border cursor-pointer gap-1.5"
                     >
                       {unlinkingProvider === "github" ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -601,12 +601,12 @@ export default function SettingsClient({
                       size="sm"
                       disabled={Boolean(linkingProvider)}
                       onClick={() => handleLinkOAuth("github")}
-                      className="h-8 text-xs font-medium border-border hover:bg-muted cursor-pointer gap-1.5"
+                      className="h-8 px-3 text-xs font-medium border-border hover:bg-muted cursor-pointer gap-1.5"
                     >
                       {linkingProvider === "github" ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                       )}
                       <span>
                         {linkingProvider === "github"
@@ -619,7 +619,7 @@ export default function SettingsClient({
               </div>
 
               {/* Google Row */}
-              <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-muted/10 transition-colors">
+              <div className="flex items-center justify-between p-3.5 rounded-lg border border-border bg-card hover:bg-muted/10 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center border border-border shrink-0">
                     <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -643,21 +643,21 @@ export default function SettingsClient({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-foreground">
+                      <span className="text-sm font-semibold text-foreground">
                         Google
                       </span>
                       {isGoogleConnected ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded font-medium">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           {t.settings?.statusConnected || "已关联"}
                         </span>
                       ) : (
-                        <span className="text-[11px] text-muted-foreground border border-border px-1.5 py-0.5 rounded">
+                        <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded">
                           {t.settings?.statusNotConnected || "未关联"}
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {isGoogleConnected
                         ? googleIdentity?.identity_data?.email || "已授权 Google 快速访问"
                         : "使用 Google Workspace 或 Gmail 快捷登录"}
@@ -677,7 +677,7 @@ export default function SettingsClient({
                           ? "无法解绑当前唯一的登录方式"
                           : t.settings?.disconnectNotice || "解绑后将无法再通过此账号快捷登录"
                       }
-                      className="h-8 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/30 border-border cursor-pointer gap-1.5"
+                      className="h-8 px-3 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/30 border-border cursor-pointer gap-1.5"
                     >
                       {unlinkingProvider === "google" ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -692,12 +692,12 @@ export default function SettingsClient({
                       size="sm"
                       disabled={Boolean(linkingProvider)}
                       onClick={() => handleLinkOAuth("google")}
-                      className="h-8 text-xs font-medium border-border hover:bg-muted cursor-pointer gap-1.5"
+                      className="h-8 px-3 text-xs font-medium border-border hover:bg-muted cursor-pointer gap-1.5"
                     >
                       {linkingProvider === "google" ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                       )}
                       <span>
                         {linkingProvider === "google"
@@ -716,11 +716,11 @@ export default function SettingsClient({
       {/* 3. Password Management Card */}
       <Card>
         <CardHeader className="p-5 pb-4 border-b border-border/50 bg-muted/20">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Lock className="w-4 h-4 text-muted-foreground" />
             <span>{t.settings?.passwordTitle || "密码管理"}</span>
           </CardTitle>
-          <CardDescription className="text-xs leading-relaxed">
+          <CardDescription className="text-sm leading-relaxed">
             {!hasPassword
               ? t.settings?.passwordNoPasswordDesc ||
                 "你当前是通过第三方社交账号快捷登录的，尚未为该账号设置独立的邮箱登录密码。设置密码后，你也可以直接使用邮箱和密码登录。"
@@ -730,7 +730,7 @@ export default function SettingsClient({
         </CardHeader>
         <CardContent className="p-5 space-y-4">
           {!isCloud ? (
-            <div className="p-3 bg-muted/40 border border-border rounded-md text-xs text-muted-foreground leading-relaxed">
+            <div className="p-3.5 bg-muted/40 border border-border rounded-md text-sm text-muted-foreground leading-relaxed">
               自托管管理员密码已由服务器环境变量 ADMIN_PASSWORD 统一维护。如需更改，请更新环境配置文件并重启服务即可生效。
             </div>
           ) : (
@@ -738,7 +738,7 @@ export default function SettingsClient({
               <div className="space-y-1.5">
                 <label
                   htmlFor="settings-new-password"
-                  className="text-xs font-medium text-foreground"
+                  className="text-sm font-medium text-foreground"
                 >
                   {t.settings?.newPasswordLabel || "新密码"}
                 </label>
@@ -752,7 +752,7 @@ export default function SettingsClient({
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     autoComplete="new-password"
-                    className="h-9 text-xs pr-9"
+                    className="h-9 text-sm pr-9"
                   />
                   <button
                     type="button"
@@ -761,9 +761,9 @@ export default function SettingsClient({
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 cursor-pointer"
                   >
                     {showPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
+                      <EyeOff className="w-4 h-4" />
                     ) : (
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className="w-4 h-4" />
                     )}
                   </button>
                 </div>
@@ -772,7 +772,7 @@ export default function SettingsClient({
               <div className="space-y-1.5">
                 <label
                   htmlFor="settings-confirm-password"
-                  className="text-xs font-medium text-foreground"
+                  className="text-sm font-medium text-foreground"
                 >
                   {t.settings?.confirmPasswordLabel || "确认新密码"}
                 </label>
@@ -786,7 +786,7 @@ export default function SettingsClient({
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
                     autoComplete="new-password"
-                    className="h-9 text-xs pr-9"
+                    className="h-9 text-sm pr-9"
                   />
                   <button
                     type="button"
@@ -795,9 +795,9 @@ export default function SettingsClient({
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 cursor-pointer"
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
+                      <EyeOff className="w-4 h-4" />
                     ) : (
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className="w-4 h-4" />
                     )}
                   </button>
                 </div>
@@ -807,12 +807,12 @@ export default function SettingsClient({
                 <Button
                   type="submit"
                   disabled={savingPassword || !password || !confirmPassword}
-                  className="h-8 text-xs font-medium gap-1.5 cursor-pointer"
+                  className="h-9 px-4 text-sm font-medium gap-2 cursor-pointer"
                 >
                   {savingPassword ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Lock className="w-3.5 h-3.5" />
+                    <Lock className="w-4 h-4" />
                   )}
                   <span>
                     {savingPassword

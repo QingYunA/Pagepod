@@ -250,7 +250,7 @@ function LoginForm() {
           <input type="hidden" name="origin" value={origin} />
 
           <div className="space-y-1.5">
-            <label htmlFor="forgot-email" className="text-xs font-medium text-foreground">
+            <label htmlFor="forgot-email" className="text-sm font-medium text-foreground">
               {t.auth.emailLabel}
             </label>
             <Input
@@ -260,18 +260,18 @@ function LoginForm() {
               required
               autoFocus
               placeholder={t.auth.emailPlaceholder}
-              className="h-9 text-xs"
+              className="h-9 text-sm"
             />
           </div>
 
           {forgotState?.error && (
-            <p role="alert" className="text-[11px] text-destructive font-medium text-center">
+            <p role="alert" className="text-xs text-destructive font-medium text-center">
               {forgotState.error}
             </p>
           )}
 
           {forgotState?.success && (
-            <div className="p-3 bg-muted/40 border border-border rounded-md text-[11px] text-foreground leading-relaxed text-center">
+            <div className="p-3 bg-muted/40 border border-border rounded-md text-xs text-foreground leading-relaxed text-center">
               {forgotState.message || t.auth.resetLinkSent}
             </div>
           )}
@@ -279,7 +279,7 @@ function LoginForm() {
           <Button
             type="submit"
             disabled={isForgotPending || Boolean(forgotState?.success)}
-            className="w-full h-9 text-xs font-medium cursor-pointer"
+            className="w-full h-9 text-sm font-medium cursor-pointer"
           >
             {isForgotPending ? (
               <>
@@ -296,9 +296,9 @@ function LoginForm() {
           <button
             type="button"
             onClick={() => switchStep("auth")}
-            className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 cursor-pointer transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4" />
             <span>{t.auth.backToSignIn}</span>
           </button>
         </div>
@@ -317,7 +317,7 @@ function LoginForm() {
           <h1 className="text-xl font-semibold tracking-tight">
             {t.auth.setNewPasswordTitle}
           </h1>
-          <p className="text-xs text-muted-foreground leading-relaxed px-2">
+          <p className="text-sm text-muted-foreground leading-relaxed px-2">
             {t.auth.setNewPasswordSubtitle}
           </p>
         </div>
@@ -328,10 +328,10 @@ function LoginForm() {
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor="new-password" className="text-xs font-medium text-foreground">
+              <label htmlFor="new-password" className="text-sm font-medium text-foreground">
                 {t.auth.newPasswordLabel}
               </label>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {t.auth.passwordMinNotice}
               </span>
             </div>
@@ -346,7 +346,7 @@ function LoginForm() {
                 autoFocus
                 minLength={6}
                 autoComplete="new-password"
-                className="h-9 text-xs pr-9"
+                className="h-9 text-sm pr-9"
               />
               <button
                 type="button"
@@ -355,18 +355,18 @@ function LoginForm() {
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor="confirm-new-password" className="text-xs font-medium text-foreground">
+              <label htmlFor="confirm-new-password" className="text-sm font-medium text-foreground">
                 {t.auth.confirmNewPasswordLabel}
               </label>
               {isResetPasswordMismatch && (
-                <span className="text-[10px] text-destructive font-medium">
+                <span className="text-xs text-destructive font-medium">
                   {t.auth.passwordMismatch}
                 </span>
               )}
@@ -381,7 +381,7 @@ function LoginForm() {
                 required
                 minLength={6}
                 autoComplete="new-password"
-                className={`h-9 text-xs pr-9 ${
+                className={`h-9 text-sm pr-9 ${
                   isResetPasswordMismatch ? "border-destructive/60 focus-visible:ring-destructive/30" : ""
                 }`}
               />
@@ -392,13 +392,13 @@ function LoginForm() {
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
                 aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
-                {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
           {resetState?.error && (
-            <p role="alert" className="text-[11px] text-destructive font-medium text-center">
+            <p role="alert" className="text-xs text-destructive font-medium text-center">
               {resetState.error}
             </p>
           )}
@@ -406,7 +406,7 @@ function LoginForm() {
           <Button
             type="submit"
             disabled={isResetPending || isResetPasswordMismatch}
-            className="w-full h-9 text-xs font-medium cursor-pointer"
+            className="w-full h-9 text-sm font-medium cursor-pointer"
           >
             {isResetPending ? (
               <>
@@ -423,9 +423,9 @@ function LoginForm() {
           <button
             type="button"
             onClick={() => switchStep("auth")}
-            className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 cursor-pointer transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4" />
             <span>{t.auth.backToSignIn}</span>
           </button>
         </div>
@@ -444,12 +444,12 @@ function LoginForm() {
           <h1 className="text-xl font-semibold tracking-tight">
             {t.auth.verifyEmailTitle}
           </h1>
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             {t.auth.verifyEmailSubtitle.replace("{email}", effectiveEmail)}
           </p>
         </div>
 
-        <div className="p-3 bg-muted/30 border border-border rounded-md text-[11px] text-muted-foreground leading-relaxed">
+        <div className="p-3 bg-muted/30 border border-border rounded-md text-xs text-muted-foreground leading-relaxed">
           {t.auth.verifyPrompt}
         </div>
 
@@ -459,7 +459,7 @@ function LoginForm() {
           <input type="hidden" name="email" value={effectiveEmail} />
 
           <div className="space-y-1.5">
-            <label htmlFor="otp-token" className="text-xs font-medium text-foreground">
+            <label htmlFor="otp-token" className="text-sm font-medium text-foreground">
               {t.auth.otpCodeLabel}
             </label>
             <Input
@@ -481,7 +481,7 @@ function LoginForm() {
           </div>
 
           {otpState?.error && (
-            <p role="alert" className="text-[11px] text-destructive font-medium text-center">
+            <p role="alert" className="text-xs text-destructive font-medium text-center">
               {otpState.error}
             </p>
           )}
@@ -489,7 +489,7 @@ function LoginForm() {
           <Button
             type="submit"
             disabled={isOtpPending}
-            className="w-full h-9 text-xs font-medium cursor-pointer"
+            className="w-full h-9 text-sm font-medium cursor-pointer"
           >
             {isOtpPending ? (
               <>
@@ -505,7 +505,7 @@ function LoginForm() {
         {/* Resend button & Change email */}
         <div className="flex flex-col space-y-3 text-center text-xs pt-1">
           {resendStatus && (
-            <p className="text-[11px] text-muted-foreground font-medium">
+            <p className="text-xs text-muted-foreground font-medium">
               {resendStatus}
             </p>
           )}
@@ -519,7 +519,7 @@ function LoginForm() {
               onClick={handleResendOtp}
               className="h-8 text-xs gap-1.5 cursor-pointer font-normal border-border"
             >
-              <RefreshCw className={`w-3 h-3 ${isResending ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isResending ? "animate-spin" : ""}`} />
               <span>
                 {isResending
                   ? t.auth.resending
@@ -533,7 +533,7 @@ function LoginForm() {
           <button
             type="button"
             onClick={handleBackFromVerification}
-            className="text-muted-foreground hover:text-foreground underline underline-offset-4 cursor-pointer text-[11px]"
+            className="text-muted-foreground hover:text-foreground underline underline-offset-4 cursor-pointer text-xs"
           >
             {t.auth.changeEmail}
           </button>
@@ -572,7 +572,7 @@ function LoginForm() {
           <h1 className="text-xl font-semibold tracking-tight">
             {activeTab === "signup" ? t.auth.signupTitle : t.auth.loginTitle}
           </h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {activeTab === "signup" ? t.auth.signupSubtitle : t.auth.loginSubtitle}
           </p>
         </div>
@@ -584,7 +584,7 @@ function LoginForm() {
             variant="outline"
             disabled={Boolean(oauthLoading)}
             onClick={() => handleOAuthLogin("github")}
-            className="h-9 text-xs gap-2 font-medium border-border hover:bg-muted cursor-pointer"
+            className="h-9 text-sm gap-2 font-medium border-border hover:bg-muted cursor-pointer"
           >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
@@ -597,7 +597,7 @@ function LoginForm() {
             variant="outline"
             disabled={Boolean(oauthLoading)}
             onClick={() => handleOAuthLogin("google")}
-            className="h-9 text-xs gap-2 font-medium border-border hover:bg-muted cursor-pointer"
+            className="h-9 text-sm gap-2 font-medium border-border hover:bg-muted cursor-pointer"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -619,7 +619,7 @@ function LoginForm() {
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-border" />
           </div>
-          <div className="relative flex justify-center text-[10px] uppercase">
+          <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground font-mono">
               {t.auth.orDivider}
             </span>
@@ -633,7 +633,7 @@ function LoginForm() {
           <input type="hidden" name="lang" value={locale} />
 
           <div className="space-y-1.5">
-            <label htmlFor="login-email" className="text-xs font-medium text-foreground">
+            <label htmlFor="login-email" className="text-sm font-medium text-foreground">
               {t.auth.emailLabel}
             </label>
             <Input
@@ -648,25 +648,25 @@ function LoginForm() {
               required
               autoFocus
               placeholder={t.auth.emailPlaceholder}
-              className="h-9 text-xs"
+              className="h-9 text-sm"
             />
           </div>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor="login-password" className="text-xs font-medium text-foreground">
+              <label htmlFor="login-password" className="text-sm font-medium text-foreground">
                 {t.auth.passwordLabel}
               </label>
               {activeTab === "signin" ? (
                 <button
                   type="button"
                   onClick={() => switchStep("forgot", emailInput)}
-                  className="text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   {t.auth.forgotPassword}
                 </button>
               ) : (
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {t.auth.passwordMinNotice}
                 </span>
               )}
@@ -684,7 +684,7 @@ function LoginForm() {
                 required
                 minLength={6}
                 autoComplete={activeTab === "signup" ? "new-password" : "current-password"}
-                className="h-9 text-xs pr-9"
+                className="h-9 text-sm pr-9"
               />
               <button
                 type="button"
@@ -693,7 +693,7 @@ function LoginForm() {
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
@@ -709,11 +709,11 @@ function LoginForm() {
           >
             <div className="overflow-hidden space-y-1.5">
               <div className="flex items-center justify-between pt-0.5">
-                <label htmlFor="login-confirm-password" className="text-xs font-medium text-foreground">
+                <label htmlFor="login-confirm-password" className="text-sm font-medium text-foreground">
                   {t.auth.confirmPasswordLabel}
                 </label>
                 {isSignupPasswordMismatch && (
-                  <span className="text-[10px] text-destructive font-medium animate-in fade-in-0 duration-150">
+                  <span className="text-xs text-destructive font-medium animate-in fade-in-0 duration-150">
                     {t.auth.passwordMismatch}
                   </span>
                 )}
@@ -732,7 +732,7 @@ function LoginForm() {
                   minLength={activeTab === "signup" ? 6 : undefined}
                   autoComplete="new-password"
                   className={cn(
-                    "h-9 text-xs pr-9 transition-colors",
+                    "h-9 text-sm pr-9 transition-colors",
                     isSignupPasswordMismatch && "border-destructive/60 focus-visible:ring-destructive/30"
                   )}
                 />
@@ -743,7 +743,7 @@ function LoginForm() {
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
                   aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 >
-                  {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -766,13 +766,13 @@ function LoginForm() {
               >
                 <div className="flex items-start gap-2.5">
                   <div className="p-1 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
-                    <AlertCircle className="w-3.5 h-3.5" />
+                    <AlertCircle className="w-4 h-4" />
                   </div>
                   <div className="flex-1 space-y-1 text-left">
                     <p className="font-semibold text-foreground text-xs tracking-tight">
                       {t.auth.accountExistsTitle || "该邮箱已关联现有账号"}
                     </p>
-                    <p className="text-muted-foreground text-[11px] leading-relaxed">
+                    <p className="text-muted-foreground text-xs leading-relaxed">
                       {currentEmailError}
                     </p>
                   </div>
@@ -796,9 +796,9 @@ function LoginForm() {
                       setActiveTab("signin");
                       setDismissedErrorMsg(currentEmailError);
                     }}
-                    className="h-7 text-xs font-medium px-2.5 bg-background hover:bg-muted border-border cursor-pointer gap-1.5 shadow-xs"
+                    className="h-8 text-xs font-medium px-2.5 bg-background hover:bg-muted border-border cursor-pointer gap-1.5 shadow-xs"
                   >
-                    <LogIn className="w-3 h-3 text-muted-foreground" />
+                    <LogIn className="w-3.5 h-3.5 text-muted-foreground" />
                     <span>{t.auth.actionSignInNow || "切换到登录"}</span>
                   </Button>
 
@@ -807,9 +807,9 @@ function LoginForm() {
                     variant="ghost"
                     size="sm"
                     onClick={() => switchStep("forgot", emailInput)}
-                    className="h-7 text-xs text-muted-foreground hover:text-foreground cursor-pointer gap-1.5"
+                    className="h-8 text-xs text-muted-foreground hover:text-foreground cursor-pointer gap-1.5"
                   >
-                    <KeyRound className="w-3 h-3 text-muted-foreground" />
+                    <KeyRound className="w-3.5 h-3.5 text-muted-foreground" />
                     <span>{t.auth.actionSetPassword || "找回/设置密码"}</span>
                   </Button>
                 </div>
@@ -819,7 +819,7 @@ function LoginForm() {
                 role="alert"
                 className="rounded-lg border border-destructive/30 bg-destructive/5 dark:bg-destructive/10 p-3 text-xs text-destructive flex items-start gap-2.5 animate-in fade-in-0 slide-in-from-top-1 duration-200"
               >
-                <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span className="leading-relaxed flex-1 text-left">{currentEmailError}</span>
                 <button
                   type="button"
@@ -835,7 +835,7 @@ function LoginForm() {
           <Button
             type="submit"
             disabled={isEmailPending || (activeTab === "signup" && isSignupPasswordMismatch)}
-            className="w-full h-9 text-xs font-medium cursor-pointer transition-all duration-150 active:scale-[0.99]"
+            className="w-full h-9 text-sm font-medium cursor-pointer transition-all duration-150 active:scale-[0.99]"
           >
             {isEmailPending ? (
               <span className="inline-flex items-center gap-1.5">
@@ -855,7 +855,7 @@ function LoginForm() {
         </form>
 
         <div className="flex flex-col space-y-2 text-center text-xs">
-          <p className="text-[11px] text-muted-foreground px-4 leading-relaxed">
+          <p className="text-xs text-muted-foreground px-4 leading-relaxed">
             {t.auth.termsNotice}
           </p>
         </div>
@@ -870,7 +870,7 @@ function LoginForm() {
         <h1 className="text-xl font-semibold tracking-tight">
           {t.auth.selfhostTitle}
         </h1>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {t.auth.selfhostSubtitle}
         </p>
       </div>
@@ -879,7 +879,7 @@ function LoginForm() {
         <input type="hidden" name="from" value={from} />
 
         <div className="space-y-1.5">
-          <label htmlFor="admin-password" className="text-xs font-medium text-foreground">
+          <label htmlFor="admin-password" className="text-sm font-medium text-foreground">
             {t.auth.adminPasswordLabel}
           </label>
           <div className="relative">
@@ -890,7 +890,7 @@ function LoginForm() {
               required
               autoFocus
               autoComplete="current-password"
-              className="h-9 text-xs pr-9"
+              className="h-9 text-sm pr-9"
             />
             <button
               type="button"
@@ -899,11 +899,11 @@ function LoginForm() {
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {adminState?.error && (
-            <p role="alert" className="text-[11px] text-destructive font-medium">
+            <p role="alert" className="text-xs text-destructive font-medium">
               {adminState.error}
             </p>
           )}
@@ -912,7 +912,7 @@ function LoginForm() {
         <Button
           type="submit"
           disabled={isAdminPending}
-          className="w-full h-9 text-xs font-medium cursor-pointer"
+          className="w-full h-9 text-sm font-medium cursor-pointer"
         >
           {isAdminPending ? (
             <>

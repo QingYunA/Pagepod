@@ -107,7 +107,7 @@ export function GuestClaimReconciler() {
         <p className="font-medium text-foreground">
           {isZh ? "游客作品已自动同步" : "Guest Projects Synchronized"}
         </p>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {isZh
             ? `已成功将你在本机上传的 ${toastNotification.count} 个 HTML 应用绑定至当前账户。`
             : `Successfully attached ${toastNotification.count} guest HTML app${

@@ -54,7 +54,7 @@ export function TokenGateInput({ slug }: TokenGateInputProps) {
           )}
         </Button>
       </div>
-      <p className="text-[11px] text-muted-foreground text-left">
+      <p className="text-xs text-muted-foreground text-left">
         Tip: The project author can find the access token in their original share URL.
       </p>
     </form>

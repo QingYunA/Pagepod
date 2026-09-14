@@ -49,7 +49,7 @@ export default async function SettingsPage() {
             variant="ghost"
             size="icon"
             asChild
-            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
           >
             <Link href="/workspace" prefetch={true}>
               <ArrowLeft className="w-4 h-4" />
@@ -57,16 +57,16 @@ export default async function SettingsPage() {
           </Button>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <ShieldCheck className="w-4 h-4 text-foreground shrink-0" />
-            <span className="font-semibold text-xs tracking-tight truncate max-w-[130px] sm:max-w-none">
+            <span className="font-semibold text-sm tracking-tight truncate max-w-[130px] sm:max-w-none">
               Account & Security
             </span>
           </div>
           <span className="text-border">/</span>
-          <Badge variant="outline" className="text-[10px] font-mono shrink-0">
+          <Badge variant="outline" className="text-xs font-mono shrink-0">
             {user.role === "admin" ? "admin" : "user"}
           </Badge>
           {user.planTier && user.planTier !== "free" && (
-            <Badge variant="default" className="text-[10px] font-mono uppercase shrink-0">
+            <Badge variant="default" className="text-xs font-mono uppercase shrink-0">
               {user.planTier}
             </Badge>
           )}
@@ -77,10 +77,10 @@ export default async function SettingsPage() {
             variant="outline"
             size="sm"
             asChild
-            className="h-7 text-xs gap-1.5 border-border"
+            className="h-8 px-3 text-xs gap-1.5 border-border"
           >
             <Link href="/api/docs" target="_blank">
-              <BookOpen className="w-3 h-3" />
+              <BookOpen className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">交互式 </span><span>API 文档</span>
               <ExternalLink className="w-3 h-3 text-muted-foreground" />
             </Link>

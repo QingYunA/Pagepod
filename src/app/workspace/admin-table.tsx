@@ -108,11 +108,11 @@ function ReviewStatusBadge({
         variant="outline"
         className={
           isOverlay
-            ? "text-[10px] gap-1 backdrop-blur-md bg-destructive/80 border-destructive text-white font-medium"
-            : "text-[10px] px-1 py-0 bg-destructive/10 border-destructive/30 text-destructive font-normal"
+            ? "text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-destructive/80 border-destructive text-white font-medium"
+            : "text-xs px-2 py-0.5 bg-destructive/10 border-destructive/30 text-destructive font-normal"
         }
       >
-        <ShieldAlert className="w-2.5 h-2.5 mr-0.5" />
+        <ShieldAlert className="w-3 h-3 mr-0.5" />
         {t.moderation?.statusRejected || "Rejected"}
       </Badge>
     );
@@ -124,10 +124,11 @@ function ReviewStatusBadge({
         variant="outline"
         className={
           isOverlay
-            ? "text-[10px] gap-1 backdrop-blur-md bg-amber-500/20 border-amber-500/40 text-amber-300 font-medium"
-            : "text-[10px] px-1 py-0 bg-amber-500/10 border-amber-500/30 text-amber-500 font-normal"
+            ? "text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-amber-500/20 border-amber-500/40 text-amber-300 font-medium"
+            : "text-xs px-2 py-0.5 bg-amber-500/10 border-amber-500/30 text-amber-500 font-normal"
         }
       >
+        <ShieldAlert className="w-3 h-3 mr-0.5" />
         {t.moderation?.statusPending || "Pending"}
       </Badge>
     );
@@ -139,11 +140,11 @@ function ReviewStatusBadge({
         variant="outline"
         className={
           isOverlay
-            ? "text-[10px] gap-1 backdrop-blur-md bg-amber-600/20 border-amber-600/40 text-amber-300 font-medium"
-            : "text-[10px] px-1 py-0 bg-amber-600/10 border-amber-600/30 text-amber-600 font-normal"
+            ? "text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-amber-600/20 border-amber-600/40 text-amber-300 font-medium"
+            : "text-xs px-2 py-0.5 bg-amber-600/10 border-amber-600/30 text-amber-600 font-normal"
         }
       >
-        <AlertTriangle className="w-2.5 h-2.5 mr-0.5" />
+        <AlertTriangle className="w-3 h-3 mr-0.5" />
         {t.moderation?.statusFlagged || "Restricted"}
       </Badge>
     );
@@ -644,15 +645,15 @@ export default function AdminTable({
                   </div>
                 );
               })}
-              <span className="text-[11px] font-mono text-muted-foreground ml-1.5">
+              <span className="text-xs font-mono text-muted-foreground ml-1.5">
                 ({filtered.length} 项)
               </span>
             </div>
 
             {/* Context-aware Upload Button */}
-            <Button size="sm" asChild className="h-8 px-3 text-xs gap-1.5 shrink-0 self-start sm:self-auto">
+            <Button size="sm" asChild className="h-9 px-3.5 text-sm gap-1.5 shrink-0 self-start sm:self-auto">
               <Link href={uploadHref}>
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 <span>{t.gallery?.uploadNow || "+ 发布新作品"}</span>
               </Link>
             </Button>
@@ -753,7 +754,7 @@ export default function AdminTable({
             <div className="overflow-x-auto border border-border/80 rounded-lg">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-border text-[11px] font-medium text-muted-foreground bg-muted/20">
+                  <tr className="border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted/20">
                     <th className="py-2.5 px-3 w-8 text-center">
                       <Checkbox
                         checked={isAllSelected}
@@ -778,7 +779,7 @@ export default function AdminTable({
                       <td colSpan={isAdmin ? 10 : 9} className="py-16 text-center text-muted-foreground space-y-1">
                         <Inbox className="w-6 h-6 mx-auto opacity-50 mb-1" />
                         <p>{t.workspace?.noProjectsFound || "暂无匹配的 HTML 项目。"}</p>
-                        <p className="text-[11px] text-muted-foreground/60">可尝试切换左侧文件夹或调整搜索条件。</p>
+                        <p className="text-xs text-muted-foreground/60">可尝试切换左侧文件夹或调整搜索条件。</p>
                       </td>
                     </tr>
                   ) : (
@@ -888,53 +889,53 @@ export default function AdminTable({
                           </td>
 
                           {/* Title, slug & description */}
-                          <td className="py-2.5 px-3 max-w-xs">
-                            <div className="font-medium text-foreground truncate flex items-center gap-1.5">
+                          <td className="py-3 px-3 max-w-xs">
+                            <div className="text-sm font-medium text-foreground truncate flex items-center gap-1.5">
                               <Link href={`/p/${item.slug}`} target="_blank" className="hover:underline truncate">
                                 {item.title}
                               </Link>
                               <ReviewStatusBadge status={item.reviewStatus} t={t} />
                             </div>
-                            <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <div className="text-xs font-mono text-muted-foreground flex items-center gap-1 mt-0.5">
                               <span>/p/{item.slug}</span>
                               <Link href={`/p/${item.slug}`} target="_blank" className="hover:text-foreground">
-                                <ExternalLink className="w-2.5 h-2.5" />
+                                <ExternalLink className="w-3 h-3" />
                               </Link>
                             </div>
                             {item.description && (
-                              <div className="text-[11px] text-muted-foreground/80 truncate mt-0.5">
+                              <div className="text-xs text-muted-foreground/80 truncate mt-0.5">
                                 {item.description}
                               </div>
                             )}
                           </td>
 
                           {/* Category & Language */}
-                          <td className="py-2.5 px-3">
+                          <td className="py-3 px-3">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1 font-normal">
-                                <CategoryIcon className="w-2.5 h-2.5 opacity-70" />
+                              <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 font-normal">
+                                <CategoryIcon className="w-3 h-3 opacity-70" />
                                 <span>{cat?.label || item.category}</span>
                               </Badge>
-                              <Badge variant="subtle" className="text-[10px] px-1.5 py-0 font-mono uppercase text-muted-foreground">
+                              <Badge variant="subtle" className="text-xs px-2 py-0.5 font-mono uppercase text-muted-foreground">
                                 {item.language || "zh"}
                               </Badge>
                             </div>
                           </td>
 
                           {/* Views */}
-                          <td className="py-2.5 px-3 font-mono text-muted-foreground text-[11px]">
+                          <td className="py-3 px-3 font-mono text-muted-foreground text-xs">
                             {item.viewCount || 0}
                           </td>
 
                           {/* Visibility */}
-                          <td className="py-2.5 px-3">
+                          <td className="py-3 px-3">
                             <Select
                               aria-label="修改可见性"
                               value={item.visibility}
                               onChange={(e) =>
                                 handleUpdateVisibility(item.id, e.target.value as "public" | "private")
                               }
-                              className="text-[11px] h-6 px-1.5 py-0 max-w-[100px]"
+                              className="text-xs h-7 px-2 py-0.5 max-w-[100px]"
                             >
                               <option value="public">公开</option>
                               <option value="private">私有</option>
@@ -942,7 +943,7 @@ export default function AdminTable({
                           </td>
 
                           {/* Created Time */}
-                          <td className="py-2.5 px-3 text-muted-foreground text-[11px] font-mono whitespace-nowrap">
+                          <td className="py-3 px-3 text-muted-foreground text-xs font-mono whitespace-nowrap">
                             {new Date(item.createdAt).toLocaleDateString()}
                           </td>
 
@@ -1075,16 +1076,16 @@ export default function AdminTable({
 
                         {/* Badges on top of card */}
                         <div className="absolute top-2.5 left-8 flex items-center gap-1.5 pointer-events-none z-20">
-                          <Badge variant="subtle" className="text-[10px] gap-1 backdrop-blur-md bg-black/70 border-neutral-800 text-neutral-200">
-                            <CategoryIcon className="w-3 h-3" />
+                          <Badge variant="subtle" className="text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-black/70 border-neutral-800 text-neutral-200">
+                            <CategoryIcon className="w-3.5 h-3.5" />
                             <span>{cat?.label || item.category}</span>
                           </Badge>
-                          <Badge variant="subtle" className="text-[10px] px-1.5 backdrop-blur-md bg-black/70 border-neutral-800 text-neutral-300 font-mono uppercase">
+                          <Badge variant="subtle" className="text-xs px-2 py-0.5 backdrop-blur-md bg-black/70 border-neutral-800 text-neutral-300 font-mono uppercase">
                             {item.language || "zh"}
                           </Badge>
                           {item.isPinned && (
-                            <Badge variant="outline" className="text-[10px] gap-1 backdrop-blur-md bg-black/75 border-neutral-400 text-neutral-100 font-medium">
-                              <Pin className="w-2.5 h-2.5 fill-current" />
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-black/75 border-neutral-400 text-neutral-100 font-medium">
+                              <Pin className="w-3 h-3 fill-current" />
                               <span>{t.workspace?.workspacePinned || "工作区置顶"}</span>
                             </Badge>
                           )}
@@ -1107,35 +1108,35 @@ export default function AdminTable({
                       </div>
 
                       {/* Card Body */}
-                      <CardHeader className="p-3.5 pb-2 space-y-1">
+                      <CardHeader className="p-4 pb-2 space-y-1">
                         <div className="flex items-start justify-between gap-2">
                           <Link href={`/p/${item.slug}`} target="_blank" className="hover:underline">
-                            <CardTitle className="text-sm font-semibold truncate text-foreground leading-snug">
+                            <CardTitle className="text-base font-semibold truncate text-foreground leading-snug">
                               {item.title}
                             </CardTitle>
                           </Link>
                         </div>
-                        <div className="font-mono text-[11px] text-muted-foreground truncate">
+                        <div className="font-mono text-xs text-muted-foreground truncate">
                           /p/{item.slug}
                         </div>
                         {item.description ? (
-                          <CardDescription className="line-clamp-2 text-xs leading-relaxed pt-0.5 text-muted-foreground">
+                          <CardDescription className="line-clamp-2 text-sm leading-relaxed pt-0.5 text-muted-foreground">
                             {item.description}
                           </CardDescription>
                         ) : (
-                          <p className="text-[11px] text-muted-foreground/60 italic pt-0.5">暂无描述</p>
+                          <p className="text-xs text-muted-foreground/60 italic pt-0.5">暂无描述</p>
                         )}
                       </CardHeader>
 
                       {/* Card Bottom */}
-                      <CardContent className="p-3.5 pt-0 pb-3 space-y-2.5 flex-1 flex flex-col justify-end">
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono pt-2 border-t border-border/60">
+                      <CardContent className="p-4 pt-0 pb-3 space-y-2.5 flex-1 flex flex-col justify-end">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground font-mono pt-2 border-t border-border/60">
                           <span className="inline-flex items-center gap-1">
-                            <Eye className="w-3 h-3" />
+                            <Eye className="w-3.5 h-3.5" />
                             <span>{item.viewCount || 0} 次加载</span>
                           </span>
                           <span className="inline-flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
+                            <Calendar className="w-3.5 h-3.5" />
                             <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                           </span>
                         </div>
@@ -1145,7 +1146,7 @@ export default function AdminTable({
                             aria-label="修改可见性"
                             value={item.visibility}
                             onChange={(e) => handleUpdateVisibility(item.id, e.target.value as "public" | "private")}
-                            className="text-[11px] h-7 px-2 py-0.5 max-w-[110px]"
+                            className="text-xs h-8 px-2.5 py-1 max-w-[120px]"
                           >
                             <option value="public">公开 (Public)</option>
                             <option value="private">私有 (Private)</option>
@@ -1226,11 +1227,11 @@ export default function AdminTable({
       <Dialog open={batchDeleteDialogOpen} onOpenChange={setBatchDeleteDialogOpen}>
         <DialogContent className="max-w-md bg-card border-border shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold text-destructive flex items-center gap-1.5">
+            <DialogTitle className="text-base font-semibold text-destructive flex items-center gap-1.5">
               <Trash2 className="w-4 h-4" />
               <span>{t.workspace?.batchDeleteConfirmTitle || "批量删除确认"}</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground pt-1.5 leading-relaxed">
+            <DialogDescription className="text-sm text-muted-foreground pt-1.5 leading-relaxed">
               {(t.workspace?.batchDeleteConfirmDesc || "确定要永久删除选中的 {count} 个项目吗？此操作不可逆！").replace(
                 "{count}",
                 String(selectedIds.length)
@@ -1243,7 +1244,7 @@ export default function AdminTable({
               variant="ghost"
               size="sm"
               onClick={() => setBatchDeleteDialogOpen(false)}
-              className="text-xs h-8"
+              className="text-sm h-9"
             >
               {t.workspace?.cancel || "取消"}
             </Button>
@@ -1253,9 +1254,9 @@ export default function AdminTable({
               size="sm"
               onClick={handleBatchDeleteConfirm}
               disabled={isPending}
-              className="text-xs h-8"
+              className="text-sm h-9"
             >
-              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
               <span>确认批量删除</span>
             </Button>
           </DialogFooter>
@@ -1266,16 +1267,16 @@ export default function AdminTable({
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="max-w-md bg-card border-border shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold text-destructive flex items-center gap-1.5">
+            <DialogTitle className="text-base font-semibold text-destructive flex items-center gap-1.5">
               <Trash2 className="w-4 h-4" />
               <span>{t.workspace?.deleteTitle || "删除项目"}</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground pt-1.5 leading-relaxed">
+            <DialogDescription className="text-sm text-muted-foreground pt-1.5 leading-relaxed">
               {t.workspace?.deleteConfirmText || "确定要永久删除此项目吗？此操作不可逆，将抹除所有存储资源。"}
             </DialogDescription>
           </DialogHeader>
           {deleteError && (
-            <div className="p-2.5 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-xs">
+            <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
               {deleteError}
             </div>
           )}
@@ -1285,7 +1286,7 @@ export default function AdminTable({
               variant="ghost"
               size="sm"
               onClick={() => setDeleteTarget(null)}
-              className="text-xs h-8"
+              className="text-sm h-9"
             >
               {t.workspace?.cancel || "取消"}
             </Button>
@@ -1295,9 +1296,9 @@ export default function AdminTable({
               size="sm"
               onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
               disabled={isPending}
-              className="text-xs h-8"
+              className="text-sm h-9"
             >
-              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
               <span>{t.workspace?.confirmDelete || "确认永久删除"}</span>
             </Button>
           </DialogFooter>

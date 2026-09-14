@@ -34,10 +34,10 @@ export function WorkspaceApiTokenHeaderButton() {
       variant="outline"
       size="sm"
       asChild
-      className="h-8 text-xs gap-1.5 border-border hidden sm:inline-flex"
+      className="h-9 text-sm gap-1.5 border-border hidden sm:inline-flex"
     >
       <Link href="/workspace/settings/tokens" prefetch={true}>
-        <Key className="w-3.5 h-3.5" />
+        <Key className="w-4 h-4" />
         <span>{t.nav.apiTokens}</span>
       </Link>
     </Button>
@@ -65,14 +65,14 @@ export default function WorkspaceDashboardHeader({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-foreground">
+                <h2 className="text-base font-semibold text-foreground">
                   {t.workspace.planBanner.proTitle}
                 </h2>
-                <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase tracking-wider">
+                <Badge variant="outline" className="text-xs px-2 py-0.5 font-mono font-bold uppercase tracking-wider">
                   {t.workspace.planBanner.proBadge}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {t.workspace.planBanner.proDesc}
               </p>
             </div>
@@ -82,7 +82,7 @@ export default function WorkspaceDashboardHeader({
               variant="outline"
               size="sm"
               asChild
-              className="h-8 text-xs border-border text-foreground hover:bg-muted"
+              className="h-9 text-sm border-border text-foreground hover:bg-muted"
             >
               <Link href="/workspace/settings">
                 {t.workspace.planBanner.viewDetails}
@@ -98,23 +98,23 @@ export default function WorkspaceDashboardHeader({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-foreground">
+                <h2 className="text-base font-semibold text-foreground">
                   {t.workspace.planBanner.liteTitle}
                 </h2>
-                <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase tracking-wider">
+                <Badge variant="outline" className="text-xs px-2 py-0.5 font-mono font-bold uppercase tracking-wider">
                   {t.workspace.planBanner.liteBadge}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {t.workspace.planBanner.liteDesc}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" asChild className="h-8 text-xs gap-1">
+            <Button size="sm" asChild className="h-9 text-sm gap-1.5">
               <Link href="/pricing">
                 <span>{t.workspace.planBanner.upgradePro}</span>
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </Button>
           </div>
@@ -125,16 +125,16 @@ export default function WorkspaceDashboardHeader({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               {t.workspace.metrics.totalProjects}
             </CardTitle>
             <Layers className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold font-mono tracking-tight">
+            <div className="text-3xl font-bold font-mono tracking-tight">
               {projectCount}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-1">
               {currentUser?.role === "admin" && currentUser.id !== "selfhost-admin"
                 ? t.workspace.metrics.totalProjectsDescAdmin
                 : t.workspace.metrics.totalProjectsDescUser}
@@ -144,16 +144,16 @@ export default function WorkspaceDashboardHeader({
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               {t.workspace.metrics.publicProjects}
             </CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold font-mono tracking-tight">
+            <div className="text-3xl font-bold font-mono tracking-tight">
               {publicCount}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-1">
               {t.workspace.metrics.publicProjectsDesc}
             </p>
           </CardContent>
@@ -161,16 +161,16 @@ export default function WorkspaceDashboardHeader({
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               {t.workspace.metrics.totalViews}
             </CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold font-mono tracking-tight">
+            <div className="text-3xl font-bold font-mono tracking-tight">
               {totalViews}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-1">
               {t.workspace.metrics.totalViewsDesc}
             </p>
           </CardContent>
@@ -178,7 +178,7 @@ export default function WorkspaceDashboardHeader({
       </div>
 
       {/* Privacy Notice Banner */}
-      <div className="rounded-lg border border-border bg-card/60 p-4 flex items-center justify-between gap-3 text-xs">
+      <div className="rounded-xl border border-border bg-card/60 p-4.5 flex items-center justify-between gap-3 text-sm">
         <div className="flex items-center gap-2.5">
           <ShieldAlert className="w-4 h-4 text-emerald-500 shrink-0" />
           <span className="text-muted-foreground">
