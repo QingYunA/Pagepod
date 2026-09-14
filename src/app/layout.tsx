@@ -102,7 +102,7 @@ const rootJsonLd = {
 
 const umamiScriptUrl =
   process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
-  "https://umami-kappa-silk.vercel.app/script.js";
+  "https://umami.daydayup.lat/script.js";
 const umamiWebsiteId =
   process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ||
   "c7ee55df-938f-4800-b6cb-18622970fe64";

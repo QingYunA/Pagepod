@@ -1,4 +1,4 @@
-# 0006. Hierarchical Folders and Dual-Pane Workspace Management
+# 0007. Hierarchical Folders and Dual-Pane Workspace Management
 
 To support users managing hundreds of hosted HTML applications without visual clutter or navigation fatigue, we introduce a user-scoped hierarchical `Folder` model completely orthogonal to the public showcase `Category`. The workspace adopts a dual-pane layout (collapsible folder tree sidebar on the left, scoped project table/grid with breadcrumbs on the right), replaces heavy hover iframe sandboxes in table rows with lightweight static fallback posters, and provides a multi-select Batch Action Bar for high-throughput bulk organization.
 
