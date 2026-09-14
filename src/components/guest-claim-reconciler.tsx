@@ -6,7 +6,11 @@ import { useLanguage } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, X } from "lucide-react";
 
-const LOCAL_STORAGE_KEY = "pagepod_guest_claims";
+import {
+  getStoredGuestClaims,
+  purgeGuestClaims,
+  dispatchGuestClaimedEvent,
+} from "@/lib/storage/guest-claim";
 
 export function GuestClaimReconciler() {
   const { locale } = useLanguage();
@@ -23,14 +27,8 @@ export function GuestClaimReconciler() {
     if (typeof window === "undefined") return;
 
     try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (!stored) return;
-
-      const claims: Array<{ slug: string; claimToken: string }> = JSON.parse(stored);
-      if (!Array.isArray(claims) || claims.length === 0) {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        return;
-      }
+      const claims = getStoredGuestClaims();
+      if (claims.length === 0) return;
 
       isReconcilingRef.current = true;
       const res = await reconcileGuestProjectsAction(claims);
@@ -38,24 +36,15 @@ export function GuestClaimReconciler() {
       if (res.authenticated) {
         // Purge resolved slugs (claimed or invalid/stale) from localStorage
         if (Array.isArray(res.resolvedSlugs) && res.resolvedSlugs.length > 0) {
-          const remaining = claims.filter((c) => !res.resolvedSlugs.includes(c.slug));
-          if (remaining.length > 0) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(remaining));
-          } else {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-          }
+          purgeGuestClaims(res.resolvedSlugs);
         }
 
         if (res.claimedCount > 0) {
           // Trigger global custom event for workspace table or headers to react
-          window.dispatchEvent(
-            new CustomEvent("pagepod:claimed", {
-              detail: {
-                claimedCount: res.claimedCount,
-                resolvedSlugs: res.resolvedSlugs,
-              },
-            })
-          );
+          dispatchGuestClaimedEvent({
+            claimedCount: res.claimedCount,
+            resolvedSlugs: res.resolvedSlugs,
+          });
 
           // Display subtle feedback toast
           setToastNotification({
