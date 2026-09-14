@@ -9,7 +9,6 @@ import {
   Copy,
   ExternalLink,
   AlertTriangle,
-  ShieldCheck,
   Loader2,
   Lock,
   Globe,
@@ -270,8 +269,8 @@ export function InstantUploadCard() {
               </h3>
               <p className="text-xs text-muted-foreground">
                 {isZh
-                  ? "无需登录 · 安全沙箱隔离 · 2MB 免费免配置"
-                  : "No sign-up required · Sandboxed runner · Up to 2MB free"}
+                  ? "无需登录 · 单文件 HTML 最大 2MB"
+                  : "No sign-up required · Single HTML up to 2MB"}
               </p>
             </div>
 
@@ -320,7 +319,7 @@ export function InstantUploadCard() {
                 {isPending ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                    {isZh ? "正在部署沙箱..." : "Deploying Sandbox..."}
+                    {isZh ? "正在生成链接..." : "Generating Link..."}
                   </>
                 ) : isZh ? (
                   "选择 HTML 文件"
@@ -328,21 +327,6 @@ export function InstantUploadCard() {
                   "Select HTML File"
                 )}
               </Button>
-            </div>
-
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[11px] text-muted-foreground/80">
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                {isZh ? "严格 CSP 物理隔离" : "Hardened CSP Isolation"}
-              </span>
-              <span>·</span>
-              <span>
-                {visibility === "unlisted"
-                  ? isZh ? "默认口令保护防探测" : "Token Protected (NoIndex)"
-                  : isZh ? "公开画廊聚合收录" : "Public Showcase Index"}
-              </span>
-              <span>·</span>
-              <span>{isZh ? "免配置即时分享" : "Zero-Config Instant Link"}</span>
             </div>
           </div>
         ) : (
