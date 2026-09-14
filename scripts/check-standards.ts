@@ -19,13 +19,20 @@ const violations: Violation[] = [];
 
 const SRC_DIR = path.resolve(process.cwd(), "src");
 
+interface ForbiddenSlopRule {
+  label: string;
+  pattern: RegExp | string;
+  message: string;
+}
+
 // 1. Anti-Slop banned keywords (AGENTS.md Section 1.4)
-const FORBIDDEN_SLOP_WORDS = [
-  { word: "尊享", message: "Banned casino/VIP slop word: '尊享'. Use '权益' or '功能' instead." },
-  { word: "特权", message: "Banned casino/VIP slop word: '特权'. Use '权益' or '功能' instead." },
-  { word: "自由扩容", message: "Banned exaggerated claim: '自由扩容'. Use specific quota numbers." },
-  { word: "神级", message: "Banned exaggerated slang: '神级'." },
-  { word: "无敌", message: "Banned exaggerated slang: '无敌'." },
+const FORBIDDEN_SLOP_WORDS: ForbiddenSlopRule[] = [
+  { pattern: /\bVIP\b/i, label: "VIP", message: "Banned casino/VIP slop word: 'VIP'. Use 'PRO', '权益' or '功能' instead." },
+  { pattern: "尊享", label: "尊享", message: "Banned casino/VIP slop word: '尊享'. Use '权益' or '功能' instead." },
+  { pattern: "特权", label: "特权", message: "Banned casino/VIP slop word: '特权'. Use '权益' or '功能' instead." },
+  { pattern: "自由扩容", label: "自由扩容", message: "Banned exaggerated claim: '自由扩容'. Use specific quota numbers." },
+  { pattern: "神级", label: "神级", message: "Banned exaggerated slang: '神级'." },
+  { pattern: "无敌", label: "无敌", message: "Banned exaggerated slang: '无敌'." },
 ];
 
 // 2. Anti-Pattern banned Tailwind aesthetic classes (AGENTS.md Section 1.1)
@@ -54,12 +61,24 @@ function scanFile(filePath: string) {
 
     // Check anti-slop vocabulary
     for (const slop of FORBIDDEN_SLOP_WORDS) {
-      if (lineText.includes(slop.word)) {
+      let matchedText: string | null = null;
+      if (typeof slop.pattern === "string") {
+        if (lineText.includes(slop.pattern)) {
+          matchedText = slop.pattern;
+        }
+      } else {
+        const m = lineText.match(slop.pattern);
+        if (m) {
+          matchedText = m[0];
+        }
+      }
+
+      if (matchedText) {
         violations.push({
           file: relPath,
           line: lineNum,
           rule: "AGENTS.md 1.4 (Anti-Slop & Editorial Voice)",
-          match: slop.word,
+          match: matchedText,
           message: slop.message,
         });
       }
