@@ -119,6 +119,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(rootJsonLd) }}
         />
+        {/* Instant synchronous script to sync html lang and locale before body renders */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var c=document.cookie.match(/(?:^|;\\s*)html_manager_locale=([^;]+)/);var l=c?decodeURIComponent(c[1]):((navigator.language||'').toLowerCase().indexOf('zh')===0?'zh':'en');document.documentElement.lang=l==='zh'?'zh-CN':'en';window.__INITIAL_LOCALE__=l;}catch(e){}})()`,
+          }}
+        />
         {umamiWebsiteId && (
           <script
             defer

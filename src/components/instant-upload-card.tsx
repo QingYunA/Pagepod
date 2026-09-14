@@ -18,11 +18,18 @@ import { Badge } from "@/components/ui/badge";
 import { scanForSecrets, type SecretFinding } from "@/lib/security/secret-guard";
 import { submitGuestUpload } from "@/app/actions/guest";
 import { useLanguage } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/translations";
 import { trackEvent } from "@/lib/analytics";
 import { saveGuestClaim, GUEST_CLAIMED_EVENT } from "@/lib/storage/guest-claim";
 
-export function InstantUploadCard() {
-  const { locale } = useLanguage();
+export function InstantUploadCard({ initialLocale }: { initialLocale?: Locale }) {
+  const { locale: clientLocale } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const locale = !mounted && initialLocale ? initialLocale : (clientLocale || initialLocale || "en");
   const isZh = locale === "zh";
   const [isDragging, setIsDragging] = useState(false);
   const [isPending, setIsPending] = useState(false);
