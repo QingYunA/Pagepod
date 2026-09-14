@@ -167,21 +167,21 @@ async function runTests() {
       { slug: unlistedPost.slug, claimToken: unlistedPost.claimToken },
     ]);
     assert(validClaim.claimedCount === 1, "Transfers ownership to authenticated user");
-    assert(validClaim.resolvedSlugs.includes(cleanPost.slug), "Marks claimed slug in resolvedSlugs");
+    assert(validClaim.resolvedSlugs.includes(unlistedPost.slug), "Marks claimed slug in resolvedSlugs");
 
     const claimedProject = await getProjectBySlug(unlistedPost.slug);
     assert(claimedProject?.userId === mockUser.id, "Database userId updated to Alice's account");
 
     // Idempotent retry on already claimed project
     const duplicateClaim = await claimGuestProjects(mockUser, [
-      { slug: cleanPost.slug, claimToken: cleanPost.claimToken },
+      { slug: unlistedPost.slug, claimToken: unlistedPost.claimToken },
     ]);
     assert(duplicateClaim.claimedCount === 0, "Idempotent: duplicate claim does not increment count");
-    assert(duplicateClaim.resolvedSlugs.includes(cleanPost.slug), "Resolved slugs safely purges already owned project");
+    assert(duplicateClaim.resolvedSlugs.includes(unlistedPost.slug), "Resolved slugs safely purges already owned project");
 
     // Cleanup test project
-    if (createdProject) {
-      await deleteProject(createdProject.id);
+    if (claimedProject) {
+      await deleteProject(claimedProject.id);
     }
   }
 
