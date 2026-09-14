@@ -16,10 +16,7 @@ import {
 import { getProjectStorage, getStorageType } from "@/lib/storage";
 import { extractMetadataFromHtml, unpackZipBundle, detectHtmlLanguage } from "@/lib/parser";
 import {
-  renderProjectScreenshot,
-  captureProjectScreenshot,
   captureProjectScreenshotWithBuffer,
-  generateSnapshotToken,
 } from "@/lib/services/screenshot-service";
 import { assertCanCreateProject } from "@/lib/services/billing-service";
 import { assertCanManageProject, isExactProjectCreator, type CurrentUser } from "@/lib/auth";
@@ -262,22 +259,10 @@ export async function createProject(
     title = "Untitled Project";
   }
 
-  // 4. Generate poster screenshot directly before initial DB write (Single Atomic Commit)
+  // 4. Decoupled Poster Screenshot Ingestion (Sub-50ms Instant Link Response)
+  // Synchronous blocking headless capture is bypassed to guarantee instant link delivery.
+  // Public projects automatically trigger background capture asynchronously via after(runCapture) below.
   let screenshotUrl = input.screenshotUrl || null;
-  let imgBuffer: Buffer | null = null;
-  if (!screenshotUrl && initialHtml) {
-    try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
-      const publicUrl = (input.visibility || "public") === "public" ? `${siteUrl}/raw/${slug}` : undefined;
-      imgBuffer = await renderProjectScreenshot(initialHtml, publicUrl);
-      if (imgBuffer) {
-        await projectStorage.writeAsset("screenshot.png", imgBuffer, "image/png");
-        screenshotUrl = `/raw/${slug}/screenshot.png?v=${Date.now()}`;
-      }
-    } catch (screenshotErr) {
-      console.warn(`[ProjectService] Auto screenshot capture skipped for ${slug}:`, screenshotErr);
-    }
-  }
 
   const projectUserId = actor.id === "selfhost-admin" ? null : actor.id;
   const declaredLanguage = input.language || (initialHtml ? detectHtmlLanguage(initialHtml) : "zh");
@@ -339,7 +324,7 @@ export async function createProject(
       slug: project.slug,
       title: project.title,
       html: initialHtml,
-      screenshotBuffer: imgBuffer,
+      screenshotBuffer: null,
       creatorUserId: projectUserId,
     });
   }
@@ -501,31 +486,12 @@ export async function updateProject(
   }
 
   const projectStorage = getProjectStorage(project.slug);
-  let newScreenshotUrl: string | undefined = undefined;
   let codeChanged = false;
-  let imgBuffer: Buffer | null = null;
 
-  // If HTML code is provided and it's single_html, update storage and re-capture screenshot
+  // If HTML code is provided and it's single_html, update storage (poster capture handled asynchronously)
   if (input.htmlCode && project.assetType === "single_html") {
     codeChanged = true;
     await projectStorage.writeEntryFile(input.htmlCode, project.entryPath);
-
-    try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
-      const targetVisibility = input.visibility !== undefined ? input.visibility : project.visibility;
-      let publicUrl: string | undefined;
-      if (targetVisibility === "public") {
-        const snapshotToken = generateSnapshotToken(project.slug);
-        publicUrl = `${siteUrl}/raw/${project.slug}?_snapshot_token=${encodeURIComponent(snapshotToken)}`;
-      }
-      imgBuffer = await renderProjectScreenshot(input.htmlCode, publicUrl);
-      if (imgBuffer) {
-        await projectStorage.writeAsset("screenshot.png", imgBuffer, "image/png");
-        newScreenshotUrl = `/raw/${project.slug}/screenshot.png?v=${Date.now()}`;
-      }
-    } catch (screenshotErr) {
-      console.warn(`[ProjectService] Re-capture screenshot skipped for ${project.slug}:`, screenshotErr);
-    }
   }
 
   const patch: Partial<Project> = {};
@@ -563,7 +529,6 @@ export async function updateProject(
   if (input.isGuestTransient !== undefined) {
     patch.isGuestTransient = input.isGuestTransient;
   }
-  if (newScreenshotUrl) patch.screenshotUrl = newScreenshotUrl;
 
   if (codeChanged) {
     patch.reviewStatus = "pending";
@@ -584,14 +549,13 @@ export async function updateProject(
       slug: project.slug,
       title: patch.title || project.title,
       html: input.htmlCode,
-      screenshotBuffer: imgBuffer,
+      screenshotBuffer: null,
       creatorUserId: project.userId,
     });
 
-    // Fallback: If screenshot wasn't captured synchronously (e.g. cloud headless missing),
-    // trigger background capture and feed back into visual moderation.
+    // Trigger post-update background screenshot capture and feed back into visual moderation
     const finalVisibility = patch.visibility || project.visibility;
-    if (!imgBuffer && finalVisibility === "public") {
+    if (finalVisibility === "public") {
       const runCapture = async () => {
         try {
           const captured = await captureProjectScreenshotWithBuffer(project.slug);
