@@ -7,6 +7,16 @@
  * 3. Gateway /raw/[slug] security sandbox CSP headers invariant
  */
 
+const proxyUrl = process.env.https_proxy || process.env.HTTPS_PROXY || process.env.http_proxy || process.env.HTTP_PROXY;
+if (proxyUrl) {
+  try {
+    const { setGlobalDispatcher, ProxyAgent } = require("undici");
+    setGlobalDispatcher(new ProxyAgent(proxyUrl));
+  } catch {
+    // Non-fatal if undici is not available
+  }
+}
+
 const targetOrigin = process.argv[2] || process.env.PROD_URL || "https://www.pagepod.dev";
 
 let passed = 0;
