@@ -3,6 +3,7 @@ export type Locale = "zh" | "en";
 export const translations = {
   zh: {
     nav: {
+      home: "首页",
       showcase: "画廊",
       explore: "专题合辑",
       pricing: "定价方案",
@@ -30,6 +31,8 @@ export const translations = {
       title: "保存，运行，分享你的 HTML",
       desc: "给你的 HTML 一个温暖的小窝：零构建负担，即刻沙箱运行，随时随地与世界分享。",
       selfhostDesc: "给你的 HTML 一个温暖的小窝：零构建负担，即刻沙箱运行，随时随地与世界分享。",
+      showcaseTeaser: "收录开源单文件 HTML 网页应用，无需安装，点击直接在浏览器运行。",
+      browseShowcase: "浏览公开作品",
     },
     categories: {
       all: "全部",
@@ -43,6 +46,8 @@ export const translations = {
       others: "其他",
     },
     gallery: {
+      sectionTitle: "公开作品",
+      sectionDesc: "包含小工具、网页游戏与动态图表，所有代码完全公开，点击直接在沙箱中运行。",
       searchPlaceholder: "检索作品标题、路由或标签...",
       totalCount: "共 {count} 个作品",
       noProjectsTitle: "未检索到匹配的项目",
@@ -554,6 +559,7 @@ export const translations = {
   },
   en: {
     nav: {
+      home: "Home",
       showcase: "Showcase",
       explore: "Collections",
       pricing: "Pricing",
@@ -581,6 +587,8 @@ export const translations = {
       title: "Save, run, and share your HTML",
       desc: "A cozy home for your HTML: zero build overhead, instant sandboxed runtime, and effortless sharing with the world.",
       selfhostDesc: "A cozy home for your HTML: zero build overhead, instant sandboxed runtime, and effortless sharing with the world.",
+      showcaseTeaser: "Open-source single-file HTML web apps ready to run instantly in your browser.",
+      browseShowcase: "Browse Showcase",
     },
     categories: {
       all: "All",
@@ -594,6 +602,8 @@ export const translations = {
       others: "Others",
     },
     gallery: {
+      sectionTitle: "Public Showcase",
+      sectionDesc: "Single-file utilities, web games, and interactive experiments. Fully open-source and sandboxed.",
       searchPlaceholder: "Search title, slug, or tag...",
       totalCount: "{count} total",
       noProjectsTitle: "No pages found",

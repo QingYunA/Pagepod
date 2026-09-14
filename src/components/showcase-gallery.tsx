@@ -168,7 +168,25 @@ export default function ShowcaseGallery({ initialProjects, initialLocale }: Show
   };
 
   return (
-    <div className="space-y-6">
+    <section id="gallery" className="scroll-mt-20 space-y-6">
+      {/* Section Header: 公开作品 (自然中文、事实先行、无 AI 味) */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pt-2 pb-1 border-b border-border/60">
+        <div className="space-y-1">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            {t.gallery.sectionTitle || (activeLocale === "zh" ? "公开作品" : "Public Showcase")}
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            {t.gallery.sectionDesc ||
+              (activeLocale === "zh"
+                ? "涵盖实用小工具、微型网页游戏与交互动画，所有代码完全公开，点击直接在沙箱中运行。"
+                : "Curated utilities, web games, and interactive experiments. Fully open-source and sandboxed.")}
+          </p>
+        </div>
+        <div className="text-xs font-mono text-muted-foreground shrink-0 pb-0.5">
+          {filteredProjects.length} {activeLocale === "zh" ? "个作品" : "items"}
+        </div>
+      </div>
+
       {/* Category Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none w-full min-w-0 max-w-full border-b border-border">
         {categories.map((cat) => {
@@ -608,6 +626,6 @@ export default function ShowcaseGallery({ initialProjects, initialLocale }: Show
           </Button>
         </div>
       )}
-    </div>
+    </section>
   );
 }
