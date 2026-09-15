@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regex Playground · Real-Time Matcher & Visualizer</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --border: #e4e4e7;
+      --text: #09090b;
+      --muted: #71717a;
+      --primary: #2563eb;
+      --highlight: rgba(254, 240, 138, 0.7);
+      --highlight-border: #eab308;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      padding: 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .regex-input-box {
+      display: flex;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-family: monospace;
+      font-size: 1rem;
+      gap: 0.5rem;
+    }
+    .slash { color: var(--muted); font-weight: bold; }
+    #patternInput {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: inherit;
+      outline: none;
+    }
+    #flagsInput {
+      width: 60px;
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-family: inherit;
+      font-size: inherit;
+      outline: none;
+    }
+    .section-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .editor-wrapper {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-height: 140px;
+      font-family: monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    #backdrop, #testString {
+      width: 100%;
+      min-height: 140px;
+      padding: 0.75rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+    }
+    #backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: transparent;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    #testString {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      outline: none;
+      resize: vertical;
+      display: block;
+    }
+    mark {
+      background: var(--highlight);
+      border-bottom: 2px solid var(--highlight-border);
+      border-radius: 2px;
+      color: inherit;
+    }
+    .results-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .match-tag {
+      display: inline-block;
+      background: #f4f4f5;
+      border: 1px solid #e4e4e7;
+      color: var(--text);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-family: monospace;
+      margin: 0.2rem;
+    }
+    .cheatsheet {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+    .cheat-item {
+      display: flex;
+      justify-content: space-between;
+      background: var(--card);
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .cheat-code { font-family: monospace; color: var(--primary); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Regex Playground</h1>
+      <span style="font-size: 0.8rem; color: var(--muted);">ECMAScript Regular Expressions</span>
+    </header>
+
+    <div>
+      <div class="section-title">Regular Expression</div>
+      <div class="regex-input-box">
+        <span class="slash">/</span>
+        <input type="text" id="patternInput" value="(\w+)@([a-z0-9.-]+\.[a-z]{2,})" placeholder="Insert regex pattern...">
+        <span class="slash">/</span>
+        <input type="text" id="flagsInput" value="gi" placeholder="flags">
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Test String</div>
+      <div class="editor-wrapper">
+        <div id="backdrop"></div>
+        <textarea id="testString" spellcheck="false">Contact team@pagepod.dev or support@company.org for assistance.
+You can also reach hello@world.io anytime!</textarea>
+      </div>
+    </div>
+
+    <div class="results-card">
+      <div class="section-title" id="matchSummary">Matches (0 found)</div>
+      <div id="matchesList" style="margin-top: 0.5rem;"></div>
+    </div>
+
+    <div class="cheatsheet">
+      <div class="cheat-item"><span class="cheat-code">\d</span><span>Any digit (0-9)</span></div>
+      <div class="cheat-item"><span class="cheat-code">\w</span><span>Alphanumeric + _</span></div>
+      <div class="cheat-item"><span class="cheat-code">\s</span><span>Whitespace / Tab</span></div>
+      <div class="cheat-item"><span class="cheat-code">[a-z]</span><span>Character class</span></div>
+      <div class="cheat-item"><span class="cheat-code">+</span><span>1 or more</span></div>
+      <div class="cheat-item"><span class="cheat-code">*</span><span>0 or more</span></div>
+      <div class="cheat-item"><span class="cheat-code">?</span><span>Optional / Lazy</span></div>
+      <div class="cheat-item"><span class="cheat-code">(...)</span><span>Capture group</span></div>
+    </div>
+  </div>
+
+  <script>
+    const patternInput = document.getElementById('patternInput');
+    const flagsInput = document.getElementById('flagsInput');
+    const testString = document.getElementById('testString');
+    const backdrop = document.getElementById('backdrop');
+    const matchSummary = document.getElementById('matchSummary');
+    const matchesList = document.getElementById('matchesList');
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function runRegex() {
+      const pattern = patternInput.value;
+      const flags = flagsInput.value;
+      const text = testString.value;
+
+      if (!pattern) {
+        backdrop.innerHTML = escapeHtml(text);
+        matchSummary.textContent = 'Matches (0 found)';
+        matchesList.innerHTML = '<span style="color:var(--muted);font-size:0.8rem;">No pattern specified</span>';
+        return;
+      }
+
+      let regex;
+      try {
+        regex = new RegExp(pattern, flags);
+      } catch (e) {
+        matchSummary.textContent = 'Regex Syntax Error';
+        matchesList.innerHTML = `<span style="color:#ef4444;font-size:0.8rem;">${e.message}</span>`;
+        return;
+      }
+
+      let matches = [];
+      let match;
+      if (flags.includes('g')) {
+        while ((match = regex.exec(text)) !== null) {
+          matches.push(match);
+          if (match.index === regex.lastIndex) regex.lastIndex++;
+        }
+      } else {
+        match = regex.exec(text);
+        if (match) matches.push(match);
+      }
+
+      matchSummary.textContent = `Matches (${matches.length} found)`;
+
+      if (matches.length === 0) {
+        backdrop.innerHTML = escapeHtml(text);
+        matchesList.innerHTML = '<span style="color:var(--muted);font-size:0.8rem;">No matches in test string</span>';
+        return;
+      }
+
+      // Highlight in backdrop
+      let highlighted = '';
+      let lastIndex = 0;
+      matches.forEach(m => {
+        const start = m.index;
+        const end = start + m[0].length;
+        highlighted += escapeHtml(text.slice(lastIndex, start));
+        highlighted += `<mark>${escapeHtml(text.slice(start, end))}</mark>`;
+        lastIndex = end;
+      });
+      highlighted += escapeHtml(text.slice(lastIndex));
+      backdrop.innerHTML = highlighted;
+
+      // Render tags
+      matchesList.innerHTML = '';
+      matches.forEach((m, idx) => {
+        const tag = document.createElement('div');
+        tag.className = 'match-tag';
+        tag.textContent = `#${idx + 1}: ${m[0]}`;
+        matchesList.appendChild(tag);
+      });
+    }
+
+    patternInput.addEventListener('input', runRegex);
+    flagsInput.addEventListener('input', runRegex);
+    testString.addEventListener('input', runRegex);
+    runRegex();
+  </script>
+</body>
+</html>

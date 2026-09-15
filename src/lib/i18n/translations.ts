@@ -3,9 +3,11 @@ export type Locale = "zh" | "en";
 export const translations = {
   zh: {
     nav: {
+      home: "首页",
       showcase: "画廊",
       explore: "专题合辑",
       pricing: "定价方案",
+      pricingDiscountBadge: "8折",
       workspace: "工作区",
       console: "控制台",
       login: "登录",
@@ -27,9 +29,11 @@ export const translations = {
     },
     hero: {
       badge: "HTML 运行时与探索画廊",
-      title: "保存、运行并分享你的 HTML",
-      desc: "无需配置服务器与构建流水线。上传单文件 HTML 或资源包，3 秒生成受安全沙箱保护的即时分享链接与展示舞台。",
+      title: "保存，运行，分享你的 HTML",
+      desc: "无需配置服务器与构建流水线。拖拽 HTML 文件或资源包，3 秒生成受安全沙箱保护的即时分享链接与展示舞台。",
       selfhostDesc: "私有化自托管的 HTML 应用展台与作品集，零构建安全沙箱运行。",
+      showcaseTeaser: "收录开源单文件 HTML 网页应用，无需安装，点击直接在浏览器运行。",
+      browseShowcase: "浏览公开作品",
     },
     categories: {
       all: "全部",
@@ -43,6 +47,8 @@ export const translations = {
       others: "其他",
     },
     gallery: {
+      sectionTitle: "公开作品",
+      sectionDesc: "包含小工具、网页游戏与动态图表，所有代码完全公开，点击直接在沙箱中运行。",
       searchPlaceholder: "检索作品标题、路由或标签...",
       totalCount: "共 {count} 个作品",
       noProjectsTitle: "未检索到匹配的项目",
@@ -359,6 +365,10 @@ export const translations = {
     },
     pricing: {
       badge: "终身买断 · 透明方案",
+      earlyBirdBadge: "首发早鸟特惠 · 终身方案限时 8 折",
+      earlyBirdTag: "首发早鸟特惠",
+      discountBadge: "20% OFF",
+      earlyBirdNotice: "首批早鸟 8 折特惠已自动生效，结账时直接按折后价结算。",
       title: "为前端开发者与创作者打造的透明定价",
       desc: "一次性买断，永久使用。无出站流量费，硬件级沙箱隔离，按需选择存储配额。",
       freePlan: {
@@ -379,7 +389,8 @@ export const translations = {
       litePlan: {
         name: "进阶终身版 (Lite)",
         badge: "10 GB 存储",
-        price: "$4.90",
+        price: "$3.90",
+        originalPrice: "$4.90",
         period: "/ 一次性买断",
         desc: "适合需要归档更多原型、工具与单页应用的开发者。",
         cta: "选择 Lite 终身版",
@@ -395,7 +406,8 @@ export const translations = {
       proPlan: {
         name: "专业终身版 (Pro)",
         badge: "最受欢迎",
-        price: "$9.90",
+        price: "$7.90",
+        originalPrice: "$9.90",
         period: "/ 一次性买断",
         desc: "适合需要独立二级子域名、白标模式与充沛存储的独立开发者。",
         cta: "选择 Pro 终身版",
@@ -436,17 +448,17 @@ export const translations = {
     explore: {
       badge: "专题合辑 · Collections",
       title: "发现启发灵感的交互实验与网页原型",
-      desc: "精选实用工具、生成艺术、网页轻游戏与产品概念雏形，在隔离沙箱中即时沉浸体验。",
+      desc: "精选实用工具、生成艺术、网页轻游戏与产品概念雏形，在隔离沙箱中即时运行体验。",
       viewAll: "前往画廊浏览全量项目",
       openInRunner: "在沙箱中运行",
-      popularTags: "按生态与技术栈探索",
+      popularTags: "按技术栈与分类探索",
       filterCategory: "按应用场景探索",
       itemsCount: "个作品",
     },
     aboutPage: {
       badge: "设计初衷 · Rationale",
       title: "为什么构建 Pagepod",
-      subtitle: "无论是日常编写的互动小工具、网页轻游戏，还是前端界面原型与实验，Pagepod 为这些 HTML 代码提供持久的容器、纯净的沙箱与优雅的展示空间。",
+      subtitle: "无论是日常编写的互动小工具、网页轻游戏，还是前端界面原型与实验，Pagepod 为这些 HTML 代码提供持久的容器、纯净的沙箱与优雅的展示画廊。",
       pillars: [
         {
           title: "瞬时就绪 (Instant Runtime)",
@@ -567,9 +579,11 @@ export const translations = {
   },
   en: {
     nav: {
+      home: "Home",
       showcase: "Showcase",
       explore: "Collections",
       pricing: "Pricing",
+      pricingDiscountBadge: "20% OFF",
       workspace: "Workspace",
       console: "Console",
       login: "Log in",
@@ -592,8 +606,10 @@ export const translations = {
     hero: {
       badge: "Zero-Config HTML Sandbox & Gallery",
       title: "Save, run, and share your HTML",
-      desc: "No server configuration or build pipelines required. Upload single HTML files or zip bundles to get an instant shareable link in 3 seconds, secured in a hardened sandbox.",
+      desc: "No server configuration or build pipelines required. Upload HTML files or zip bundles to get an instant shareable link in 3 seconds, secured in a hardened sandbox.",
       selfhostDesc: "Self-hosted HTML applications and portfolio showcase, sandboxed and ready to run.",
+      showcaseTeaser: "Open-source single-file HTML web apps ready to run instantly in your browser.",
+      browseShowcase: "Browse Showcase",
     },
     categories: {
       all: "All",
@@ -607,6 +623,8 @@ export const translations = {
       others: "Others",
     },
     gallery: {
+      sectionTitle: "Public Showcase",
+      sectionDesc: "Single-file utilities, web games, and interactive experiments. Fully open-source and sandboxed.",
       searchPlaceholder: "Search title, slug, or tag...",
       totalCount: "{count} total",
       noProjectsTitle: "No pages found",
@@ -923,6 +941,10 @@ export const translations = {
     },
     pricing: {
       badge: "Lifetime Deals · Transparent",
+      earlyBirdBadge: "Early Adopter Offer · 20% OFF Lifetime Plans",
+      earlyBirdTag: "Early Bird",
+      discountBadge: "20% OFF",
+      earlyBirdNotice: "Early bird 20% discount is automatically applied at checkout.",
       title: "Built for Front-end Creators & Builders",
       desc: "Pay once, own forever. 0 egress fees, hardware-isolated sandboxes, and flexible storage quotas.",
       freePlan: {
@@ -943,7 +965,8 @@ export const translations = {
       litePlan: {
         name: "Lite Lifetime",
         badge: "10 GB Storage",
-        price: "$4.90",
+        price: "$3.90",
+        originalPrice: "$4.90",
         period: "/ one-time payment",
         desc: "Perfect for builders archiving dozens of web tools, games, and prototypes.",
         cta: "Get Lite Lifetime",
@@ -959,7 +982,8 @@ export const translations = {
       proPlan: {
         name: "Pro Lifetime",
         badge: "Most Popular",
-        price: "$9.90",
+        price: "$7.90",
+        originalPrice: "$9.90",
         period: "/ one-time payment",
         desc: "For serious creators who want white-label presentation and custom subdomains.",
         cta: "Get Pro Lifetime",

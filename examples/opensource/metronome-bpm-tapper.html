@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Metronome & Tap Tempo BPM</title>
+  <!--
+    Open Source Provenance:
+    Author: Web Audio Community
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f7;
+      color: #18181b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      max-width: 400px;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 20px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+    .bpm-display {
+      font-family: ui-monospace, monospace;
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      margin: 1.5rem 0 0.5rem 0;
+      color: #09090b;
+    }
+    .bpm-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #71717a;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+    }
+    .beat-indicator {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #e4e4e7;
+      transition: all 0.05s ease;
+      margin-bottom: 2rem;
+    }
+    .beat-indicator.flash {
+      background: #2563eb;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+      transform: scale(1.3);
+    }
+    .slider {
+      width: 100%;
+      accent-color: #18181b;
+      margin-bottom: 2rem;
+      cursor: pointer;
+    }
+    .btn-main {
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid #18181b;
+      background: #18181b;
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: opacity 0.15s;
+    }
+    .btn-main:hover { opacity: 0.9; }
+    .btn-tap {
+      width: 100%;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid #e4e4e7;
+      background: #f4f4f5;
+      color: #18181b;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-tap:hover { background: #e4e4e7; }
+    .btn-tap:active { transform: scale(0.98); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="bpm-display" id="bpm">120</div>
+    <div class="bpm-label">BEATS PER MINUTE</div>
+    <div class="beat-indicator" id="indicator"></div>
+
+    <input type="range" class="slider" id="bpmSlider" min="40" max="240" value="120" oninput="changeBpm(this.value)">
+
+    <button class="btn-main" id="startBtn" onclick="togglePlay()">Start Metronome</button>
+    <button class="btn-tap" onclick="tapTempo()">Tap Tempo (BPM)</button>
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let isPlaying = false;
+    let bpm = 120;
+    let timerId = null;
+    let tapTimes = [];
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playClick() {
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      gain.gain.setValueAtTime(1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+
+      const ind = document.getElementById('indicator');
+      ind.classList.add('flash');
+      setTimeout(() => ind.classList.remove('flash'), 80);
+    }
+
+    function togglePlay() {
+      initAudio();
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('startBtn');
+
+      if (isPlaying) {
+        btn.textContent = 'Stop Metronome';
+        btn.style.background = '#ef4444';
+        btn.style.color = '#fff';
+        const intervalMs = (60 / bpm) * 1000;
+        playClick();
+        timerId = setInterval(playClick, intervalMs);
+      } else {
+        btn.textContent = 'Start Metronome';
+        btn.style.background = '#fafafa';
+        btn.style.color = '#09090b';
+        clearInterval(timerId);
+      }
+    }
+
+    function changeBpm(val) {
+      bpm = parseInt(val, 10);
+      document.getElementById('bpm').textContent = bpm;
+      document.getElementById('bpmSlider').value = bpm;
+
+      if (isPlaying) {
+        clearInterval(timerId);
+        const intervalMs = (60 / bpm) * 1000;
+        timerId = setInterval(playClick, intervalMs);
+      }
+    }
+
+    function tapTempo() {
+      const now = performance.now();
+      tapTimes.push(now);
+
+      if (tapTimes.length > 4) {
+        tapTimes.shift();
+      }
+
+      if (tapTimes.length >= 2) {
+        const intervals = [];
+        for (let i = 1; i < tapTimes.length; i++) {
+          intervals.push(tapTimes[i] - tapTimes[i - 1]);
+        }
+        const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+        const calculatedBpm = Math.round(60000 / avgInterval);
+
+        if (calculatedBpm >= 40 && calculatedBpm <= 240) {
+          changeBpm(calculatedBpm);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

@@ -18,11 +18,18 @@ import { Badge } from "@/components/ui/badge";
 import { scanForSecrets, type SecretFinding } from "@/lib/security/secret-guard";
 import { submitGuestUpload } from "@/app/actions/guest";
 import { useLanguage } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/translations";
 import { trackEvent } from "@/lib/analytics";
 import { saveGuestClaim, GUEST_CLAIMED_EVENT } from "@/lib/storage/guest-claim";
 
-export function InstantUploadCard() {
-  const { locale } = useLanguage();
+export function InstantUploadCard({ initialLocale }: { initialLocale?: Locale }) {
+  const { locale: clientLocale } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const locale = !mounted && initialLocale ? initialLocale : (clientLocale || initialLocale || "en");
   const isZh = locale === "zh";
   const [isDragging, setIsDragging] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -182,10 +189,10 @@ export function InstantUploadCard() {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto">
       {/* Secret Leak Warning Dialog */}
       {pendingSecretFile && (
-        <div className="mb-4 p-4 rounded-lg border border-amber-500/30 bg-amber-500/5 text-foreground space-y-3 transition-all duration-200">
+        <div className="mb-4 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-foreground space-y-3 transition-all duration-200">
           <div className="flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
             <div className="space-y-1 text-xs">
@@ -237,11 +244,11 @@ export function InstantUploadCard() {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`relative rounded-xl border p-5 sm:p-6 transition-all duration-200 ${
+        className={`group relative rounded-2xl border transition-all duration-200 ${
           isDragging
-            ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-            : "border-border/80 bg-card/60 backdrop-blur-sm hover:border-border"
-        }`}
+            ? "border-primary bg-primary/5 ring-4 ring-primary/10 shadow-md"
+            : "border-border/80 bg-card/60 backdrop-blur-sm hover:border-border/90 hover:bg-card/80 shadow-xs"
+        } ${!uploadedResult ? "py-10 sm:py-14 px-6 sm:px-12" : "p-6 sm:p-8"}`}
       >
         <input
           ref={fileInputRef}
@@ -252,19 +259,27 @@ export function InstantUploadCard() {
         />
 
         {!uploadedResult ? (
-          <div className="flex flex-col items-center text-center space-y-3.5">
-            <div className="w-11 h-11 rounded-full border border-border/60 bg-muted/40 flex items-center justify-center text-muted-foreground">
+          <div className="flex flex-col items-center text-center space-y-5">
+            {/* Larger Cloud Upload Icon - clickable with hover zoom */}
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label={isZh ? "选择 HTML 文件" : "Select HTML File"}
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border border-border/70 bg-muted/40 flex items-center justify-center text-muted-foreground shadow-2xs transition-all duration-200 group-hover:scale-105 group-hover:border-foreground/30 group-hover:text-foreground cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+            >
               {isPending ? (
-                <Loader2 className="w-5 h-5 animate-spin text-foreground" />
+                <Loader2 className="w-7 h-7 sm:w-8 sm:h-8 animate-spin text-foreground" />
               ) : (
-                <UploadCloud className="w-5 h-5" />
+                <UploadCloud className="w-7 h-7 sm:w-8 sm:h-8 text-foreground/80 group-hover:text-foreground transition-colors" />
               )}
-            </div>
+            </button>
 
-            <div className="space-y-1">
-              <h3 className="text-base font-semibold text-foreground tracking-tight">
+            {/* Headline and Subtitle */}
+            <div className="space-y-1.5 max-w-md">
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
                 {isZh
-                  ? "拖拽单文件 HTML 即刻获取分享链接"
+                  ? "拖拽 HTML 文件 即刻获取分享链接"
                   : "Upload HTML file and get an instant shareable link"}
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -275,11 +290,11 @@ export function InstantUploadCard() {
             </div>
 
             {/* Visibility Mode Selector */}
-            <div className="flex items-center justify-center p-0.5 rounded-lg border border-border/80 bg-muted/40 text-xs w-fit mx-auto select-none">
+            <div className="flex items-center justify-center p-1 rounded-xl border border-border/80 bg-muted/40 text-xs sm:text-sm w-fit mx-auto select-none">
               <button
                 type="button"
                 onClick={() => setVisibility("unlisted")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all font-medium cursor-pointer text-xs ${
                   visibility === "unlisted"
                     ? "bg-background text-foreground shadow-xs border border-border/70"
                     : "text-muted-foreground hover:text-foreground border border-transparent"
@@ -291,7 +306,7 @@ export function InstantUploadCard() {
               <button
                 type="button"
                 onClick={() => setVisibility("public")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-xs font-medium cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all font-medium cursor-pointer text-xs ${
                   visibility === "public"
                     ? "bg-background text-foreground shadow-xs border border-border/70"
                     : "text-muted-foreground hover:text-foreground border border-transparent"
@@ -303,22 +318,23 @@ export function InstantUploadCard() {
             </div>
 
             {errorMsg && (
-              <p className="text-xs text-destructive font-medium px-2.5 py-1 rounded bg-destructive/10 border border-destructive/20">
+              <p className="text-xs text-destructive font-medium px-3 py-1.5 rounded-md bg-destructive/10 border border-destructive/20 max-w-lg text-center">
                 {errorMsg}
               </p>
             )}
 
+            {/* CTA Button */}
             <div className="pt-1 flex items-center gap-3">
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 disabled={isPending}
-                className="h-9 text-sm font-medium px-4.5 shadow-xs border-border/80"
+                className="h-10 text-sm font-medium px-6 shadow-xs border-border/80"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     {isZh ? "正在生成链接..." : "Generating Link..."}
                   </>
                 ) : isZh ? (
@@ -330,21 +346,21 @@ export function InstantUploadCard() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {uploadedResult.visibility === "unlisted" ? (
-                  <Badge variant="outline" className="text-xs font-mono px-2.5 py-0.5 border-emerald-500/30 text-emerald-500 bg-emerald-500/5 flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-xs font-mono px-2.5 py-1 border-emerald-500/30 text-emerald-500 bg-emerald-500/5 flex items-center gap-1.5">
                     <Lock className="w-3 h-3" />
                     <span>UNLISTED · PROTECTED</span>
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="text-xs font-mono px-2.5 py-0.5 border-blue-500/30 text-blue-500 bg-blue-500/5 flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-xs font-mono px-2.5 py-1 border-blue-500/30 text-blue-500 bg-blue-500/5 flex items-center gap-1.5">
                     <Globe className="w-3 h-3" />
                     <span>PUBLIC SHOWCASE</span>
                   </Badge>
                 )}
-                <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
+                <span className="text-sm font-medium text-foreground truncate max-w-[280px] sm:max-w-md">
                   {uploadedResult.title}
                 </span>
               </div>
@@ -361,7 +377,7 @@ export function InstantUploadCard() {
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 p-2.5 rounded-lg border border-border/80 bg-muted/30 font-mono text-xs sm:text-sm text-foreground">
+            <div className="flex items-center gap-2 p-3 rounded-xl border border-border/80 bg-muted/30 font-mono text-xs sm:text-sm text-foreground">
               <LinkIcon className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="truncate flex-1">
                 {typeof window !== "undefined" ? window.location.origin : ""}{uploadedResult.url}
@@ -386,13 +402,13 @@ export function InstantUploadCard() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between pt-1 gap-2 flex-wrap">
+            <div className="flex items-center justify-between pt-1 gap-3 flex-wrap">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground leading-relaxed">
                 {uploadedResult.isDirectClaimed ? (
                   <>
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                     <span>
-                      {isZh ? "已直接保存至你的个人空间。" : "Directly saved to your workspace."}
+                      {isZh ? "已直接保存至你的工作台。" : "Directly saved to your workspace."}
                     </span>
                     <Link
                       href="/workspace"
@@ -424,7 +440,7 @@ export function InstantUploadCard() {
                     visibility: uploadedResult.visibility || "unlisted",
                   });
                 }}
-                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium shrink-0 ml-2"
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium shrink-0 ml-auto"
               >
                 {isZh ? "在线运行" : "Run Online"}
                 <ExternalLink className="w-3.5 h-3.5" />

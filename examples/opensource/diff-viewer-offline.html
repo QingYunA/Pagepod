@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline Text Diff Checker</title>
+  <!--
+    Open Source Provenance:
+    Author: Developer Tools Open Initiative & jsdifflib
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #ffffff;
+      color: #18181b;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.75rem 1.25rem;
+      background: #fafafa;
+      border-bottom: 1px solid #e4e4e7;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 { font-size: 0.95rem; font-weight: 600; font-family: -apple-system, sans-serif; color: #09090b; }
+    button {
+      background: #18181b;
+      color: #ffffff;
+      border: 1px solid #18181b;
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      divide-y: 1px solid #e4e4e7;
+      overflow: hidden;
+    }
+    .inputs-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      divide-x: 1px solid #e4e4e7;
+      height: 100%;
+    }
+    .input-box {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #ffffff;
+    }
+    .box-header {
+      padding: 0.3rem 0.75rem;
+      background: #fafafa;
+      font-size: 0.75rem;
+      color: #71717a;
+      border-bottom: 1px solid #e4e4e7;
+    }
+    textarea {
+      flex: 1;
+      background: #fafafa;
+      border: none;
+      color: #09090b;
+      padding: 0.75rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+    }
+    .diff-output {
+      padding: 0.75rem;
+      overflow-y: auto;
+      background: #ffffff;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .diff-line {
+      display: flex;
+      padding: 0.1rem 0.5rem;
+      border-radius: 2px;
+    }
+    .diff-line.added { background: #dcfce7; color: #15803d; font-weight: 500; }
+    .diff-line.removed { background: #fee2e2; color: #b91c1c; font-weight: 500; }
+    .diff-line.same { color: #52525b; }
+    .line-num {
+      width: 40px;
+      color: #a1a1aa;
+      user-select: none;
+    }
+    .line-text { flex: 1; white-space: pre-wrap; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Offline Text Diff Checker</h1>
+    <button onclick="compareText()">Compute Diff</button>
+  </header>
+
+  <main>
+    <div class="inputs-container">
+      <div class="input-box">
+        <div class="box-header">ORIGINAL TEXT</div>
+        <textarea id="origText" placeholder="Paste original text here..."></textarea>
+      </div>
+      <div class="input-box">
+        <div class="box-header">MODIFIED TEXT</div>
+        <textarea id="modText" placeholder="Paste modified text here..."></textarea>
+      </div>
+    </div>
+
+    <div class="diff-output" id="diffView">
+      <div style="color: #71717a; text-align: center; margin-top: 2rem;">Diff results will appear here...</div>
+    </div>
+  </main>
+
+  <script>
+    const sampleOrig = `function calculateTotal(items) {
+  let sum = 0;
+  for (let i = 0; i < items.length; i++) {
+    sum += items[i].price;
+  }
+  return sum;
+}`;
+
+    const sampleMod = `function calculateTotal(items, discount = 0) {
+  const sum = items.reduce((acc, item) => acc + item.price, 0);
+  return sum * (1 - discount);
+}`;
+
+    document.getElementById('origText').value = sampleOrig;
+    document.getElementById('modText').value = sampleMod;
+
+    function compareText() {
+      const orig = document.getElementById('origText').value.split('\n');
+      const mod = document.getElementById('modText').value.split('\n');
+      const diffView = document.getElementById('diffView');
+      diffView.innerHTML = '';
+
+      let i = 0, j = 0;
+      while (i < orig.length || j < mod.length) {
+        if (i < orig.length && j < mod.length && orig[i] === mod[j]) {
+          appendLine('same', ' ', orig[i]);
+          i++; j++;
+        } else if (j < mod.length && (i >= orig.length || !orig.includes(mod[j]))) {
+          appendLine('added', '+', mod[j]);
+          j++;
+        } else if (i < orig.length) {
+          appendLine('removed', '-', orig[i]);
+          i++;
+        }
+      }
+    }
+
+    function appendLine(type, symbol, text) {
+      const diffView = document.getElementById('diffView');
+      const line = document.createElement('div');
+      line.className = `diff-line ${type}`;
+
+      const prefix = document.createElement('span');
+      prefix.className = 'line-num';
+      prefix.textContent = symbol;
+
+      const content = document.createElement('span');
+      content.className = 'line-text';
+      content.textContent = text;
+
+      line.appendChild(prefix);
+      line.appendChild(content);
+      diffView.appendChild(line);
+    }
+
+    compareText();
+  </script>
+</body>
+</html>

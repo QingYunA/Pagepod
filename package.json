@@ -12,9 +12,13 @@
     "screenshots": "tsx scripts/capture-screenshots.ts",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "bun run scripts/verify-pr1-security.ts && bun run scripts/verify-pr2-validation.ts && bun run scripts/verify-secret-policy.ts && bun run scripts/verify-payment-security.ts && bun run scripts/diagnose-workspace-perf.ts && bun run scripts/verify-moderation.ts && bun run scripts/verify-pin-sorting-categories.ts && bun run scripts/verify-selfhost-sovereignty.ts && bun run scripts/verify-explore-navigation.ts && bun run scripts/verify-guest-ingestion-and-seo.ts && bun run scripts/verify-pro-perks-and-guest-transient.ts && bun run scripts/verify-workspace-folders.ts",
+    "test": "bun run scripts/check-standards.ts && bun run scripts/verify-pr1-security.ts && bun run scripts/verify-pr2-validation.ts && bun run scripts/verify-secret-policy.ts && bun run scripts/verify-payment-security.ts && bun run scripts/diagnose-workspace-perf.ts && bun run scripts/verify-moderation.ts && bun run scripts/verify-pin-sorting-categories.ts && bun run scripts/verify-selfhost-sovereignty.ts && bun run scripts/verify-explore-navigation.ts && bun run scripts/verify-guest-ingestion-and-seo.ts && bun run scripts/verify-pro-perks-and-guest-transient.ts && bun run scripts/verify-workspace-folders.ts && bun run scripts/verify-project-seo-ingress.ts",
+    "catalog:ingest": "bun run scripts/ingest-scaled-catalog.ts",
+    "catalog:upload": "tsx scripts/upload-scaled-catalog-api.ts",
     "check:standards": "bun run scripts/check-standards.ts",
     "probe:prod": "tsx scripts/probe-prod.ts",
+    "probe:direct": "bun run scripts/probe-direct.ts",
+    "deploy:wait": "bash scripts/wait-deploy.sh",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

@@ -146,7 +146,7 @@ const faqJsonLd = {
 
 const umamiScriptUrl =
   process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
-  "https://umami-kappa-silk.vercel.app/script.js";
+  "https://umami.daydayup.lat/script.js";
 const umamiWebsiteId =
   process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ||
   "c7ee55df-938f-4800-b6cb-18622970fe64";
@@ -166,6 +166,12 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+        {/* Instant synchronous script to sync html lang and locale before body renders */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var c=document.cookie.match(/(?:^|;\\s*)html_manager_locale=([^;]+)/);var l=c?decodeURIComponent(c[1]):((navigator.language||'').toLowerCase().indexOf('zh')===0?'zh':'en');document.documentElement.lang=l==='zh'?'zh-CN':'en';window.__INITIAL_LOCALE__=l;}catch(e){}})()`,
+          }}
         />
         {umamiWebsiteId && (
           <script

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>盘古之白 - 中文排版与文案规范实验室 (pangu.js)</title>
+  <title>中英文排版加空格工具 - 盘古之白 (pangu.js)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Based on open source pangu.js by Vinta Chen: https://github.com/vinta/pangu.js (MIT License) -->
   <style>
@@ -219,8 +219,8 @@
 <body>
   <header>
     <div class="brand-title">
-      盘古之白
-      <span class="badge">pangu.js v4.0.7</span>
+      中英文排版加空格工具
+      <span class="badge">pangu.js</span>
     </div>
     <div class="header-links">
       <a href="https://github.com/vinta/pangu.js" target="_blank" rel="noopener">Upstream: vinta/pangu.js (MIT)</a>
@@ -229,20 +229,20 @@
 
   <div class="container">
     <div class="presets-bar">
-      <span class="presets-label">文案范式示例：</span>
-      <button class="preset-btn" onclick="loadPreset('tech')">科技与数码博文</button>
-      <button class="preset-btn" onclick="loadPreset('product')">SaaS 产品发布公告</button>
-      <button class="preset-btn" onclick="loadPreset('academic')">学术与算法论文摘要</button>
-      <button class="preset-btn" onclick="loadPreset('dirty')">重度未排版混排示例</button>
+      <span class="presets-label">示例文本：</span>
+      <button class="preset-btn" onclick="loadPreset('tech')">数码科技文案</button>
+      <button class="preset-btn" onclick="loadPreset('product')">产品更新公告</button>
+      <button class="preset-btn" onclick="loadPreset('academic')">技术文档摘要</button>
+      <button class="preset-btn" onclick="loadPreset('dirty')">未排版混排示例</button>
     </div>
 
     <div class="workspace-grid">
       <div class="editor-pane">
         <div class="pane-header">
-          <span>原始文案输入 (Raw Input)</span>
+          <span>原始文本输入</span>
           <div class="pane-actions">
             <button class="action-btn" onclick="clearInput()">清空</button>
-            <button class="action-btn primary" onclick="formatNow()">一键排版规范化</button>
+            <button class="action-btn primary" onclick="formatNow()">一键排版</button>
           </div>
         </div>
         <textarea id="inputArea" spellcheck="false" placeholder="在此输入或粘贴需要排版规范化的中英文混排文本..."></textarea>
