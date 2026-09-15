@@ -90,18 +90,28 @@ function resolveRequestLocale(request: NextRequest): "zh" | "en" {
 
 function applyLocaleToResponse(
   response: NextResponse,
-  request: NextRequest,
   resolvedLocale: "zh" | "en"
 ): NextResponse {
   response.headers.set(LOCALE_HEADER_NAME, resolvedLocale);
-  if (!request.cookies.get(LOCALE_COOKIE_NAME)) {
-    response.cookies.set(LOCALE_COOKIE_NAME, resolvedLocale, {
-      path: "/",
-      maxAge: LOCALE_COOKIE_MAX_AGE,
-      sameSite: "lax",
-    });
-  }
   return response;
+}
+
+function isSelfHostedMode(): boolean {
+  const mode = (process.env.APP_MODE || process.env.NEXT_PUBLIC_APP_MODE || "").toLowerCase();
+  const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return !(mode === "cloud" && hasSupabase);
+}
+
+async function isValidAdminSessionToken(token: string | undefined): Promise<boolean> {
+  if (!token) return false;
+  const secret = getJwtSecret();
+  if (!secret) return false;
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    return payload.role === "admin";
+  } catch {
+    return false;
+  }
 }
 
 export async function proxy(request: NextRequest) {
@@ -170,6 +180,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(targetUrl, 308);
   }
 
+  // 3.5. Seamless jump to workspace for logged-in admin in self-hosted mode
+  if (isSelfHostedMode() && (pathname === "/" || pathname === "")) {
+    const adminToken = request.cookies.get(COOKIE_NAME)?.value;
+    if (adminToken && (await isValidAdminSessionToken(adminToken))) {
+      const workspaceUrl = new URL("/workspace", request.url);
+      workspaceUrl.search = request.nextUrl.search;
+      return NextResponse.redirect(workspaceUrl);
+    }
+  }
+
   // 4. Protect /workspace routes
   // Public pages (/explore, /pricing, /, /login) bypass middleware network checks completely!
   if (pathname.startsWith("/workspace")) {
@@ -195,16 +215,8 @@ export async function proxy(request: NextRequest) {
     // If not authenticated via Supabase, check Self-hosted Mode: JWT token
     if (!isValid && hasAdminCookie) {
       const token = request.cookies.get(COOKIE_NAME)?.value;
-      const secret = getJwtSecret();
-      if (token && secret) {
-        try {
-          const { payload } = await jwtVerify(token, secret);
-          if (payload.role === "admin") {
-            isValid = true;
-          }
-        } catch {
-          isValid = false;
-        }
+      if (await isValidAdminSessionToken(token)) {
+        isValid = true;
       }
     }
 
@@ -213,7 +225,7 @@ export async function proxy(request: NextRequest) {
     }
 
     const resolvedLocale = resolveRequestLocale(request);
-    return applyLocaleToResponse(finalResponse, request, resolvedLocale);
+    return applyLocaleToResponse(finalResponse, resolvedLocale);
   }
 
   const resolvedLocale = resolveRequestLocale(request);
@@ -226,7 +238,7 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  return applyLocaleToResponse(response, request, resolvedLocale);
+  return applyLocaleToResponse(response, resolvedLocale);
 }
 
 export const config = {
