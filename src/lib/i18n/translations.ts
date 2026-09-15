@@ -26,9 +26,9 @@ export const translations = {
       lifetimeBadge: "LIFETIME",
     },
     hero: {
-      badge: "HTML Runtime & Gallery",
+      badge: "HTML 运行时与探索画廊",
       title: "保存、运行并分享你的 HTML",
-      desc: "无需配置服务器与构建流水线。上传 HTML 文件或资源包，即刻获得受安全沙箱保护的永久链接与展示舞台。",
+      desc: "无需配置服务器与构建流水线。上传单文件 HTML 或资源包，3 秒生成受安全沙箱保护的即时分享链接与展示舞台。",
       selfhostDesc: "私有化自托管的 HTML 应用展台与作品集，零构建安全沙箱运行。",
     },
     categories: {
@@ -551,6 +551,19 @@ export const translations = {
       unreadBadge: "条未读",
       viewProject: "查看项目",
     },
+    faq: {
+      badge: "常见问题与指南",
+      title: "常见问题",
+      subtitle: "关于 HTML 免费托管、沙箱安全隔离与即时分享的一切",
+      q1: "如何免费托管并分享单文件 HTML？",
+      a1: "直接将单文件 .html（或包含静态资源文件的 .zip 包）拖拽至首页上传区。无需注册账号或配置服务器，系统将在 3 秒内自动部署并生成受沙箱保护的永久分享链接。",
+      q2: "无需服务器配置或注册，能直接拿到分享链接吗？",
+      a2: "可以。Pagepod 提供免登录临时态极速摄入机制，上传后即刻获得可直接访问或发送给好友的 URL。若后续注册账号，支持一键将匿名上传的作品认领至个人工作台。",
+      q3: "在 Pagepod 中运行不可信的 HTML/JavaScript 代码安全吗？",
+      a3: "绝对安全。所有运行端点统一走隔离的 /raw/[slug]/ 路由，并强制注入严格的 CSP（Content Security Policy）安全头，物理阻断访问宿主主域的 Cookie、LocalStorage 与管理凭据。",
+      q4: "公开展示（Public）与口令保护（Unlisted）有什么区别？",
+      a4: "公开展示（Public）会将你的作品收录至画廊与探索合辑，供全球开发者发现；口令保护（Unlisted）带有随机安全访问令牌，不会被公开画廊索引，仅持有完整链接的人方可访问运行。",
+    },
   },
   en: {
     nav: {
@@ -577,9 +590,9 @@ export const translations = {
       lifetimeBadge: "LIFETIME",
     },
     hero: {
-      badge: "HTML Runtime & Gallery",
+      badge: "Zero-Config HTML Sandbox & Gallery",
       title: "Save, run, and share your HTML",
-      desc: "No server configuration or build pipelines required. Turn HTML files and zip bundles into sandboxed web experiences with shareable links.",
+      desc: "No server configuration or build pipelines required. Upload single HTML files or zip bundles to get an instant shareable link in 3 seconds, secured in a hardened sandbox.",
       selfhostDesc: "Self-hosted HTML applications and portfolio showcase, sandboxed and ready to run.",
     },
     categories: {
@@ -1101,6 +1114,19 @@ export const translations = {
       daysAgo: "{n}d ago",
       unreadBadge: "unread",
       viewProject: "View Project",
+    },
+    faq: {
+      badge: "FAQ & Guide",
+      title: "Frequently Asked Questions",
+      subtitle: "Everything you need to know about free HTML file hosting, sandbox security, and instant sharing.",
+      q1: "How do I host and share an HTML file for free?",
+      a1: "Simply drag and drop your single .html file or zip bundle into the upload zone. No registration or server configuration is required. You will receive an instant, sandboxed shareable link in 3 seconds.",
+      q2: "Can I get a shareable link without server setup or registration?",
+      a2: "Yes. Pagepod provides an instant zero-config guest ingestion pipeline. You get a live link immediately. If you sign up later, you can seamlessly claim your uploaded projects into your personal workspace.",
+      q3: "Is running untrusted HTML and JavaScript files safe?",
+      a3: "Yes. All hosted files run in an isolated /raw/[slug]/ runner under strict Content Security Policy (CSP) headers without allow-same-origin, preventing untrusted scripts from accessing host cookies, storage, or admin sessions.",
+      q4: "What is the difference between Public and Unlisted visibility?",
+      a4: "Public projects are indexed in the showcase feed and topic collections for discovery. Unlisted projects require a secret access token in the URL, preventing search engine indexing and gallery visibility.",
     },
   },
 };

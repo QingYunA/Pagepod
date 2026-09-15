@@ -8,7 +8,8 @@
 
 # Pagepod
 
-<p><strong>A simple, self-hostable space to run and share HTML files.</strong><br>
+<p><strong>A simple, self-hostable space to host, run, and share HTML files.</strong><br>
+Hosted online at <a href="https://www.pagepod.dev"><strong>Pagepod (pagepod.dev)</strong></a> — Free HTML file hosting, instant shareable link in seconds, and curated web app showcase.<br>
 Drop in standalone HTML files or zip packages, run them safely in an isolated sandbox, and share with a clean link. No build step, no subscription limits, and zero egress fees.</p>
 
 <p>
@@ -20,12 +21,12 @@ Drop in standalone HTML files or zip packages, run them safely in an isolated sa
 </p>
 
 <p>
-  <a href="https://pagepod.dev">Website</a> ·
-  <a href="https://pagepod.dev/explore">Live Demo</a> ·
+  <a href="https://www.pagepod.dev">Free HTML Hosting</a> ·
+  <a href="https://www.pagepod.dev/explore">Live Showcase</a> ·
   <a href="#deployment">Deployment</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#comparison">Comparison</a> ·
-  <a href="https://pagepod.dev/api/docs">API Docs</a> ·
+  <a href="https://www.pagepod.dev/api/docs">API Docs</a> ·
   <a href="README_zh.md">简体中文</a>
 </p>
 
