@@ -361,6 +361,19 @@ export async function autoApproveLegacyProjects() {
   }
 }
 
+let legacyApprovalInFlight: Promise<void> | null = null;
+
+function triggerLegacyApproval() {
+  if (legacyProjectsApproved || legacyApprovalInFlight || !dbUrl) return;
+  legacyApprovalInFlight = autoApproveLegacyProjects()
+    .catch((err) => {
+      console.warn("[DB] autoApproveLegacyProjects background notice:", err);
+    })
+    .finally(() => {
+      legacyApprovalInFlight = null;
+    });
+}
+
 async function ensurePostgresTables() {
   if (tablesInitialized || !dbUrl) return;
   try {
@@ -444,7 +457,7 @@ export async function getAllProjects(options?: {
   search?: string;
   sortBy?: ProjectSortOption;
 }): Promise<Project[]> {
-  await autoApproveLegacyProjects();
+  triggerLegacyApproval();
   const db = getDatabase();
   let list: Project[] = [];
   let isFilteredInSql = false;
@@ -653,7 +666,7 @@ export async function getUserProjectsCount(userId: string): Promise<number> {
 }
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
-  await autoApproveLegacyProjects();
+  triggerLegacyApproval();
   const db = getDatabase();
   if (db) {
     try {
@@ -677,7 +690,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
 }
 
 export async function getProjectById(id: string): Promise<Project | null> {
-  await autoApproveLegacyProjects();
+  triggerLegacyApproval();
   const db = getDatabase();
   if (db) {
     try {
@@ -697,7 +710,7 @@ export async function getProjectById(id: string): Promise<Project | null> {
 }
 
 export async function createProject(data: NewProject): Promise<Project> {
-  await autoApproveLegacyProjects();
+  triggerLegacyApproval();
   const db = getDatabase();
   const now = new Date();
   const newRecord: Project = {
