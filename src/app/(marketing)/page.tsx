@@ -1,6 +1,7 @@
 import { getAllProjects } from "@/db";
 import ShowcaseGallery from "@/components/showcase-gallery";
 import { HeroSection } from "@/components/hero-section";
+import { FaqSection } from "@/components/faq-section";
 import { getCurrentUser } from "@/lib/auth";
 import { getServerLocale } from "@/lib/i18n/server";
 import { isSelfHosted } from "@/lib/supabase/server";
@@ -35,6 +36,9 @@ export default async function HomePage() {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8">
         <ShowcaseGallery initialProjects={projects} initialLocale={serverLocale} />
       </main>
+
+      {/* Frequently Asked Questions & SEO Intent Section */}
+      <FaqSection />
     </>
   );
 }

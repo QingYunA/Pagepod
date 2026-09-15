@@ -17,16 +17,21 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Pagepod - Host HTML Files Free, Run & Share Web Apps Online",
+    default: "Pagepod - Host HTML Files Free | Upload HTML & Get Shareable Link",
     template: "%s | Pagepod",
   },
   description:
-    "Instant zero-config hosting and discovery platform. Upload single HTML files to get a shareable link in seconds, or explore curated web tools, mini games, and interactive prototypes in a hardened sandbox.",
+    "Free zero-config HTML file hosting. Upload single HTML files or zip bundles to get a secure shareable link in 3 seconds, or explore interactive web tools, games, and prototypes in a hardened sandbox.",
   keywords: [
     "host html file free",
-    "upload html and get link",
+    "upload html file get link",
+    "host html file online free",
     "share html file online",
+    "upload html and get link",
+    "publish html online free",
     "free html host",
+    "free html hosting",
+    "html file hosting",
     "HTML runner",
     "web app showcase",
     "HTML sandbox",
@@ -61,15 +66,15 @@ export const metadata: Metadata = {
     alternateLocale: ["zh_CN"],
     url: siteUrl,
     siteName: "Pagepod",
-    title: "Pagepod - Host & Run HTML Apps Online",
+    title: "Pagepod - Host HTML Files Free | Upload HTML & Get Shareable Link",
     description:
-      "Instant zero-config hosting and discovery platform for HTML applications, interactive web tools, games, and prototypes.",
+      "Free zero-config HTML file hosting. Upload single HTML files or zip bundles to get a secure shareable link in 3 seconds, secured in a hardened sandbox.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pagepod - Host & Run HTML Apps Online",
+    title: "Pagepod - Host HTML Files Free | Upload HTML & Get Shareable Link",
     description:
-      "Instant zero-config hosting and discovery platform for HTML applications, interactive web tools, games, and prototypes.",
+      "Free zero-config HTML file hosting. Upload single HTML files or zip bundles to get a secure shareable link in 3 seconds, secured in a hardened sandbox.",
   },
   robots: {
     index: true,
@@ -92,12 +97,51 @@ const rootJsonLd = {
   applicationCategory: "DeveloperApplication",
   operatingSystem: "All",
   description:
-    "Instant zero-config hosting and discovery platform for HTML applications, interactive web tools, games, and prototypes.",
+    "Free zero-config HTML file hosting and web app showcase. Upload single HTML files or zip bundles to get a shareable link in 3 seconds in a hardened sandbox.",
   offers: {
     "@type": "Offer",
     price: "0",
     priceCurrency: "USD",
   },
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How do I host and share an HTML file for free?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Simply drag and drop your single .html file or zip bundle into Pagepod. No registration or server configuration is required. You will receive an instant, sandboxed shareable link in 3 seconds.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I get a shareable link without server setup or registration?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Pagepod provides an instant zero-config guest ingestion pipeline. You get a live link immediately. If you sign up later, you can seamlessly claim your uploaded projects into your personal workspace.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is running untrusted HTML and JavaScript files safe?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. All hosted files run in an isolated /raw/[slug]/ runner under strict Content Security Policy (CSP) headers without allow-same-origin, preventing untrusted scripts from accessing host cookies, storage, or admin sessions.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is the difference between Public and Unlisted visibility?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Public projects are indexed in the showcase feed and topic collections for discovery. Unlisted projects require a secret access token in the URL, preventing search engine indexing and gallery visibility.",
+      },
+    },
+  ],
 };
 
 const umamiScriptUrl =
@@ -118,6 +162,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(rootJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
         {/* Instant synchronous script to sync html lang and locale before body renders */}
         <script

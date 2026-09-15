@@ -279,13 +279,13 @@ export function InstantUploadCard({ initialLocale }: { initialLocale?: Locale })
             <div className="space-y-1.5 max-w-md">
               <h3 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
                 {isZh
-                  ? "拖入单文件 HTML 即刻获取分享链接"
-                  : "Drop your HTML file here to get an instant shareable link"}
+                  ? "拖拽 HTML 文件 即刻获取分享链接"
+                  : "Upload HTML file and get an instant shareable link"}
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 {isZh
-                  ? "无需登录 · 单文件 HTML 最大 2MB"
-                  : "No sign-up required · Single HTML up to 2MB"}
+                  ? "无需登录 · 单文件 HTML 最大 2MB · 3 秒生成安全沙箱链接"
+                  : "Zero setup · Single HTML up to 2MB · Ready in 3 seconds"}
               </p>
             </div>
 
