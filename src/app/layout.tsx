@@ -17,26 +17,17 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Pagepod - Host HTML Files Free | Upload HTML & Get Shareable Link",
+    default: "Pagepod - Host HTML Files Free | Upload HTML & Get Link",
     template: "%s | Pagepod",
   },
   description:
-    "Free zero-config HTML file hosting. Upload single HTML files or zip bundles to get a secure shareable link in 3 seconds, or explore interactive web tools, games, and prototypes in a hardened sandbox.",
+    "Free zero-config HTML hosting. Upload HTML files to get a secure shareable link in 3 seconds. Run and share web apps safely in a hardened sandbox.",
   keywords: [
     "host html file free",
-    "upload html file get link",
-    "host html file online free",
-    "share html file online",
-    "upload html and get link",
-    "publish html online free",
-    "free html host",
+    "upload html get link",
+    "share html online",
     "free html hosting",
-    "html file hosting",
-    "HTML runner",
-    "web app showcase",
     "HTML sandbox",
-    "run HTML online",
-    "interactive web tools",
     "Pagepod",
   ],
   authors: [{ name: "Pagepod Team" }],
@@ -66,15 +57,15 @@ export const metadata: Metadata = {
     alternateLocale: ["zh_CN"],
     url: siteUrl,
     siteName: "Pagepod",
-    title: "Pagepod - Host HTML Files Free | Upload HTML & Get Shareable Link",
+    title: "Pagepod - Host HTML Files Free | Upload HTML & Get Link",
     description:
-      "Free zero-config HTML file hosting. Upload single HTML files or zip bundles to get a secure shareable link in 3 seconds, secured in a hardened sandbox.",
+      "Free zero-config HTML hosting. Upload HTML files to get a secure shareable link in 3 seconds. Run and share web apps safely in a hardened sandbox.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pagepod - Host HTML Files Free | Upload HTML & Get Shareable Link",
+    title: "Pagepod - Host HTML Files Free | Upload HTML & Get Link",
     description:
-      "Free zero-config HTML file hosting. Upload single HTML files or zip bundles to get a secure shareable link in 3 seconds, secured in a hardened sandbox.",
+      "Free zero-config HTML hosting. Upload HTML files to get a secure shareable link in 3 seconds. Run and share web apps safely in a hardened sandbox.",
   },
   robots: {
     index: true,
@@ -97,7 +88,7 @@ const rootJsonLd = {
   applicationCategory: "DeveloperApplication",
   operatingSystem: "All",
   description:
-    "Free zero-config HTML file hosting and web app showcase. Upload single HTML files or zip bundles to get a shareable link in 3 seconds in a hardened sandbox.",
+    "Free zero-config HTML hosting. Upload HTML files to get a secure shareable link in 3 seconds. Run and share web apps safely in a hardened sandbox.",
   offers: {
     "@type": "Offer",
     price: "0",
