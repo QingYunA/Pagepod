@@ -70,7 +70,6 @@ async function verify() {
     const openapiCode = fs.readFileSync(openapiPath, "utf-8");
     assert(openapiCode.includes("getSiteUrl()"), "src/app/api/openapi.json/route.ts uses getSiteUrl()");
     assert(!openapiCode.includes("process.env.NEXT_PUBLIC_SITE_URL"), "src/app/api/openapi.json/route.ts avoids raw NEXT_PUBLIC_SITE_URL");
-
   } finally {
     if (originalEnv !== undefined) {
       process.env.NEXT_PUBLIC_SITE_URL = originalEnv;
