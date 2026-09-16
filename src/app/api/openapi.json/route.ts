@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-static";
 
 export async function GET() {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+  const siteUrl = getSiteUrl();
 
   const spec = {
     openapi: "3.1.0",
