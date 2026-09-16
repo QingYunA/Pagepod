@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Pixel Art Studio</title>
+  <!--
+    Open Source Provenance:
+    Author: Creative Coding Open Community
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fafafa;
+      color: #09090b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #e4e4e7;
+      background: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.02em; color: #09090b; }
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      gap: 1.5rem;
+    }
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      background: #ffffff;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid #e4e4e7;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1.5px solid #e4e4e7;
+      transition: transform 0.1s, border-color 0.1s;
+    }
+    .swatch.active { border-color: #09090b; transform: scale(1.1); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+    .canvas-container {
+      background: #ffffff;
+      padding: 1.25rem;
+      border-radius: 16px;
+      border: 1px solid #e4e4e7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      gap: 1px;
+      background: #e4e4e7;
+      border: 2px solid #d4d4d8;
+      border-radius: 4px;
+      overflow: hidden;
+      width: 320px;
+      height: 320px;
+    }
+    .cell {
+      background: #ffffff;
+      cursor: crosshair;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+    button {
+      flex: 1;
+      height: 36px;
+      border-radius: 6px;
+      border: 1px solid #e4e4e7;
+      background: #ffffff;
+      color: #09090b;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    button:hover { background: #f4f4f5; }
+    button.primary {
+      background: #18181b;
+      color: #fafafa;
+      font-weight: 500;
+      border: 1px solid #18181b;
+    }
+    button.primary:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Retro Pixel Art Studio (16x16)</h1>
+    <span style="font-size: 0.8rem; color: #71717a; font-family: ui-monospace, monospace;">Sprite Designer</span>
+  </header>
+
+  <main>
+    <div class="palette" id="palette"></div>
+
+    <div class="canvas-container">
+      <div class="grid" id="grid"></div>
+      <div class="actions">
+        <button onclick="clearGrid()">Clear</button>
+        <button class="primary" onclick="exportPng()">Export PNG</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const colors = [
+      "#000000", "#ffffff", "#ef4444", "#f97316",
+      "#eab308", "#22c55e", "#06b6d4", "#3b82f6",
+      "#8b5cf6", "#ec4899", "#71717a", "#e4e4e7"
+    ];
+    let currentColor = colors[0];
+    let isDrawing = false;
+
+    const paletteEl = document.getElementById("palette");
+    colors.forEach((c, idx) => {
+      const sw = document.createElement("div");
+      sw.className = "swatch" + (idx === 0 ? " active" : "");
+      sw.style.background = c;
+      sw.onclick = () => {
+        document.querySelectorAll(".swatch").forEach(s => s.classList.remove("active"));
+        sw.classList.add("active");
+        currentColor = c;
+      };
+      paletteEl.appendChild(sw);
+    });
+
+    const gridEl = document.getElementById("grid");
+    for (let i = 0; i < 256; i++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.onmousedown = () => { cell.style.background = currentColor; };
+      cell.onmouseenter = () => { if (isDrawing) cell.style.background = currentColor; };
+      gridEl.appendChild(cell);
+    }
+
+    window.onmousedown = () => { isDrawing = true; };
+    window.onmouseup = () => { isDrawing = false; };
+
+    function clearGrid() {
+      document.querySelectorAll(".cell").forEach(c => c.style.background = "#ffffff");
+    }
+
+    function exportPng() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 160;
+      canvas.height = 160;
+      const ctx = canvas.getContext("2d");
+      const cells = document.querySelectorAll(".cell");
+
+      cells.forEach((cell, idx) => {
+        const x = (idx % 16) * 10;
+        const y = Math.floor(idx / 16) * 10;
+        ctx.fillStyle = cell.style.background || "#ffffff";
+        ctx.fillRect(x, y, 10, 10);
+      });
+
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "pixel-art.png";
+      a.click();
+    }
+  </script>
+</body>
+</html>

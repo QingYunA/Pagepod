@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>全唐诗宋词·水墨诗笺与活字排版工坊 (chinese-poetry)</title>
+  <title>古诗词卡片生成器 - 在线制作精美诗词卡片 (chinese-poetry)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Based on open source chinese-poetry: https://github.com/chinese-poetry/chinese-poetry (MIT License) -->
   <style>
@@ -47,7 +47,7 @@
     }
     .badge {
       font-family: monospace;
-      font-size: 11px;
+      font-size: 12px;
       padding: 2px 8px;
       background: rgba(217, 119, 6, 0.15);
       border: 1px solid rgba(217, 119, 6, 0.3);
@@ -246,7 +246,7 @@
 <body>
   <header>
     <div class="brand-title">
-      水墨诗笺·活字工坊
+      古诗词卡片生成器
       <span class="badge">chinese-poetry</span>
     </div>
     <div class="upstream">
@@ -269,17 +269,17 @@
       </div>
 
       <div>
-        <label class="control-label">宣纸古笺底色</label>
+        <label class="control-label">宣纸底色</label>
         <div class="color-swatches">
-          <button class="swatch active" style="background: #fdfbf7; color: #1c1917;" onclick="setPaper('#fdfbf7', this)">澄心素宣</button>
-          <button class="swatch" style="background: #fef3c7; color: #78350f;" onclick="setPaper('#fef3c7', this)">冷金古竹</button>
-          <button class="swatch" style="background: #f1f5f9; color: #0f172a;" onclick="setPaper('#f1f5f9', this)">玉版素笺</button>
-          <button class="swatch" style="background: #ffe4e6; color: #881337;" onclick="setPaper('#ffe4e6', this)">桃花粉笺</button>
+          <button class="swatch active" style="background: #fdfbf7; color: #1c1917;" onclick="setPaper('#fdfbf7', this)">素白纸</button>
+          <button class="swatch" style="background: #fef3c7; color: #78350f;" onclick="setPaper('#fef3c7', this)">淡竹黄</button>
+          <button class="swatch" style="background: #f1f5f9; color: #0f172a;" onclick="setPaper('#f1f5f9', this)">素雅灰</button>
+          <button class="swatch" style="background: #ffe4e6; color: #881337;" onclick="setPaper('#ffe4e6', this)">淡粉笺</button>
         </div>
       </div>
 
       <div>
-        <label class="control-label">朱砂印章题款</label>
+        <label class="control-label">印章题款</label>
         <select id="sealSelect" onchange="updateSeal(this.value)">
           <option value="青云">青云 · 诗境</option>
           <option value="墨韵" selected>墨韵 · 雅集</option>
@@ -288,8 +288,8 @@
         </select>
       </div>
 
-      <button class="btn-action" onclick="randomPoem()">随机赋诗</button>
-      <button class="btn-primary" onclick="exportImage()">导出高清诗笺 (PNG)</button>
+      <button class="btn-action" onclick="randomPoem()">换一首诗词</button>
+      <button class="btn-primary" onclick="exportImage()">导出高清卡片 (PNG)</button>
     </div>
 
     <div class="preview-container">
@@ -313,8 +313,8 @@
         </div>
 
         <div class="card-footer">
-          <div>中华经典诗词数据库 · 开源活字排版工坊</div>
-          <div>Pagepod Art Collection</div>
+          <div>中国经典诗词 · 在线卡片制作</div>
+          <div>Pagepod</div>
         </div>
       </div>
     </div>

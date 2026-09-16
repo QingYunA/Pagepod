@@ -120,14 +120,14 @@ const OPENSOURCE_MANIFEST = [
   // 7. Chinese Typography & Copywriting (Chinese)
   {
     file: "examples/opensource/chinese-typesetting-pangu.html",
-    title: "盘古之白 - 中文排版与文案规范实验室 (pangu.js)",
+    title: "中英文排版自动加空格工具 - 盘古之白 (pangu.js)",
     slug: "chinese-typesetting-pangu",
     category: "tools",
     tags: ["tools", "chinese", "typesetting", "pangu", "markdown", "mit", "opensource"],
     author: "Vinta Chen",
     upstream: "https://github.com/vinta/pangu.js",
     license: "MIT",
-    description: "基于 Vinta Chen 经典开源项目 pangu.js 开发的中文文案排版实验室。遵循《中文文案排版指北》，自动矫正盘古空格与全半角标点，支持 Diff 标记与一键复制。(作者: Vinta Chen / 源码: https://github.com/vinta/pangu.js / 协议: MIT)",
+    description: "基于 Vinta Chen 经典开源项目 pangu.js 开发的中英文排版工具。遵循《中文文案排版指北》，自动在汉字与英文字母、数字之间添加空格（盘古之白），纠正全半角标点混用，支持对比标记与一键复制。(作者: Vinta Chen / 源码: https://github.com/vinta/pangu.js / 协议: MIT)",
   },
   // 8. Image Processing & Dithering (English)
   {
@@ -156,14 +156,14 @@ const OPENSOURCE_MANIFEST = [
   // 10. Classical Literature & Calligraphy (Chinese)
   {
     file: "examples/opensource/chinese-poetry-zen-card.html",
-    title: "全唐诗宋词·水墨诗笺与活字排版工坊",
+    title: "古诗词卡片生成器 - 在线制作精美诗词卡片",
     slug: "chinese-poetry-zen-card",
     category: "prototypes",
     tags: ["culture", "chinese", "poetry", "calligraphy", "canvas", "mit", "opensource"],
     author: "chinese-poetry Open Source Community",
     upstream: "https://github.com/chinese-poetry/chinese-poetry",
     license: "MIT",
-    description: "中华经典诗词水墨诗笺生成器，数据源自 GitHub 42k+ Star 开源仓库 chinese-poetry。支持竖排活字版式、朱红印章、多色宣纸底色切换与高分辨率 PNG 导出。(数据来源: https://github.com/chinese-poetry/chinese-poetry / 协议: MIT)",
+    description: "中国经典诗词卡片生成器，数据源自 GitHub 42k+ Star 开源仓库 chinese-poetry。支持竖排版式、印章落款、宣纸底色切换与高分辨率 PNG 导出。(数据来源: https://github.com/chinese-poetry/chinese-poetry / 协议: MIT)",
   },
 ];
 

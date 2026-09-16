@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中文文案排版美化器 - Chinese Copywriting Formatter</title>
+  <title>中文文案排版格式化工具 - Chinese Copywriting Formatter</title>
   <style>
     :root {
-      --bg: #09090b;
-      --card-bg: #121215;
-      --card-subtle: #18181b;
-      --border: #27272a;
-      --border-subtle: #3f3f46;
-      --text: #f4f4f5;
-      --text-muted: #a1a1aa;
-      --accent: #ffffff;
-      --accent-btn: #27272a;
-      --accent-hover: #3f3f46;
+      --bg: #fafafa;
+      --card-bg: #ffffff;
+      --card-subtle: #f4f4f5;
+      --border: #e4e4e7;
+      --border-subtle: #d4d4d8;
+      --text: #09090b;
+      --text-muted: #71717a;
+      --accent: #18181b;
+      --accent-btn: #18181b;
+      --accent-hover: #27272a;
       --success: #10b981;
-      --primary: #3b82f6;
+      --primary: #2563eb;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -35,7 +35,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(9, 9, 11, 0.8);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
@@ -50,8 +50,9 @@
       width: 28px;
       height: 28px;
       border-radius: 6px;
-      background: #27272a;
-      border: 1px solid #3f3f46;
+      background: #18181b;
+      border: 1px solid #27272a;
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -66,7 +67,7 @@
     .badge {
       display: inline-block;
       padding: 2px 8px;
-      font-size: 11px;
+      font-size: 12px;
       border-radius: 9999px;
       border: 1px solid var(--border);
       color: var(--text-muted);
@@ -136,12 +137,12 @@
       border-color: var(--border-subtle);
     }
     button.primary {
-      background: #f4f4f5;
-      color: #09090b;
-      border-color: #ffffff;
+      background: #18181b;
+      color: #ffffff;
+      border-color: #18181b;
     }
     button.primary:hover {
-      background: #e4e4e7;
+      background: #27272a;
     }
     .editor-container {
       display: grid;
@@ -236,13 +237,13 @@
     <div class="brand">
       <div class="brand-icon">文</div>
       <div>
-        <h1>中文文案排版美化器</h1>
+        <h1>中文文案排版格式化</h1>
       </div>
       <span class="badge">MIT Open Source</span>
-      <span class="badge">100% 离线自包含</span>
+      <span class="badge">100% 离线运行</span>
     </div>
     <div class="actions-group">
-      <button id="btnLoadSample">载入排版范例</button>
+      <button id="btnLoadSample">载入示例文本</button>
       <button id="btnClear">清空</button>
     </div>
   </header>
@@ -251,20 +252,20 @@
     <div class="toolbar">
       <div class="options-group">
         <label class="option-item">
-          <input type="checkbox" id="optPangu" checked> 中英文与数字盘古空格
+          <input type="checkbox" id="optPangu" checked> 中英文与数字间加空格
         </label>
         <label class="option-item">
-          <input type="checkbox" id="optPunctuation" checked> 全半角标点智能修正
+          <input type="checkbox" id="optPunctuation" checked> 全角半角标点智能纠正
         </label>
         <label class="option-item">
-          <input type="checkbox" id="optTrimLines" checked> 压缩连续多余空行
+          <input type="checkbox" id="optTrimLines" checked> 清理多余连续空行
         </label>
         <label class="option-item">
-          <input type="checkbox" id="optProperNouns" checked> 专有名词大小写纠错
+          <input type="checkbox" id="optProperNouns" checked> 专有名词大小写纠正
         </label>
       </div>
       <div class="actions-group">
-        <button id="btnFormat" class="primary">立即美化格式</button>
+        <button id="btnFormat" class="primary">立即排版</button>
         <button id="btnCopy">复制排版结果</button>
       </div>
     </div>

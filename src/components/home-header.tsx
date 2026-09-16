@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { BrandLogo } from "@/components/brand-logo";
@@ -15,6 +16,7 @@ import {
   CreditCard,
   LayoutDashboard,
   Menu,
+  Home as HomeIcon,
 } from "lucide-react";
 import type { CurrentUser } from "@/lib/auth";
 import { createSupabaseClient, isClientCloudMode } from "@/lib/supabase/client";
@@ -70,11 +72,48 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
   }, [currentUser]);
 
   const isCloud = isClientCloudMode();
+  const [currentHash, setCurrentHash] = React.useState("");
+
+  React.useEffect(() => {
+    const updateHash = () => setCurrentHash(window.location.hash);
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, []);
+
+  const scrollToGallery = (e: React.MouseEvent) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      const el = document.getElementById("gallery");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        window.history.pushState(null, "", "/#gallery");
+        setCurrentHash("#gallery");
+      }
+    }
+  };
 
   const navItems = [
-    { href: "/", label: t.nav.showcase, icon: Sparkles, exact: true },
+    { href: "/", label: t.nav.home, icon: HomeIcon, exact: true },
+    {
+      href: "/#gallery",
+      label: t.nav.showcase,
+      icon: Sparkles,
+      exact: false,
+      onClick: scrollToGallery,
+    },
     { href: "/explore", label: t.nav.explore, icon: Compass, exact: false },
-    ...(isCloud ? [{ href: "/pricing", label: t.nav.pricing, icon: CreditCard, exact: false }] : []),
+    ...(isCloud
+      ? [
+          {
+            href: "/pricing",
+            label: t.nav.pricing,
+            icon: CreditCard,
+            exact: false,
+            badge: t.nav.pricingDiscountBadge,
+          },
+        ]
+      : []),
     {
       href: "/workspace",
       label: user?.role === "admin" ? t.nav.console : t.nav.workspace,
@@ -82,6 +121,16 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
       exact: false,
     },
   ];
+
+  const isItemActive = (item: (typeof navItems)[number]) => {
+    if (item.href === "/#gallery") {
+      return pathname === "/" && currentHash === "#gallery";
+    }
+    if (item.href === "/") {
+      return pathname === "/" && currentHash !== "#gallery";
+    }
+    return pathname.startsWith(item.href);
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/95 backdrop-blur-xs px-3 sm:px-6 md:px-8 h-16 flex items-center">
@@ -91,6 +140,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
           <Link
             href="/"
             prefetch={true}
+            onClick={() => setCurrentHash("")}
             className="flex items-center gap-2.5 font-semibold tracking-tight text-base text-foreground group shrink-0"
           >
             <BrandLogo size={24} className="w-6 h-6 shrink-0" />
@@ -102,15 +152,20 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
           {/* Desktop Primary Navigation Links */}
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
+              const isActive = isItemActive(item);
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   prefetch={true}
+                  onClick={(e) => {
+                    if (item.onClick) {
+                      item.onClick(e);
+                    } else if (item.href === "/") {
+                      setCurrentHash("");
+                    }
+                  }}
                   className={`flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
                       ? "text-foreground bg-muted font-semibold"
@@ -119,6 +174,14 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                 >
                   <Icon className="w-4 h-4 opacity-70" />
                   <span>{item.label}</span>
+                  {item.badge && (
+                    <Badge
+                      variant="outline"
+                      className="px-1.5 py-0 h-4 text-xs font-mono font-medium border-border bg-muted/80 text-foreground"
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
                 </Link>
               );
             })}
@@ -221,16 +284,21 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
               >
                 <DropdownMenuGroup>
                   {navItems.map((item) => {
-                    const isActive = item.exact
-                      ? pathname === item.href
-                      : pathname.startsWith(item.href);
+                    const isActive = isItemActive(item);
                     const Icon = item.icon;
                     return (
                       <DropdownMenuItem
                         key={item.href}
                         asChild
                         className={isActive ? "bg-muted font-semibold" : ""}
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={(e) => {
+                          setMobileMenuOpen(false);
+                          if (item.onClick) {
+                            item.onClick(e);
+                          } else if (item.href === "/") {
+                            setCurrentHash("");
+                          }
+                        }}
                       >
                         <Link
                           href={item.href}
@@ -238,7 +306,15 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                           className="flex items-center gap-2.5 w-full cursor-pointer py-1.5"
                         >
                           <Icon className="w-4 h-4 opacity-70" />
-                          <span>{item.label}</span>
+                          <span className="flex-1">{item.label}</span>
+                          {item.badge && (
+                            <Badge
+                              variant="outline"
+                              className="px-1.5 py-0 h-4 text-xs font-mono font-medium border-border bg-muted/80 text-foreground"
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
                         </Link>
                       </DropdownMenuItem>
                     );

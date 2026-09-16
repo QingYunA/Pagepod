@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harmonic Pendulum Waves Simulation</title>
+  <!--
+    Open Source Provenance:
+    Author: Physics Creative Coding Lab
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #09090b;
+      color: #fafafa;
+      font-family: ui-monospace, monospace;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    canvas {
+      background: #09090b;
+      display: block;
+    }
+    .controls {
+      position: absolute;
+      bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      background: rgba(24, 24, 27, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid #27272a;
+      padding: 0.6rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+    }
+    button {
+      background: #27272a;
+      color: #fafafa;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      padding: 0.3rem 0.75rem;
+      cursor: pointer;
+    }
+    button:hover { background: #3f3f46; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="controls">
+    <span>Harmonic Pendulum Waves</span>
+    <button onclick="togglePlay()">Pause / Play</button>
+    <button onclick="resetTime()">Reset Cycle</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let w, h;
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    const N = 20;
+    const baseFreq = 50;
+    let t = 0;
+    let isRunning = true;
+
+    function draw() {
+      ctx.fillStyle = "rgba(9, 9, 11, 0.15)";
+      ctx.fillRect(0, 0, w, h);
+
+      const originX = w / 2;
+      const originY = 80;
+      const maxL = h - 220;
+
+      for (let i = 0; i < N; i++) {
+        const freq = (baseFreq + i) / 60;
+        const theta = Math.sin(t * freq) * 0.45;
+
+        const L = maxL * (0.5 + (0.5 * i) / N);
+        const bobX = originX + Math.sin(theta) * L;
+        const bobY = originY + Math.cos(theta) * L;
+
+        // String
+        ctx.strokeStyle = "rgba(113, 113, 122, 0.25)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(originX, originY);
+        ctx.lineTo(bobX, bobY);
+        ctx.stroke();
+
+        // Bob
+        const hue = (i / N) * 260 + 160;
+        ctx.fillStyle = `hsl(${hue}, 80%, 60%)`;
+        ctx.beginPath();
+        ctx.arc(bobX, bobY, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (isRunning) t += 0.015;
+      requestAnimationFrame(draw);
+    }
+
+    function togglePlay() { isRunning = !isRunning; }
+    function resetTime() { t = 0; }
+
+    draw();
+  </script>
+</body>
+</html>
