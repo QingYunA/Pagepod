@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { getProjectBySlug, updateProject } from "@/db";
 import { getStorage } from "@/lib/storage";
 import { getJwtSecret } from "@/lib/secret-policy";
+import { getSiteUrl } from "@/lib/site-url";
 
 const execFileAsync = promisify(execFile);
 
@@ -255,7 +256,7 @@ export async function captureProjectScreenshotWithBuffer(
     ? file.data.toString("utf-8")
     : String(file.data);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+  const siteUrl = getSiteUrl();
   let publicUrl: string | undefined;
   if (project.visibility === "public") {
     const snapshotToken = generateSnapshotToken(project.slug);

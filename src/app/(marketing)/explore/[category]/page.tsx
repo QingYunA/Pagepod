@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAllProjects } from "@/db";
+import { getSiteUrl } from "@/lib/site-url";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Wrench, Gamepad2, BarChart2, Layers, Bot, Sparkles, Boxes } from "lucide-react";
 
@@ -96,7 +97,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+  const siteUrl = getSiteUrl();
   const title = `${catInfo.nameEn} - Online AI Sandbox`;
 
   return {

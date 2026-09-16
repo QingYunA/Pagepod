@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { createAppealMailtoUrl } from "@/lib/moderation/types";
 import { verifyProjectAccessToken } from "@/lib/services/guest-upload";
 import { TokenGateInput } from "@/components/token-gate-input";
+import { getSiteUrl } from "@/lib/site-url";
 import { getProjectSeoProfile } from "@/data/projects-seo/manifest";
 import { ProjectSeoSection } from "@/components/project-seo-section";
 import RunnerClient from "./runner-client";
@@ -246,7 +247,7 @@ export default async function ProjectRunnerPage({ params, searchParams }: PagePr
     }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+  const siteUrl = getSiteUrl();
   const profile = getProjectSeoProfile(slug, project);
   const isPublicAndApproved =
     project.visibility === "public" && project.reviewStatus === "approved";
