@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
 import { getAllProjects } from "@/db";
+import { getSiteUrl } from "@/lib/site-url";
 
 // Revalidate sitemap every 60s so newly published projects are immediately crawlable
 export const revalidate = 60;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+  const baseUrl = getSiteUrl();
 
   // Stable timestamp for static pillar routes: avoid advertising "changed now" on every crawl.
   const siteUpdatedAt = new Date();

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { getSiteUrl } from "@/lib/site-url";
 import AboutClient from "./about-client";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "About Pagepod - Mission & Architecture",

@@ -5,8 +5,9 @@ import { LanguageProvider } from "@/lib/i18n/context";
 import { TopLoader } from "@/components/top-loader";
 import { GuestClaimReconciler } from "@/components/guest-claim-reconciler";
 import { Analytics } from "@vercel/analytics/next";
+import { getSiteUrl } from "@/lib/site-url";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+const siteUrl = getSiteUrl();
 
 export const viewport: Viewport = {
   width: "device-width",

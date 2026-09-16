@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { createAppealMailtoUrl } from "@/lib/moderation/types";
 import { verifyProjectAccessToken } from "@/lib/services/guest-upload";
 import { TokenGateInput } from "@/components/token-gate-input";
+import { getSiteUrl } from "@/lib/site-url";
 import RunnerClient from "./runner-client";
 
 interface PageProps {
@@ -224,7 +225,7 @@ export default async function ProjectRunnerPage({ params, searchParams }: PagePr
     }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+  const siteUrl = getSiteUrl();
   const jsonLd =
     project.visibility === "public"
       ? {
