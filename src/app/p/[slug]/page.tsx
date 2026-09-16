@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const profile = getProjectSeoProfile(slug, project);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+  const siteUrl = getSiteUrl();
   const canonicalUrl = `${siteUrl}/p/${slug}`;
   const fullMetaTitle = `${profile.headline} | Pagepod`;
   const metaDesc = profile.summary.slice(0, 160);

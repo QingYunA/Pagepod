@@ -59,6 +59,18 @@ async function verify() {
     const layoutCode = fs.readFileSync(layoutPath, "utf-8");
     assert(layoutCode.includes("getSiteUrl"), "layout.tsx imports and uses getSiteUrl");
 
+    // Test 8: Verify p/[slug]/page.tsx uses getSiteUrl for canonical
+    const pSlugPath = path.resolve(__dirname, "../src/app/p/[slug]/page.tsx");
+    const pSlugCode = fs.readFileSync(pSlugPath, "utf-8");
+    assert(pSlugCode.includes("getSiteUrl()"), "src/app/p/[slug]/page.tsx uses getSiteUrl()");
+    assert(!pSlugCode.includes("process.env.NEXT_PUBLIC_SITE_URL"), "src/app/p/[slug]/page.tsx avoids raw NEXT_PUBLIC_SITE_URL");
+
+    // Test 9: Verify openapi.json/route.ts uses getSiteUrl
+    const openapiPath = path.resolve(__dirname, "../src/app/api/openapi.json/route.ts");
+    const openapiCode = fs.readFileSync(openapiPath, "utf-8");
+    assert(openapiCode.includes("getSiteUrl()"), "src/app/api/openapi.json/route.ts uses getSiteUrl()");
+    assert(!openapiCode.includes("process.env.NEXT_PUBLIC_SITE_URL"), "src/app/api/openapi.json/route.ts avoids raw NEXT_PUBLIC_SITE_URL");
+
   } finally {
     if (originalEnv !== undefined) {
       process.env.NEXT_PUBLIC_SITE_URL = originalEnv;
