@@ -35,7 +35,7 @@ interface UserDropdownProps {
 }
 
 export function UserDropdown({ currentUser }: UserDropdownProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -256,7 +256,7 @@ export function UserDropdown({ currentUser }: UserDropdownProps) {
           <DropdownMenuItem asChild>
             <Link href="/api/docs" target="_blank" className="cursor-pointer gap-2">
               <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
-              <span>OpenAPI 文档</span>
+              <span>{locale === "zh" ? "OpenAPI 文档" : "OpenAPI Docs"}</span>
               <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
             </Link>
           </DropdownMenuItem>

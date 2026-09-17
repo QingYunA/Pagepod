@@ -54,7 +54,7 @@ const CATEGORY_ICONS = {
 const PAGE_SIZE = 24;
 
 export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLanguage, setSelectedLanguage] = useState<"all" | "zh" | "en" | "other">("all");
@@ -67,9 +67,9 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
   const categories = [
     { id: "all", label: t.categories.all, icon: CATEGORY_ICONS.all },
     { id: "tools", label: t.categories.tools, icon: CATEGORY_ICONS.tools },
-    { id: "ai", label: t.categories.ai || "AI 应用", icon: CATEGORY_ICONS.ai },
+    { id: "ai", label: t.categories.ai, icon: CATEGORY_ICONS.ai },
     { id: "games", label: t.categories.games, icon: CATEGORY_ICONS.games },
-    { id: "creative", label: t.categories.creative || "创意与 3D", icon: CATEGORY_ICONS.creative },
+    { id: "creative", label: t.categories.creative, icon: CATEGORY_ICONS.creative },
     { id: "visualization", label: t.categories.visualization, icon: CATEGORY_ICONS.visualization },
     { id: "prototypes", label: t.categories.prototypes, icon: CATEGORY_ICONS.prototypes },
     { id: "animations", label: t.categories.animations, icon: CATEGORY_ICONS.animations },
@@ -208,7 +208,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                   setSearch("");
                   setVisibleCount(PAGE_SIZE);
                 }}
-                aria-label="清除搜索"
+                aria-label={locale === "zh" ? "清除搜索" : "Clear search"}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-3.5 h-3.5" />
@@ -229,7 +229,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t.gallery.languageAll || "全部语言"}
+              {t.gallery.languageAll}
             </button>
             <button
               onClick={() => {
@@ -242,7 +242,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t.gallery.languageZh || "中文"}
+              {t.gallery.languageZh}
             </button>
             <button
               onClick={() => {
@@ -255,7 +255,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t.gallery.languageEn || "English"}
+              {t.gallery.languageEn}
             </button>
             <button
               onClick={() => {
@@ -268,7 +268,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t.gallery.languageOther || "Other"}
+              {t.gallery.languageOther}
             </button>
           </div>
         </div>
@@ -283,12 +283,12 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                 setVisibleCount(PAGE_SIZE);
               }}
               className="w-auto h-9 text-xs sm:text-sm bg-muted/20 border-border py-1 px-3"
-              aria-label={t.gallery.sortBy || "排序方式"}
+              aria-label={t.gallery.sortBy}
             >
-              <option value="trending">{t.gallery.sortTrending || "热度推荐"}</option>
-              <option value="newest">{t.gallery.sortNewest || "最新发布"}</option>
-              <option value="views">{t.gallery.sortViews || "最多浏览"}</option>
-              <option value="alpha">{t.gallery.sortAlpha || "名称 A-Z"}</option>
+              <option value="trending">{t.gallery.sortTrending}</option>
+              <option value="newest">{t.gallery.sortNewest}</option>
+              <option value="views">{t.gallery.sortViews}</option>
+              <option value="alpha">{t.gallery.sortAlpha}</option>
             </Select>
           </div>
 
@@ -330,7 +330,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                   setSelectedTag(null);
                   setVisibleCount(PAGE_SIZE);
                 }}
-                aria-label="移除标签筛选"
+                aria-label={locale === "zh" ? "移除标签筛选" : "Remove tag filter"}
                 className="hover:text-foreground ml-1 cursor-pointer"
               >
                 ×
@@ -461,7 +461,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
                         variant="subtle"
                         role="button"
                         tabIndex={0}
-                        aria-label={`按标签 #${tag} 筛选`}
+                        aria-label={locale === "zh" ? `按标签 #${tag} 筛选` : `Filter by tag #${tag}`}
                         className="text-xs px-2 py-0.5 cursor-pointer hover:bg-muted"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -591,7 +591,7 @@ export default function ShowcaseGallery({ initialProjects }: ShowcaseGalleryProp
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
             className="h-10 px-6 text-sm font-mono border-border/80 hover:bg-muted/50 transition-all cursor-pointer shadow-xs"
           >
-            <span>加载更多项目 · Load More</span>
+            <span>{t.gallery.loadMore || (locale === "zh" ? "加载更多项目" : "Load More")}</span>
             <span className="text-xs text-muted-foreground ml-2 font-sans">
               ({displayedProjects.length} / {filteredProjects.length})
             </span>

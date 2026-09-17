@@ -29,7 +29,7 @@ export function PublicRiskDialog({
   onConfirmPublic,
   onSwitchToPrivate,
 }: PublicRiskDialogProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [agreed, setAgreed] = useState(false);
   const hasSevereRisk = matches.length > 0;
 
@@ -48,10 +48,10 @@ export function PublicRiskDialog({
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <DialogTitle className="text-base font-semibold text-foreground">
+              <DialogTitle className="text-base font-semibold">
                 {t.riskDialog.title}
               </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
+              <DialogDescription className="text-xs text-muted-foreground">
                 {hasSevereRisk ? t.riskDialog.warningSubtitle : t.riskDialog.normalSubtitle}
               </DialogDescription>
             </div>
@@ -67,7 +67,7 @@ export function PublicRiskDialog({
                 <span>{t.riskDialog.detectedTitle}</span>
               </span>
               <Badge variant="destructive" className="text-xs px-2 py-0.5">
-                {matches.length} 项潜在凭据
+                {locale === "zh" ? `${matches.length} 项潜在凭据` : `${matches.length} potential secrets`}
               </Badge>
             </div>
 
@@ -86,7 +86,7 @@ export function PublicRiskDialog({
                   <div className="text-muted-foreground">{m.description}</div>
                   {m.sample && (
                     <code className="text-amber-700 dark:text-amber-300 font-mono text-xs bg-muted/60 px-1 py-0.5 rounded mt-0.5">
-                      命中片段: {m.sample}
+                      {locale === "zh" ? `命中片段: ${m.sample}` : `Matched: ${m.sample}`}
                     </code>
                   )}
                 </div>

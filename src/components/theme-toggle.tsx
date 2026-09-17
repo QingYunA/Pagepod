@@ -4,9 +4,11 @@ import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/context";
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const { locale } = useLanguage();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -23,6 +25,9 @@ export function ThemeToggle() {
 
   // Use resolvedTheme so the icon reflects the actual applied theme (handles "system")
   const isDark = resolvedTheme === "dark";
+  const titleText = isDark
+    ? (locale === "zh" ? "切换为浅色模式" : "Switch to light mode")
+    : (locale === "zh" ? "切换为深色模式" : "Switch to dark mode");
 
   return (
     <Button
@@ -30,8 +35,8 @@ export function ThemeToggle() {
       size="icon"
       className="relative h-9 w-9 text-muted-foreground hover:text-foreground shrink-0 overflow-hidden"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      title={isDark ? "切换为浅色模式" : "切换为深色模式"}
-      aria-label={isDark ? "切换到浅色模式" : "切换到深色模式"}
+      title={titleText}
+      aria-label={titleText}
     >
       <Sun
         className={`h-4 w-4 absolute transition-all duration-200 ease-out ${
