@@ -147,12 +147,12 @@ export default function RunnerClient({
             {isPrivate ? (
               <Badge variant="secondary" className="text-xs px-2 py-0.5 gap-1 text-amber-600 dark:text-amber-400 border-amber-500/30">
                 <Lock className="w-3 h-3" />
-                <span>私有项目</span>
+                <span>{t.runner.privateBadge}</span>
               </Badge>
             ) : project.visibility === "unlisted" ? (
               <Badge variant="secondary" className="text-xs px-2 py-0.5 gap-1 text-zinc-300 border-zinc-700 bg-zinc-800/80">
                 <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                <span>口令保护</span>
+                <span>{t.runner.unlistedBadge}</span>
               </Badge>
             ) : (
               <Badge variant="outline" className="hidden sm:inline-flex text-xs px-2 py-0.5">
@@ -292,10 +292,10 @@ export default function RunnerClient({
                 <span className="text-foreground font-medium">
                   {isPrivate
                     ? isOwner
-                      ? "私有 (所有者可访问)"
-                      : "私有保护"
+                      ? t.runner.statusPrivateOwner
+                      : t.runner.statusPrivate
                     : project.visibility === "unlisted"
-                    ? "未公开 (口令保护)"
+                    ? t.runner.statusUnlisted
                     : t.runner.plainOutput}
                 </span>
               </div>
@@ -382,7 +382,7 @@ export default function RunnerClient({
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card/90 shadow-xs">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
                 <span className="text-xs font-mono text-muted-foreground">
-                  {t.runner.initializingSandbox || "正在初始化安全沙箱..."}
+                  {t.runner.initializingSandbox}
                 </span>
               </div>
             </div>
@@ -440,7 +440,7 @@ export default function RunnerClient({
 
           <div className="flex-1 p-4 overflow-auto bg-neutral-950 font-mono text-xs text-neutral-300">
             <pre className="leading-relaxed whitespace-pre-wrap selection:bg-neutral-700">
-              {initialSourceCode || "暂无源代码"}
+              {initialSourceCode || t.runner.noSourceCode}
             </pre>
           </div>
         </DialogContent>
@@ -464,7 +464,7 @@ export default function RunnerClient({
               <code>{embedSnippet}</code>
             </div>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">包含安全沙箱隔离参数，可安全嵌入任意站点</span>
+              <span className="text-muted-foreground">{t.runner.embedSandboxNotice}</span>
               <Button
                 size="sm"
                 className="gap-1.5"

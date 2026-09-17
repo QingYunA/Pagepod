@@ -37,7 +37,7 @@ interface HomeHeaderProps {
 }
 
 export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [user, setUser] = React.useState<CurrentUser | null>(currentUser ?? null);
@@ -271,7 +271,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
                   variant="ghost"
                   size="icon"
                   className="h-9 w-9 text-muted-foreground hover:text-foreground"
-                  aria-label="打开导航菜单"
+                  aria-label={locale === "zh" ? "打开导航菜单" : "Open navigation menu"}
                 >
                   <Menu className="w-4 h-4" />
                 </Button>

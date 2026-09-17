@@ -72,7 +72,7 @@ export default function HoverSandboxPreview({
   variant = "card",
   icon: CustomIcon,
 }: HoverSandboxPreviewProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const isPoolActive = useIsSandboxActive(slug);
   const [isCharging, setIsCharging] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -98,8 +98,8 @@ export default function HoverSandboxPreview({
   const isLargeFile = fileSize > 2 * 1024 * 1024;
   const formattedFileSize = formatSize(fileSize);
 
-  const defaultOpenText = openRunnerText || t.gallery.openDirect || "打开";
-  const previewText = t.gallery.preview || "预览";
+  const defaultOpenText = openRunnerText || t.gallery.openDirect;
+  const previewText = t.gallery.preview;
 
   useEffect(() => {
     setMounted(true);
@@ -362,7 +362,8 @@ export default function HoverSandboxPreview({
             {/* Close Button */}
             <button
               onClick={handleManualClose}
-              title="关闭预览"
+              title={t.gallery.closePreview}
+              aria-label={t.gallery.closePreview}
               className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/80 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700 transition-colors z-30"
             >
               <X className="w-3.5 h-3.5" />
@@ -618,7 +619,7 @@ export default function HoverSandboxPreview({
                   }}
                   className="h-8 px-3 text-xs bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-700"
                 >
-                  <span>继续预览</span>
+                  <span>{t.gallery.continuePreview}</span>
                 </Button>
                 <Button
                   size="sm"
@@ -634,7 +635,8 @@ export default function HoverSandboxPreview({
               <button
                 onClick={() => setShowLargeFileConfirm(false)}
                 className="absolute top-2.5 right-2.5 text-neutral-500 hover:text-neutral-300 p-1 cursor-pointer"
-                title="关闭提示"
+                title={t.gallery.dismissNotice}
+                aria-label={t.gallery.dismissNotice}
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -651,7 +653,8 @@ export default function HoverSandboxPreview({
                 onMouseEnter={handlePreviewHoverStart}
                 onMouseLeave={handlePreviewHoverEnd}
                 className="relative flex items-center gap-2 pl-3 pr-3.5 py-1.5 rounded-full text-xs font-medium text-neutral-200 hover:text-white hover:bg-neutral-800/80 transition-all cursor-pointer overflow-hidden select-none"
-                title="点击立即运行沙箱，或悬停蓄力预览"
+                title={t.gallery.previewActionTip}
+                aria-label={t.gallery.previewActionTip}
               >
                 {/* Mini SVG Progress Ring for Hover Charge */}
                 <div className="relative w-4.5 h-4.5 flex items-center justify-center shrink-0">
@@ -689,7 +692,7 @@ export default function HoverSandboxPreview({
                   <Play className="w-3.5 h-3.5 fill-current ml-0.5 absolute text-neutral-300" />
                 </div>
                 <span className="font-mono text-xs tracking-tight">
-                  {isCharging ? "载入中..." : previewText}
+                  {isCharging ? (locale === "zh" ? "载入中..." : "Loading...") : previewText}
                 </span>
               </button>
 
@@ -701,7 +704,7 @@ export default function HoverSandboxPreview({
                 href={`/p/${slug}`}
                 target="_blank"
                 className="flex items-center gap-1.5 pl-3 pr-3.5 py-1.5 rounded-full text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-all cursor-pointer select-none"
-                title={`在新标签页打开 ${title}`}
+                title={locale === "zh" ? `在新标签页打开 ${title}` : `Open ${title} in new tab`}
               >
                 <span className="font-mono text-xs tracking-tight">{defaultOpenText}</span>
                 <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
