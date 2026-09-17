@@ -74,7 +74,9 @@
 - ❌ **严禁同义词三重堆砌与标签罗列**：卡片或模块内严禁在标题、副标题、操作按钮与底部微注中反复变换同义词复述相同属性（如同时出现 `Sandboxed`、`Hardened CSP` 与 `Sandbox Runner`，或重复强调 `Token Protected`、`NoIndex` 与 `Instant Link`）；优先采用极简事实约束（如“无需登录 · 单文件 HTML 最大 2MB”），删除一切无增量信息的口号式底部微字；
 - ✅ **倡导中性、克制的技术质感词汇**：统一使用“功能”、“权益”、“配额”、“Features”、“Perks”；
 - ❌ **严禁会员付费元素彩虹化**：会员状态标签、价格方案与横幅禁止使用金色渐变（如 `from-amber-500/10`）或厚重阴影（`shadow-2xl`），统一遵守 Zinc 单色黑白灰调、1px 细线边框与 shadcn `<Badge variant="outline">` 原语；
-- ✅ **双语国际化零死角**：全链路必须响应式切换；严禁在英文模式下漏译或硬编码中文回退值（如默认未命名账号必须动态适配为 `"Admin"`，严禁硬编码 `"管理员"`）。
+- ✅ **双语国际化零死角与机械化门禁 (Bilingual i18n Guard)**：
+  - 全链路必须响应式切换；严禁在英文模式下漏译或硬编码中文回退值（如默认未命名账号必须动态适配为 `"Admin"`，严禁硬编码 `"管理员"`）；
+  - 沙箱核心运行台与展示型卡片中的裸中文 JSX 标签文本、`title="..."` / `aria-label="..."` 硬编码及 `|| "中文"` 回退由 `scripts/check-standards.ts` 静态门禁机械硬拦截。
 
 ---
 
@@ -111,7 +113,7 @@
   - 监听流水线状态优先执行 `npm run deploy:wait`（基于 `scripts/wait-deploy.sh` 秒级轮询），告别高开销交互式重复轮询；
   - 部署验证首选轻量探针 `npm run probe:prod` 秒级断言；仅在复杂视觉排版或人机交互审核时按需调用浏览器。
 - **静态工程门禁前置校验与合并回检**：
-  - 静态门禁 `scripts/check-standards.ts` 机械化硬拦截冲突标记、亚 12px 微缩字号（`text-[10px]` 等）、原生 `<a>` 标签及反模式文案，并已内置于 `npm test` 首位；
+  - 静态门禁 `scripts/check-standards.ts` 机械化硬拦截冲突标记、亚 12px 微缩字号（`text-[10px]` 等）、原生 `<a>` 标签、反模式文案及 UI 组件中未受控的硬编码中文与回退（Bilingual i18n Guard），并已内置于 `npm test` 首位；
   - **跨分支合并后设计一致性回检 (Post-Merge Design Parity Invariant)**：执行 `git merge origin/main` 后，必须对所有受影响或新增 UI 组件运行 `npm run check:standards`。
 
 ---
