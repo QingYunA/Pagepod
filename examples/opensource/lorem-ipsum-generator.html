@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lorem Ipsum Dummy Text Generator</title>
+  <!--
+    Open Source Provenance:
+    Author: Developer Tools Open Initiative
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fafafa;
+      color: #18181b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #e4e4e7;
+      background: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 { font-size: 1.1rem; font-weight: 600; color: #09090b; }
+    .controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #71717a;
+    }
+    input[type="number"] {
+      width: 60px;
+      height: 32px;
+      background: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      color: #18181b;
+      text-align: center;
+      font-family: ui-monospace, monospace;
+    }
+    button {
+      background: #18181b;
+      color: #ffffff;
+      border: 1px solid #18181b;
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+    main {
+      flex: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 2rem 1.5rem;
+    }
+    .text-container {
+      background: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 16px;
+      padding: 2rem;
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #27272a;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    }
+    .text-container p { margin-bottom: 1.25rem; }
+    .text-container p:last-child { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Lorem Ipsum Generator</h1>
+    <div class="controls">
+      <div class="control-item">
+        <span>Paragraphs:</span>
+        <input type="number" id="count" min="1" max="10" value="3" onchange="generate()">
+      </div>
+      <button onclick="copyText()">Copy Text</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="text-container" id="output"></div>
+  </main>
+
+  <script>
+    const sentences = [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+      "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "Curabitur pretium tincidunt lacus. Nulla gravida orci a odio.",
+      "Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris.",
+      "Integer in mauris eu nibh euismod gravida. Duis ac tellus et risus vulputate vehicula."
+    ];
+
+    function generate() {
+      const count = parseInt(document.getElementById('count').value, 10) || 3;
+      const out = document.getElementById('output');
+      out.innerHTML = '';
+
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('p');
+        let text = [];
+        const numSentences = Math.floor(Math.random() * 3) + 4;
+        for (let j = 0; j < numSentences; j++) {
+          text.push(sentences[Math.floor(Math.random() * sentences.length)]);
+        }
+        p.textContent = text.join(' ');
+        out.appendChild(p);
+      }
+    }
+
+    function copyText() {
+      const text = document.getElementById('output').innerText;
+      navigator.clipboard.writeText(text);
+      alert('Copied to clipboard!');
+    }
+
+    generate();
+  </script>
+</body>
+</html>

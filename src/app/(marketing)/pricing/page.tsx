@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import PricingClient from "./pricing-client";
 import { isSelfHosted } from "@/lib/supabase/server";
+import { getSiteUrl } from "@/lib/site-url";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "Pricing & Lifetime Deals - Free HTML Hosting & Pro Cloud",

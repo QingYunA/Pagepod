@@ -61,6 +61,10 @@ export default function PricingClient() {
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12 md:py-16">
       {/* Header Hero Section */}
       <div className="text-center max-w-2xl mx-auto mb-6 space-y-3">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border bg-card text-xs font-mono text-muted-foreground shadow-xs">
+          <Sparkles className="w-3.5 h-3.5 text-foreground" />
+          <span className="font-medium text-foreground">{t.pricing.earlyBirdBadge}</span>
+        </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
           {t.pricing.title}
         </h1>
@@ -169,13 +173,24 @@ export default function PricingClient() {
             <p className="text-sm text-muted-foreground mt-1 min-h-[32px] leading-relaxed">
               {t.pricing.litePlan.desc}
             </p>
-            <div className="mt-4 flex items-baseline gap-1">
-              <span className="text-3xl font-bold font-mono tracking-tight text-foreground">
-                {t.pricing.litePlan.price}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {t.pricing.litePlan.period}
-              </span>
+            <div className="mt-4 space-y-1">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-3xl font-bold font-mono tracking-tight text-foreground">
+                  {t.pricing.litePlan.price}
+                </span>
+                <span className="text-sm font-mono text-muted-foreground line-through">
+                  {t.pricing.litePlan.originalPrice}
+                </span>
+                <Badge variant="outline" className="text-xs font-mono px-1.5 py-0 h-5 border-border bg-muted/60 text-foreground">
+                  {t.pricing.discountBadge}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {t.pricing.litePlan.period}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground/80">
+                {t.pricing.earlyBirdNotice}
+              </p>
             </div>
           </div>
 
@@ -237,13 +252,24 @@ export default function PricingClient() {
             <p className="text-sm text-muted-foreground mt-1 min-h-[32px] leading-relaxed">
               {t.pricing.proPlan.desc}
             </p>
-            <div className="mt-4 flex items-baseline gap-1">
-              <span className="text-3xl font-bold font-mono tracking-tight text-foreground">
-                {t.pricing.proPlan.price}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {t.pricing.proPlan.period}
-              </span>
+            <div className="mt-4 space-y-1">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-3xl font-bold font-mono tracking-tight text-foreground">
+                  {t.pricing.proPlan.price}
+                </span>
+                <span className="text-sm font-mono text-muted-foreground line-through">
+                  {t.pricing.proPlan.originalPrice}
+                </span>
+                <Badge variant="outline" className="text-xs font-mono px-1.5 py-0 h-5 border-border bg-muted/60 text-foreground">
+                  {t.pricing.discountBadge}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {t.pricing.proPlan.period}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground/80">
+                {t.pricing.earlyBirdNotice}
+              </p>
             </div>
           </div>
 

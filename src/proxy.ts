@@ -3,8 +3,11 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { updateSession } from "@/lib/supabase/middleware";
 import { getJwtSecret } from "@/lib/secret-policy";
+import { LOCALE_COOKIE_NAME, LOCALE_HEADER_NAME, LOCALE_COOKIE_MAX_AGE } from "@/lib/i18n/constants";
+import { parseAcceptLanguage } from "@/lib/i18n/parser";
 
 const COOKIE_NAME = "html_manager_session";
+const STATIC_EXTENSIONS = /\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js|map)$/i;
 
 const RESERVED_SUBDOMAINS = new Set([
   "www",
@@ -77,8 +80,48 @@ function redirectToLogin(request: NextRequest, pathname: string) {
   return NextResponse.redirect(loginUrl);
 }
 
+function resolveRequestLocale(request: NextRequest): "zh" | "en" {
+  const cookieLocale = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
+  if (cookieLocale === "zh" || cookieLocale === "en") {
+    return cookieLocale;
+  }
+  return parseAcceptLanguage(request.headers.get("accept-language"));
+}
+
+function applyLocaleToResponse(
+  response: NextResponse,
+  resolvedLocale: "zh" | "en"
+): NextResponse {
+  response.headers.set(LOCALE_HEADER_NAME, resolvedLocale);
+  return response;
+}
+
+function isSelfHostedMode(): boolean {
+  const mode = (process.env.APP_MODE || process.env.NEXT_PUBLIC_APP_MODE || "").toLowerCase();
+  const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return !(mode === "cloud" && hasSupabase);
+}
+
+async function isValidAdminSessionToken(token: string | undefined): Promise<boolean> {
+  if (!token) return false;
+  const secret = getJwtSecret();
+  if (!secret) return false;
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    return payload.role === "admin";
+  } catch {
+    return false;
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // Fast path: bypass middleware processing for static asset requests
+  if (STATIC_EXTENSIONS.test(pathname)) {
+    return NextResponse.next();
+  }
+
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
   const subdomain = extractSubdomain(host);
 
@@ -137,6 +180,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(targetUrl, 308);
   }
 
+  // 3.5. Seamless jump to workspace for logged-in admin in self-hosted mode
+  if (isSelfHostedMode() && (pathname === "/" || pathname === "")) {
+    const adminToken = request.cookies.get(COOKIE_NAME)?.value;
+    if (adminToken && (await isValidAdminSessionToken(adminToken))) {
+      const workspaceUrl = new URL("/workspace", request.url);
+      workspaceUrl.search = request.nextUrl.search;
+      return NextResponse.redirect(workspaceUrl);
+    }
+  }
+
   // 4. Protect /workspace routes
   // Public pages (/explore, /pricing, /, /login) bypass middleware network checks completely!
   if (pathname.startsWith("/workspace")) {
@@ -162,16 +215,8 @@ export async function proxy(request: NextRequest) {
     // If not authenticated via Supabase, check Self-hosted Mode: JWT token
     if (!isValid && hasAdminCookie) {
       const token = request.cookies.get(COOKIE_NAME)?.value;
-      const secret = getJwtSecret();
-      if (token && secret) {
-        try {
-          const { payload } = await jwtVerify(token, secret);
-          if (payload.role === "admin") {
-            isValid = true;
-          }
-        } catch {
-          isValid = false;
-        }
+      if (await isValidAdminSessionToken(token)) {
+        isValid = true;
       }
     }
 
@@ -179,10 +224,21 @@ export async function proxy(request: NextRequest) {
       return redirectToLogin(request, pathname);
     }
 
-    return finalResponse;
+    const resolvedLocale = resolveRequestLocale(request);
+    return applyLocaleToResponse(finalResponse, resolvedLocale);
   }
 
-  return NextResponse.next();
+  const resolvedLocale = resolveRequestLocale(request);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(LOCALE_HEADER_NAME, resolvedLocale);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  return applyLocaleToResponse(response, resolvedLocale);
 }
 
 export const config = {

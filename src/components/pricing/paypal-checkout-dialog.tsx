@@ -59,7 +59,8 @@ const PLAN_DETAILS = {
   lite: {
     nameEn: "Lite Lifetime Plan",
     nameZh: "Lite 终身版",
-    price: "$4.90",
+    price: "$3.90",
+    originalPrice: "$4.90",
     currency: "USD",
     badgeEn: "10 GB Storage",
     badgeZh: "10 GB 存储",
@@ -82,7 +83,8 @@ const PLAN_DETAILS = {
   pro: {
     nameEn: "Pro Lifetime Plan",
     nameZh: "Pro 终身版",
-    price: "$9.90",
+    price: "$7.90",
+    originalPrice: "$9.90",
     currency: "USD",
     badgeEn: "Most Popular",
     badgeZh: "最受欢迎",
@@ -111,7 +113,7 @@ export default function PayPalCheckoutDialog({
   user,
   onSuccess,
 }: PayPalCheckoutDialogProps) {
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const isZh = locale === "zh";
 
   const [isLoadingScript, setIsLoadingScript] = useState(true);
@@ -355,17 +357,27 @@ export default function PayPalCheckoutDialog({
             {/* Price Summary Card */}
             <div className="p-3.5 rounded-lg border border-border bg-muted/40 flex items-center justify-between">
               <div className="space-y-0.5">
-                <span className="text-xs text-muted-foreground">
-                  {isZh ? "应付金额 (USD)" : "Total Amount (USD)"}
-                </span>
-                <div className="text-xl font-bold font-mono text-foreground">
-                  {plan.price}{" "}
-                  <span className="text-xs font-normal text-muted-foreground">USD</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">
+                    {isZh ? "应付金额 (USD)" : "Total Amount (USD)"}
+                  </span>
+                  <Badge variant="outline" className="text-xs font-mono px-1 py-0 h-4 border-border text-foreground">
+                    {t.pricing.discountBadge}
+                  </Badge>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-bold font-mono text-foreground">
+                    {plan.price}{" "}
+                    <span className="text-xs font-normal text-muted-foreground">USD</span>
+                  </span>
+                  <span className="text-xs font-mono text-muted-foreground line-through">
+                    {plan.originalPrice}
+                  </span>
                 </div>
               </div>
               <div className="text-right">
                 <Badge variant="secondary" className="text-xs font-mono">
-                  {isZh ? "一次性买断" : "Lifetime"}
+                  {t.pricing.earlyBirdTag}
                 </Badge>
               </div>
             </div>

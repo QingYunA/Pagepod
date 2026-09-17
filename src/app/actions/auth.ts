@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { verifyPassword, createAdminSessionToken, COOKIE_NAME } from "@/lib/auth";
 import { createSupabaseServerClient, isCloudMode } from "@/lib/supabase/server";
 import { sanitizeRedirectPath } from "@/lib/safe-redirect";
+import { getSiteUrl } from "@/lib/site-url";
 
 function formString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -132,7 +133,7 @@ export async function forgotPasswordAction(
   formData: FormData
 ): Promise<ForgotPasswordState | undefined> {
   const email = formString(formData, "email").trim();
-  const origin = formString(formData, "origin").trim() || "https://pagepod.dev";
+  const origin = formString(formData, "origin").trim() || getSiteUrl();
   const lang = formString(formData, "lang") || "zh";
 
   if (!email) {

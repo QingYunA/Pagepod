@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Flow · Minimalist Pomodoro & Ambient Soundscape</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --card: #18181b;
+      --border: #27272a;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --accent: #3b82f6;
+    }
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --primary: #059669;
+      --primary-hover: #047857;
+      --accent: #2563eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+    }
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--primary);
+    }
+    .btn-icon {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+    .modes {
+      display: flex;
+      gap: 0.35rem;
+      background: var(--card);
+      padding: 0.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .mode-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-btn.active {
+      background: var(--border);
+      color: var(--text);
+    }
+    .timer-display {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+    .progress-ring {
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    .progress-ring-circle {
+      stroke: var(--primary);
+      stroke-dasharray: 690;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.3s ease;
+    }
+    .time-text {
+      position: absolute;
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .btn-main {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem 2.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-main:hover { opacity: 0.9; }
+    .btn-main:active { transform: scale(0.98); }
+    .btn-sub {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sub:hover { background: var(--border); }
+    .soundscape-card {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .soundscape-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .sound-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .sound-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .sound-btn.active {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .volume-slider {
+      width: 100%;
+      accent-color: var(--primary);
+    }
+    .stats-bar {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      gap: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-dot"></div>
+        <span>Focus Flow</span>
+      </div>
+      <button class="btn-icon" id="themeBtn">Light Mode</button>
+    </div>
+
+    <div class="modes">
+      <button class="mode-btn active" data-time="1500" data-mode="pomodoro">Pomodoro (25m)</button>
+      <button class="mode-btn" data-time="300" data-mode="short">Short Break (5m)</button>
+      <button class="mode-btn" data-time="900" data-mode="long">Long Break (15m)</button>
+    </div>
+
+    <div class="timer-display">
+      <svg class="progress-ring" width="240" height="240">
+        <circle stroke="var(--border)" stroke-width="6" fill="transparent" r="110" cx="120" cy="120" />
+        <circle class="progress-ring-circle" id="progressCircle" stroke-width="6" stroke-linecap="round" fill="transparent" r="110" cx="120" cy="120" />
+      </svg>
+      <div class="time-text" id="timeDisplay">25:00</div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-main" id="startBtn">Start Focus</button>
+      <button class="btn-sub" id="resetBtn">Reset</button>
+    </div>
+
+    <div class="soundscape-card">
+      <div class="soundscape-header">
+        <span>Ambient Soundscape (Web Audio)</span>
+        <span id="soundStatus">Muted</span>
+      </div>
+      <div class="sound-buttons">
+        <button class="sound-btn" data-sound="rain">🌧️ Rain Filter</button>
+        <button class="sound-btn" data-sound="white">💨 Soft Noise</button>
+        <button class="sound-btn" data-sound="binaural">🧠 Beta Wave</button>
+      </div>
+      <input type="range" class="volume-slider" id="volSlider" min="0" max="1" step="0.05" value="0.5" />
+    </div>
+
+    <div class="stats-bar">
+      <span>Completed Sessions: <strong id="sessionCount" style="color:var(--text)">0</strong></span>
+      <span>Total Focus Time: <strong id="totalFocusTime" style="color:var(--text)">0 min</strong></span>
+    </div>
+  </div>
+
+  <script>
+    let totalSeconds = 1500;
+    let remainingSeconds = 1500;
+    let isRunning = false;
+    let timerId = null;
+    let completedSessions = parseInt(localStorage.getItem('focus_sessions') || '0');
+    let totalMinutes = parseInt(localStorage.getItem('focus_minutes') || '0');
+
+    const circumference = 2 * Math.PI * 110;
+    const progressCircle = document.getElementById('progressCircle');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const sessionCountEl = document.getElementById('sessionCount');
+    const totalFocusTimeEl = document.getElementById('totalFocusTime');
+
+    progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+    progressCircle.style.strokeDashoffset = '0';
+
+    function updateStatsDisplay() {
+      sessionCountEl.textContent = completedSessions;
+      totalFocusTimeEl.textContent = `${totalMinutes} min`;
+    }
+    updateStatsDisplay();
+
+    function setProgress(percent) {
+      const offset = circumference - (percent / 100) * circumference;
+      progressCircle.style.strokeDashoffset = offset;
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function renderTime() {
+      timeDisplay.textContent = formatTime(remainingSeconds);
+      const percent = ((totalSeconds - remainingSeconds) / totalSeconds) * 100;
+      setProgress(percent);
+    }
+
+    function tick() {
+      if (remainingSeconds > 0) {
+        remainingSeconds--;
+        renderTime();
+      } else {
+        clearInterval(timerId);
+        isRunning = false;
+        startBtn.textContent = 'Start Focus';
+        completedSessions++;
+        totalMinutes += Math.round(totalSeconds / 60);
+        localStorage.setItem('focus_sessions', completedSessions);
+        localStorage.setItem('focus_minutes', totalMinutes);
+        updateStatsDisplay();
+        stopSound();
+        alert('🎉 Session complete! Great work.');
+      }
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        isRunning = true;
+        startBtn.textContent = 'Pause';
+        timerId = setInterval(tick, 1000);
+      } else {
+        isRunning = false;
+        startBtn.textContent = 'Resume';
+        clearInterval(timerId);
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(timerId);
+      isRunning = false;
+      startBtn.textContent = 'Start Focus';
+      remainingSeconds = totalSeconds;
+      renderTime();
+      setProgress(0);
+    });
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        totalSeconds = parseInt(btn.dataset.time);
+        remainingSeconds = totalSeconds;
+        clearInterval(timerId);
+        isRunning = false;
+        startBtn.textContent = 'Start Focus';
+        renderTime();
+        setProgress(0);
+      });
+    });
+
+    // Theme Toggle
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'light');
+        themeBtn.textContent = 'Dark Mode';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeBtn.textContent = 'Light Mode';
+      }
+    });
+
+    // Web Audio Sound Generator (Zero External Assets)
+    let audioCtx = null;
+    let activeNode = null;
+    let gainNode = null;
+    let currentSound = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = parseFloat(document.getElementById('volSlider').value);
+        gainNode.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function stopSound() {
+      if (activeNode) {
+        try { activeNode.stop(); activeNode.disconnect(); } catch (e) {}
+        activeNode = null;
+      }
+      currentSound = null;
+      document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('soundStatus').textContent = 'Muted';
+    }
+
+    function playNoise(type) {
+      initAudio();
+      stopSound();
+
+      const bufferSize = audioCtx.sampleRate * 2;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+
+      if (type === 'rain') {
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          data[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = data[i];
+          data[i] *= 3.5;
+        }
+      } else {
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * 0.5;
+        }
+      }
+
+      const noiseSource = audioCtx.createBufferSource();
+      noiseSource.buffer = buffer;
+      noiseSource.loop = true;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = type === 'rain' ? 'lowpass' : 'bandpass';
+      filter.frequency.value = type === 'rain' ? 800 : 1200;
+
+      noiseSource.connect(filter);
+      filter.connect(gainNode);
+      noiseSource.start();
+      activeNode = noiseSource;
+    }
+
+    function playBinaural() {
+      initAudio();
+      stopSound();
+
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      osc1.frequency.value = 210;
+      osc2.frequency.value = 224; // 14Hz difference (Beta state)
+
+      const merger = audioCtx.createChannelMerger(2);
+      osc1.connect(merger, 0, 0);
+      osc2.connect(merger, 0, 1);
+      merger.connect(gainNode);
+
+      osc1.start();
+      osc2.start();
+      activeNode = {
+        stop: () => { osc1.stop(); osc2.stop(); },
+        disconnect: () => { osc1.disconnect(); osc2.disconnect(); }
+      };
+    }
+
+    document.querySelectorAll('.sound-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sound = btn.dataset.sound;
+        if (currentSound === sound) {
+          stopSound();
+        } else {
+          document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentSound = sound;
+          document.getElementById('soundStatus').textContent = 'Playing';
+          if (sound === 'binaural') playBinaural();
+          else playNoise(sound);
+        }
+      });
+    });
+
+    document.getElementById('volSlider').addEventListener('input', (e) => {
+      if (gainNode) {
+        gainNode.gain.value = parseFloat(e.target.value);
+      }
+    });
+  </script>
+</body>
+</html>
