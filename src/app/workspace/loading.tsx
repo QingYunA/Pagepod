@@ -39,14 +39,10 @@ export default function AdminLoading() {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">
         {/* Metric Cards Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { label: "托管项目总量" },
-            { label: "公开展示中" },
-            { label: "累计运行访问" },
-          ].map((item, i) => (
+          {[...Array(3)].map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-                <span className="text-xs font-medium text-muted-foreground">{item.label}</span>
+                <Skeleton className="h-3.5 w-20" />
                 <Skeleton className="h-4 w-4 rounded" />
               </CardHeader>
               <CardContent className="p-4 pt-0 space-y-2">
@@ -61,9 +57,7 @@ export default function AdminLoading() {
         <div className="rounded-lg border border-border bg-card/60 p-4 flex items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
             <ShieldAlert className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span className="text-muted-foreground">
-              <strong>隐私安全承诺</strong>：管理员仅可监管公开内容，用户的私有项目（Private / E2EE）受物理权限隔离，管理员及第三方绝对无法接触。
-            </span>
+            <Skeleton className="h-3.5 w-64 max-w-full" />
           </div>
           <Skeleton className="h-8 w-24 shrink-0" />
         </div>

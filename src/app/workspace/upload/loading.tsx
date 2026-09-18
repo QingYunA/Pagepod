@@ -10,9 +10,10 @@ export default function UploadLoading() {
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Top Header */}
         <div className="flex items-center justify-between pb-4 border-b border-border">
-          <Button variant="ghost" size="sm" disabled className="h-9 text-sm text-muted-foreground">
-            <ArrowLeft className="w-4 h-4 mr-1.5" /> 返回项目列表
-          </Button>
+          <div className="flex items-center gap-1.5 text-muted-foreground/60">
+            <ArrowLeft className="w-4 h-4" />
+            <Skeleton className="h-4 w-24" />
+          </div>
           <Badge variant="outline" className="text-xs font-mono">
             upload hub
           </Badge>

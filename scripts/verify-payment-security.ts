@@ -156,11 +156,13 @@ assert(
 console.log("\n=== 4. Pricing Tiers & Plan Invariants ===");
 
 assert(PLAN_PRICING.lite !== undefined, "Lite tier is defined in PLAN_PRICING");
-assert(PLAN_PRICING.lite.amount === "4.90", "Lite tier price is strictly $4.90 USD");
+assert(PLAN_PRICING.lite.amount === "3.90", "Lite tier discounted price is strictly $3.90 USD");
+assert(PLAN_PRICING.lite.originalAmount === "4.90", "Lite tier original price is $4.90 USD");
 assert(PLAN_PRICING.lite.currency === "USD", "Lite tier currency is strictly USD");
 
 assert(PLAN_PRICING.pro !== undefined, "Pro tier is defined in PLAN_PRICING");
-assert(PLAN_PRICING.pro.amount === "9.90", "Pro tier price is strictly $9.90 USD");
+assert(PLAN_PRICING.pro.amount === "7.90", "Pro tier discounted price is strictly $7.90 USD");
+assert(PLAN_PRICING.pro.originalAmount === "9.90", "Pro tier original price is $9.90 USD");
 assert(PLAN_PRICING.pro.currency === "USD", "Pro tier currency is strictly USD");
 
 const validTiers: PlanTier[] = ["lite", "pro"];

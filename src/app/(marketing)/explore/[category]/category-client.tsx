@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/context";
 import {
   Play,
   ArrowLeft,
@@ -39,7 +40,9 @@ export default function CategoryProjectsGrid({
   categoryName,
   projects,
 }: CategoryClientProps) {
-  const [selectedLang, setSelectedLang] = useState<"all" | "zh" | "en" | "other">("all");
+  const { locale } = useLanguage();
+  const [userSelectedLang, setUserSelectedLang] = useState<"all" | "zh" | "en" | "other" | null>(null);
+  const selectedLang = userSelectedLang ?? (locale === "zh" ? "zh" : "en");
   const Icon = CATEGORY_ICONS[category] || Wrench;
 
   const filteredProjects = projects.filter((p) => {
@@ -62,7 +65,7 @@ export default function CategoryProjectsGrid({
           <div className="inline-flex items-center rounded-lg border border-border bg-muted/30 p-1 text-xs gap-0.5">
             <button
               type="button"
-              onClick={() => setSelectedLang("all")}
+              onClick={() => setUserSelectedLang("all")}
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                 selectedLang === "all"
                   ? "bg-background text-foreground shadow-xs font-semibold"
@@ -73,7 +76,7 @@ export default function CategoryProjectsGrid({
             </button>
             <button
               type="button"
-              onClick={() => setSelectedLang("zh")}
+              onClick={() => setUserSelectedLang("zh")}
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                 selectedLang === "zh"
                   ? "bg-background text-foreground shadow-xs font-semibold"
@@ -84,7 +87,7 @@ export default function CategoryProjectsGrid({
             </button>
             <button
               type="button"
-              onClick={() => setSelectedLang("en")}
+              onClick={() => setUserSelectedLang("en")}
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                 selectedLang === "en"
                   ? "bg-background text-foreground shadow-xs font-semibold"
@@ -95,7 +98,7 @@ export default function CategoryProjectsGrid({
             </button>
             <button
               type="button"
-              onClick={() => setSelectedLang("other")}
+              onClick={() => setUserSelectedLang("other")}
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                 selectedLang === "other"
                   ? "bg-background text-foreground shadow-xs font-semibold"

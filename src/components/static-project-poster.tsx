@@ -14,6 +14,7 @@ import {
   Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface StaticProjectPosterProps {
   slug: string;
@@ -43,6 +44,7 @@ export default function StaticProjectPoster({
   className,
   icon: CustomIcon,
 }: StaticProjectPosterProps) {
+  const { locale } = useLanguage();
   const [imgFailed, setImgFailed] = useState(false);
   const effectiveScreenshot = screenshotUrl || `/screenshots/${slug}.png`;
   const hasScreenshot = !imgFailed && effectiveScreenshot;
@@ -53,7 +55,7 @@ export default function StaticProjectPoster({
     <Link
       href={`/p/${slug}`}
       target="_blank"
-      title={`在线运行: ${title}`}
+      title={locale === "zh" ? `在线运行: ${title}` : `Run online: ${title}`}
       className={cn(
         "group relative flex items-center justify-center w-14 aspect-video rounded overflow-hidden bg-neutral-950 border border-border/80 shrink-0 select-none shadow-2xs hover:border-neutral-400 transition-all duration-200 cursor-pointer",
         className

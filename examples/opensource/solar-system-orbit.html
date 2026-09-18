@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System Orbit Simulator · HTML5 Canvas</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000005;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    canvas {
+      flex: 1;
+      display: block;
+    }
+    .hud {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      pointer-events: auto;
+    }
+    .hud h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+    input[type="range"] {
+      accent-color: #38bdf8;
+      cursor: pointer;
+    }
+    .info-tooltip {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <h1>🪐 Solar System Simulator</h1>
+    <div class="control-row">
+      <label for="speedRange">Time Warp:</label>
+      <input type="range" id="speedRange" min="0" max="5" step="0.1" value="1">
+      <span id="speedVal">1.0x</span>
+    </div>
+    <div class="control-row">
+      <label><input type="checkbox" id="trailToggle" checked> Show Orbit Paths</label>
+    </div>
+  </div>
+
+  <div class="info-tooltip">
+    Scroll to Zoom · Drag to Pan
+  </div>
+
+  <canvas id="space"></canvas>
+
+  <script>
+    const canvas = document.getElementById('space');
+    const ctx = canvas.getContext('2d');
+    const speedRange = document.getElementById('speedRange');
+    const speedVal = document.getElementById('speedVal');
+    const trailToggle = document.getElementById('trailToggle');
+
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+
+    window.addEventListener('wheel', e => {
+      zoom *= e.deltaY > 0 ? 0.9 : 1.1;
+      zoom = Math.max(0.3, Math.min(zoom, 3.5));
+    });
+
+    window.addEventListener('mousedown', e => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (isDragging) {
+        panX += (e.clientX - lastMouseX);
+        panY += (e.clientY - lastMouseY);
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      }
+    });
+
+    window.addEventListener('mouseup', () => isDragging = false);
+
+    // Astronomical bodies relative scale
+    const planets = [
+      { name: 'Mercury', color: '#94a3b8', dist: 45, radius: 3, speed: 0.04, angle: 0 },
+      { name: 'Venus',   color: '#fde047', dist: 70, radius: 5, speed: 0.015, angle: 1 },
+      { name: 'Earth',   color: '#38bdf8', dist: 105, radius: 5.5, speed: 0.01, angle: 2, moon: true },
+      { name: 'Mars',    color: '#f87171', dist: 145, radius: 4, speed: 0.008, angle: 3 },
+      { name: 'Jupiter', color: '#fb923c', dist: 210, radius: 12, speed: 0.0035, angle: 4 },
+      { name: 'Saturn',  color: '#eab308', dist: 280, radius: 9, speed: 0.002, angle: 5, ring: true },
+      { name: 'Uranus',  color: '#2dd4bf', dist: 350, radius: 7, speed: 0.0012, angle: 0.5 },
+      { name: 'Neptune', color: '#6366f1', dist: 410, radius: 7, speed: 0.0008, angle: 2.5 }
+    ];
+
+    // Stars background
+    const stars = Array.from({ length: 300 }, () => ({
+      x: (Math.random() - 0.5) * 2000,
+      y: (Math.random() - 0.5) * 2000,
+      radius: Math.random() * 1.5,
+      alpha: Math.random() * 0.8 + 0.2
+    }));
+
+    let warpSpeed = 1;
+    speedRange.addEventListener('input', () => {
+      warpSpeed = parseFloat(speedRange.value);
+      speedVal.textContent = warpSpeed.toFixed(1) + 'x';
+    });
+
+    function draw() {
+      ctx.fillStyle = '#000005';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.translate(width / 2 + panX, height / 2 + panY);
+      ctx.scale(zoom, zoom);
+
+      // Draw background stars
+      stars.forEach(s => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Sun
+      const sunGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, 24);
+      sunGradient.addColorStop(0, '#fff');
+      sunGradient.addColorStop(0.3, '#facc15');
+      sunGradient.addColorStop(1, 'rgba(234, 88, 12, 0)');
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.fillStyle = sunGradient;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.fillStyle = '#fde047';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 30;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Planets
+      planets.forEach(p => {
+        p.angle += p.speed * warpSpeed;
+
+        // Orbit ring
+        if (trailToggle.checked) {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.dist, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        const px = Math.cos(p.angle) * p.dist;
+        const py = Math.sin(p.angle) * p.dist;
+
+        // Planet body
+        ctx.beginPath();
+        ctx.arc(px, py, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Saturn ring
+        if (p.ring) {
+          ctx.beginPath();
+          ctx.ellipse(px, py, p.radius * 2, p.radius * 0.8, Math.PI / 4, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(234, 179, 8, 0.4)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // Earth moon
+        if (p.moon) {
+          const moonAngle = p.angle * 8;
+          const mx = px + Math.cos(moonAngle) * 10;
+          const my = py + Math.sin(moonAngle) * 10;
+          ctx.beginPath();
+          ctx.arc(mx, my, 1.2, 0, Math.PI * 2);
+          ctx.fillStyle = '#cbd5e1';
+          ctx.fill();
+        }
+      });
+
+      ctx.restore();
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

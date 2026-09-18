@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { createAppealMailtoUrl } from "@/lib/moderation/types";
 import { verifyProjectAccessToken } from "@/lib/services/guest-upload";
 import { TokenGateInput } from "@/components/token-gate-input";
+import { getSiteUrl } from "@/lib/site-url";
+import { getProjectSeoProfile } from "@/data/projects-seo/manifest";
+import { ProjectSeoSection } from "@/components/project-seo-section";
 import RunnerClient from "./runner-client";
 
 interface PageProps {
@@ -58,42 +61,62 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const projectTitle = project.title || slug;
-  const projectDesc =
-    project.description ||
-    `Interactive HTML project: ${projectTitle}. Hosted and safely sandboxed on Pagepod. Run, preview and explore source code online.`;
-  const canonicalUrl = `/p/${slug}`;
+  const profile = getProjectSeoProfile(slug, project);
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = `${siteUrl}/p/${slug}`;
+  const fullMetaTitle = `${profile.headline} | Pagepod`;
+  const metaDesc = profile.summary.slice(0, 160);
 
   return {
-    title: `${projectTitle} - Run & Preview Online`,
-    description: projectDesc.slice(0, 160),
+    title: profile.headline, // Root layout template will append " | Pagepod"
+    description: metaDesc,
     keywords: [
-      projectTitle,
+      profile.targetKeyword,
+      ...profile.secondaryKeywords,
       project.category || "tool",
       "HTML web app",
       "HTML runner",
-      "online runner",
       "Pagepod",
     ],
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${projectTitle} - Run & Preview Online | Pagepod`,
-      description: projectDesc.slice(0, 160),
+      title: fullMetaTitle,
+      description: metaDesc,
       url: canonicalUrl,
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${projectTitle} - Run & Preview Online | Pagepod`,
-      description: projectDesc.slice(0, 160),
+      title: fullMetaTitle,
+      description: metaDesc,
     },
     robots: {
       index: true,
       follow: true,
     },
   };
+}
+
+async function fetchRelatedProjects(slug: string, category?: string | null) {
+  try {
+    const allPublic = await getAllProjects({ category: category || undefined });
+    let related = allPublic
+      .filter((p) => p.slug !== slug && p.visibility === "public")
+      .slice(0, 4);
+
+    if (related.length < 3) {
+      const moreProjects = await getAllProjects();
+      const extra = moreProjects
+        .filter((p) => p.slug !== slug && p.visibility === "public" && !related.some((r) => r.slug === p.slug))
+        .slice(0, 4 - related.length);
+      related = [...related, ...extra];
+    }
+    return related;
+  } catch {
+    return [];
+  }
 }
 
 export default async function ProjectRunnerPage({ params, searchParams }: PageProps) {
@@ -224,51 +247,100 @@ export default async function ProjectRunnerPage({ params, searchParams }: PagePr
     }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
-  const jsonLd =
-    project.visibility === "public"
-      ? {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          name: project.title || slug,
-          headline: project.title || slug,
-          description:
-            project.description ||
-            `Interactive HTML project ${project.title || slug} online on Pagepod`,
-          applicationCategory: project.category || "UtilitiesApplication",
-          operatingSystem: "All",
-          url: `${siteUrl}/p/${slug}`,
-          offers: {
-            "@type": "Offer",
-            price: "0",
-            priceCurrency: "USD",
+  const siteUrl = getSiteUrl();
+  const profile = getProjectSeoProfile(slug, project);
+  const isPublicAndApproved =
+    project.visibility === "public" && project.reviewStatus === "approved";
+
+  const jsonLd = isPublicAndApproved
+    ? {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "@id": `${siteUrl}/p/${slug}#software`,
+            name: profile.headline,
+            headline: profile.headline,
+            description: profile.summary,
+            applicationCategory: project.category || "UtilitiesApplication",
+            operatingSystem: "All",
+            url: `${siteUrl}/p/${slug}`,
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "USD",
+            },
+            author: profile.author
+              ? {
+                  "@type": "Person",
+                  name: profile.author.name,
+                  url: profile.author.url,
+                }
+              : {
+                  "@type": "Organization",
+                  name: "Pagepod Community",
+                  url: siteUrl,
+                },
           },
-          author: {
-            "@type": "Organization",
-            name: "Pagepod Community",
+          {
+            "@type": "BreadcrumbList",
+            "@id": `${siteUrl}/p/${slug}#breadcrumb`,
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: profile.language === "zh" ? "首页" : "Home",
+                item: siteUrl,
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: profile.language === "zh" ? "探索" : "Explore",
+                item: `${siteUrl}/explore`,
+              },
+              ...(project.category
+                ? [
+                    {
+                      "@type": "ListItem",
+                      position: 3,
+                      name: project.category,
+                      item: `${siteUrl}/explore/${project.category}`,
+                    },
+                    {
+                      "@type": "ListItem",
+                      position: 4,
+                      name: profile.headline,
+                      item: `${siteUrl}/p/${slug}`,
+                    },
+                  ]
+                : [
+                    {
+                      "@type": "ListItem",
+                      position: 3,
+                      name: profile.headline,
+                      item: `${siteUrl}/p/${slug}`,
+                    },
+                  ]),
+            ],
           },
-        }
-      : null;
+          {
+            "@type": "FAQPage",
+            "@id": `${siteUrl}/p/${slug}#faq`,
+            mainEntity: profile.faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          },
+        ],
+      }
+    : null;
 
   // Fetch related public projects for internal linking & recommendations
-  let relatedProjects: import("@/db/schema").Project[] = [];
-  try {
-    const allPublic = await getAllProjects({ category: project.category });
-    relatedProjects = allPublic
-      .filter((p) => p.slug !== slug && p.visibility === "public")
-      .slice(0, 4);
-    
-    // If not enough in category, fetch from all categories
-    if (relatedProjects.length < 3) {
-      const moreProjects = await getAllProjects();
-      const extra = moreProjects
-        .filter((p) => p.slug !== slug && p.visibility === "public" && !relatedProjects.some(r => r.slug === p.slug))
-        .slice(0, 4 - relatedProjects.length);
-      relatedProjects = [...relatedProjects, ...extra];
-    }
-  } catch {
-    relatedProjects = [];
-  }
+  const relatedProjects = await fetchRelatedProjects(slug, project.category);
 
   // Safe JSON-LD serialization preventing </script> breakout & XSS
   const safeJsonLdString = jsonLd
@@ -295,6 +367,14 @@ export default async function ProjectRunnerPage({ params, searchParams }: PagePr
         relatedProjects={relatedProjects}
         token={token}
       />
+      {isPublicAndApproved && (
+        <ProjectSeoSection
+          profile={profile}
+          project={project}
+          relatedProjects={relatedProjects}
+          rawUrl={`/raw/${project.slug}/`}
+        />
+      )}
     </>
   );
 }

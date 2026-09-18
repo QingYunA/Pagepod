@@ -8,13 +8,19 @@
 - **分类专题聚合与静态页**：[`src/app/(marketing)/explore/[category]/page.tsx`](src/app/(marketing)/explore/[category]/page.tsx) 与 [`category-client.tsx`](src/app/(marketing)/explore/[category]/category-client.tsx)
 - **独立全屏运行台**：[`src/app/p/[slug]/page.tsx`](src/app/p/[slug]/page.tsx)
 - **安全沙箱隔离端点**：[`src/app/raw/[slug]/[[...path]]/route.ts`](src/app/raw/[slug]/[[...path]]/route.ts)
-- **创作者工作台**：[`src/app/workspace/page.tsx`](src/app/workspace/page.tsx)
+- **创作者双栏工作台 (Workspace Hub)**：[`src/app/workspace/page.tsx`](src/app/workspace/page.tsx)
+  - 核心协同宿主：[`src/app/workspace/components/workspace-client.tsx`](src/app/workspace/components/workspace-client.tsx)
+  - 左侧层级目录树：[`src/app/workspace/components/workspace-folder-tree.tsx`](src/app/workspace/components/workspace-folder-tree.tsx)
+  - 右侧项目网格/表格：[`src/app/workspace/components/admin-table.tsx`](src/app/workspace/components/admin-table.tsx)
+  - 批量操作浮动栏：[`src/app/workspace/components/batch-action-bar.tsx`](src/app/workspace/components/batch-action-bar.tsx)
 - **项目代码与元数据编辑器 (Project Editor)**：[`src/app/workspace/projects/[id]/edit/editor-client.tsx`](src/app/workspace/projects/[id]/edit/editor-client.tsx)
 - **Edge 中间件与子域名路由网关**：[`src/proxy.ts`](src/proxy.ts)
 - **匿名访客摄入与临时态流转管道**：[`src/lib/services/guest-upload.ts`](src/lib/services/guest-upload.ts)
 - **游客认领与客户端暂存**：[`src/lib/storage/guest-claim.ts`](src/lib/storage/guest-claim.ts)
 - **数据访问层与迁移**：[`src/db/index.ts`](src/db/index.ts) 与 [`src/db/schema.ts`](src/db/schema.ts)
+- **根布局、全局元数据与流量统计 (Root & Telemetry)**：[`src/app/layout.tsx`](src/app/layout.tsx)（承载全局字体、主题、JsonLD 结构化数据与 Umami 埋点脚本）
 - **生产健康自动化探针**：[`scripts/probe-prod.ts`](scripts/probe-prod.ts)（`npm run probe:prod`）
+- **大陆物理直连网络探针**：[`scripts/probe-direct.ts`](scripts/probe-direct.ts)（`npm run probe:direct`，强制穿透本地 TUN 代理直连真实物理网卡测速）
 
 ---
 
@@ -35,7 +41,7 @@
 - **全套 shadcn/ui & Radix UI 组件驱动与标准工业级标度 (Standard Industrial Scale)**：
   - 页面全部交互元素必须调用 `src/components/ui/*` 规范原语：`Button`、`Badge`、`Card`、`Input`、`Tabs`、`Dialog`。
   - 组件尺寸遵循标准工业级标度（`Button`/`Input` 标准 36px `h-9` 高度，次要/小号 32px `h-8`，大号 40px `h-10`；正文与输入 14px `text-sm`，标题 16px `text-base` 以上，次要元数据与角标 12px `text-xs`）。
-  - **全站字号物理红线**：坚决禁止在全站任何界面使用低于 12px 的微缩字号（彻底清除并禁止 `text-[10px]`、`text-[11px]`、`text-[9px]`），消除视觉疲劳与微雕感，遵循 ADR-0006 规范。
+  - **全站字号物理红线与标准标度**：正文与输入统一采用 14px（`text-sm`），次级标签、徽章与元数据采用 12px（`text-xs`）；全站字号物理下限为 12px，低于 12px 的微缩字号由 `scripts/check-standards.ts` 静态门禁硬拦截，遵循 ADR-0008 规范。
 - **静态底图与双核悬浮胶囊操作体系 (Static Poster with Dual-Action Capsule & Resilience Shield)**：
   - **严禁在列表/网格中无差别直出全量 iframe**（彻底避免多重并发大型 HTML/WebGL 造成的 GPU/CPU 峰值、风扇狂转与内存爆炸）；
   - 展示型卡片统一采用 `HoverSandboxPreview`：默认呈现 Zinc 高定技术点阵底图与分类专属线框海报（零网络开销、首屏极速加载）；
@@ -68,78 +74,47 @@
 - ❌ **严禁同义词三重堆砌与标签罗列**：卡片或模块内严禁在标题、副标题、操作按钮与底部微注中反复变换同义词复述相同属性（如同时出现 `Sandboxed`、`Hardened CSP` 与 `Sandbox Runner`，或重复强调 `Token Protected`、`NoIndex` 与 `Instant Link`）；优先采用极简事实约束（如“无需登录 · 单文件 HTML 最大 2MB”），删除一切无增量信息的口号式底部微字；
 - ✅ **倡导中性、克制的技术质感词汇**：统一使用“功能”、“权益”、“配额”、“Features”、“Perks”；
 - ❌ **严禁会员付费元素彩虹化**：会员状态标签、价格方案与横幅禁止使用金色渐变（如 `from-amber-500/10`）或厚重阴影（`shadow-2xl`），统一遵守 Zinc 单色黑白灰调、1px 细线边框与 shadcn `<Badge variant="outline">` 原语；
-- ✅ **双语国际化零死角**：全链路必须响应式切换；严禁在英文模式下漏译或硬编码中文回退值（如默认未命名账号必须动态适配为 `"Admin"`，严禁硬编码 `"管理员"`）。
+- ✅ **双语国际化零死角与机械化门禁 (Bilingual i18n Guard)**：
+  - 全链路必须响应式切换；严禁在英文模式下漏译或硬编码中文回退值（如默认未命名账号必须动态适配为 `"Admin"`，严禁硬编码 `"管理员"`）；
+  - 沙箱核心运行台与展示型卡片中的裸中文 JSX 标签文本、`title="..."` / `aria-label="..."` 硬编码及 `|| "中文"` 回退由 `scripts/check-standards.ts` 静态门禁机械硬拦截。
 
 ---
 
 ## 🏗️ 二、核心架构与安全规范
 
-1. **安全沙箱隔离 (Hardened Sandbox)**：
-   - 托管的所有外部 HTML 运行端点统一走 `/raw/[slug]/[[...path]]`；
-   - 必须强制注入 CSP 响应头：
-     ```
-     Content-Security-Policy: sandbox allow-scripts allow-forms allow-downloads allow-popups allow-modals; default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-     X-Content-Type-Options: nosniff;
-     ```
-   - 宿主内的 iframe **严禁**添加 `allow-same-origin`，物理隔绝访问宿主主域的 Cookie、LocalStorage 和管理员 Session。
+### 1. 存储适配与数据迁移纪律 (Storage, Database & Migrations)
+- **存储适配器规范 (Storage Adapter Pattern)**：所有文件读写统一走 `getStorage()` 抽象接口（探测顺序：`BLOB_READ_WRITE_TOKEN` -> `R2_*` -> 本地 `.storage/`），严禁直接在路由中硬编码文件系统操作。
+- **双核存储分工模型 (Dual-Storage Responsibility Matrix)**：
+  - **Cloudflare R2 / 对象存储**：承载物理静态文件（HTML/JS/CSS/图片/ZIP/截图），不存业务状态，不参与列表过滤；
+  - **PostgreSQL / 元数据关系数据库**：存储项目、用户、分类、可见性、审核状态等业务实体。列表检索、分类筛选与计数**必须且仅由数据库承担**；
+  - **排障纪律**：若前端作品为 0 或卡片缺失，优先排查 PostgreSQL 过滤条件（`review_status`、`visibility`、租户隔离），切勿误判为 R2 文件丢失。
+- **数据库 DDL 祖父法则与存量自愈 (Grandfathering Invariant & Backward-Compatible DDL)**：
+  - 严禁排他性默认值：新增参与查询过滤的列（如 `review_status`），列默认值必须设为保证存量可见的宽松状态（如 `'approved'`），新记录再由业务服务层赋待定值；
+  - 强制存量数据自愈：过滤状态升级迁移必须配套幂等的自愈更新脚本（如 `autoApproveLegacyProjects()`），在初始化时自动执行，确保历史数据平滑过渡。
+- **有状态迁移与代码评审自检 (Stateful Migration Invariant)**：
+  - 实施涉及表结构、列增删、默认值或公共过滤条件的 PR 时，评审必须显式确认存量数据的向下兼容性与自愈路径。
+- **冷启动 0 DDL 绝对禁令 (Zero Cold-Start DDL Invariant)**：
+  - 业务读路径严禁在无异常冷启动阶段无差别执行 DDL 脚本；自愈迁移仅在 `withTableFallback` 捕获到表缺失时按需触发，保障新实例毫秒级响应。
 
-2. **存储适配器规范 (Storage Adapter Pattern)**：
-   - 所有文件读写统一走 `getStorage()` 抽象接口，严禁直接在路由中硬编码文件系统操作；
-   - 自动探测顺序：`BLOB_READ_WRITE_TOKEN` (Vercel Blob) -> `R2_*` (Cloudflare R2) -> 本地持久化 `.storage/`。
+### 2. 安全隔离与领域防线 (Security Sandbox & Domain Invariants)
+- **安全沙箱隔离 (Hardened Sandbox)**：托管的外部 HTML 统一走 `/raw/[slug]/[[...path]]`，强制注入 `Content-Security-Policy: sandbox allow-scripts allow-forms allow-downloads allow-popups allow-modals; default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;` 与 `X-Content-Type-Options: nosniff`；iframe 严禁添加 `allow-same-origin`。
+- **全链路实体字段渗透审计准则 (Full-Path Schema Ingestion Invariant)**：新增或扩充业务实体元数据字段必须完整渗透闭环：`src/db/schema.ts` -> `src/lib/validation.ts` -> `src/lib/services/project-service.ts` -> `src/app/actions/*` & `/api/upload` -> 客户端表单。
+- **批量操作全等防线准则 (Batch Operation Parity Invariant)**：批量操作（`batchDelete`、`batchUpdateVisibility`、`batchMove`）必须与单项领域服务保持 100% 语义全等，强制逐项核验 RBAC 权限与业务风控，并闭环触发存储清理等生命周期副作用。
 
-3. **数据库兼容性**：
-   - 采用 Drizzle ORM，原生适配 PostgreSQL（Vercel Postgres / Neon / Supabase）；
-   - 在未配置外部数据库的本地开发环境中，通过 `.data/db.json` 自动 fallback，保证开箱即用零报错。
+### 3. 性能优化与异步解耦 (Performance & Non-Blocking Architecture)
+- **公共展示页面静态预渲染 (Static ISR Invariant)**：公共分类聚合与 Marketing 页面（如 `/explore/[category]`）严禁在服务端组件入参中直接解构或 `await searchParams`，避免退化为动态 SSR；多语言等偏好抽离至客户端组件通过 React 状态受控处理。
+- **写入路径零同步无头渲染准则 (Zero Synchronous Headless Invariant)**：面向用户的项目创建、代码更新与游客即时上传等交互主链路，**严禁在请求生命周期内同步 `await` 重型无头浏览器**；截图与缩略图必须委托至 `after(runCapture)` 或后台静默队列异步回填，确保写接口响应 **< 50ms**；`unlisted` 与 `private` 项目严禁触发外网截图。
 
-4. **双核存储分工模型 (Dual-Storage Responsibility Matrix)**：
-   - **Cloudflare R2 / 对象存储**：仅承载 HTML、JS、CSS、图片、ZIP 及缩略图截图等**物理静态文件**的持久化存储与流式分发；不存储业务状态，不参与列表过滤；
-   - **PostgreSQL (Neon / Vercel Postgres) / 元数据关系数据库**：存储所有业务实体与元数据（用户、项目 ID、Slug、标题、分类、可见性 `visibility`、审核状态 `review_status` 等）。主页与工作台的列表检索、分类筛选与计数**必须且仅由数据库承担**；
-   - **排障纪律**：若前端页面展示作品为 0 或卡片缺失，必须优先排查 PostgreSQL 查询过滤条件（如 `review_status`、`visibility`、租户隔离条件），切勿误判为 R2 物理文件丢失。
-
-5. **数据库 DDL 祖父法则与向后兼容约束 (Grandfathering Invariant & Backward-Compatible DDL)**：
-   - **严禁排他性默认值**：审查任何向数据表增加新列的 DDL（如 `review_status`、`status`、`is_active`）时，若该列参与了公共查询过滤，列的数据库默认值严禁设为排他或待定状态（如 `'pending'`、`false`），必须设置为保证存量数据可见的宽松状态（如 `'approved'`），新记录再由业务服务层显式赋予待定状态；
-   - **强制存量数据自愈机制**：所有涉及数据过滤状态升级的迁移，必须配套幂等的自愈更新脚本（如 `autoApproveLegacyProjects()`），在服务初始化或冷启动时自动执行，确保历史存量数据平滑过渡（Grandfathered）。
-
-6. **生产环境验证探针优先级 (Tool Economy & Probe Discipline)**：
-   - **优先轻量 HTTP / API 探针**：生产环境部署后验证首选 `curl`、API 端点（`/api/projects`）或 SSR HTML 关键字符串 grep 进行秒级、高确定性的断言，推荐直接运行 `npm run probe:prod`；
-   - **按需唤起重型浏览器**：仅在验证复杂拖拽交互、多重动效过渡或 Canvas/WebGL 本地渲染时才调用无头浏览器，避免无谓的超时与算力开销。
-
-7. **全链路实体字段渗透审计准则 (Full-Path Schema Ingestion Invariant)**：
-   - 任何新增或扩充业务实体元数据字段（如 `language`、`isGlobalPinned`、`review_status` 等），必须严格闭环以下五层链路，严禁遗漏无头 REST 路径：
-     1. `src/db/schema.ts`（ORM 列定义、默认值与迁移脚本）；
-     2. `src/lib/validation.ts`（Zod 强类型模式与严格 Enum，消灭基础类型偏执）；
-     3. `src/lib/services/project-service.ts`（领域服务防线、入参解构与 Seam 处 RBAC 鉴权）；
-     4. `src/app/actions/*` 与 `src/app/api/upload/route.ts`（Server Action 与 REST API 的 JSON/Multipart 分支双通道透传）；
-     5. 客户端表单交互层（`upload/page.tsx`、`editor-client.tsx` 表单回显与受控状态绑定）。
-
-8. **有状态迁移与代码评审自检 (Stateful Migration Invariant)**：
-   - 在执行 `/code-review` 或实施涉及数据库列增删、字段默认值、索引以及公共过滤逻辑（`WHERE` 条件）的 PR 时，评审必须显式回答：
-     1. “当前改动应用到生产已有存量历史数据时，默认值是否会破坏既有数据的可见性或正常业务行为？”
-     2. “是否提供了存量数据的向下兼容或自愈更新路径，并在回归测试中模拟了存量数据结构？”
-
-9. **公共展示页面静态预渲染与冷启动零 DDL 准则 (Static ISR & Zero Cold-Start DDL Invariant)**：
-   - **严禁在公开展示页面服务端消费 `searchParams`**：公共分类聚合、专题展示与 Marketing 页面（如 `/explore/[category]`）严禁在服务端组件入参中直接解构或 `await searchParams`，避免强制退化为动态 SSR（`ƒ Dynamic`）并导致 CDN 缓存穿透；多语言过滤等前端偏好必须抽离至客户端组件通过 React 状态即时受控处理；
-    - **冷启动 0 DDL 绝对禁令**：业务读路径（如 `getAllProjects`、`autoApproveLegacyProjects`）严禁在无异常的冷启动阶段无差别执行 DDL 脚本（`ensurePostgresTables()` 的 27 条 SQL）；DDL 自愈必须严格限制在 `withTableFallback` 真实捕获到 `42P01` / `42703` 缺失异常时按需触发，保障新实例首次请求毫秒级响应。
-
-10. **Git Worktree 与构建协同避坑 (Worktree Build Discipline)**：
-    - **Worktree node_modules 软链接自愈**：新建或切换 Git Worktree 时，若根目录缺少依赖，首选直接软链接主仓库依赖 `ln -s /Users/mac/cyq/Code/开源/html-manager/node_modules node_modules`，实现零安装、秒级开箱即用；
-    - **Webpack 构建规避 Turbopack Panic**：Git Worktree 中由于 `node_modules` 软链接特性，Next.js Turbopack 会触发内部 Panic。Worktree 下本地构建测试必须使用 `npm run build:webpack`（`next build --webpack`）；
-    - **Worktree 冲突合并防伪冲突原则 (Worktree Merge Over Interactive Rebase)**：当远端主分支（`origin/main`）发生并发更新时，Worktree 特性分支拉取最新主分支更新**优先采用 `git merge origin/main`**（或前置将分支历史本地 commit squash 为单一提交后再 rebase）；严禁在包含多阶段迭代提交的分支上执行逐个 commit 交互式 rebase，彻底杜绝历史废弃提交引发的重复伪冲突；
-    - **Zsh 动态路由方括号防报错准则 (Zsh Bracket Quoting Invariant)**：Next.js 包含 `[slug]`、`[[...path]]` 等方括号的动态路由路径在 Zsh 终端执行 `git add`、`git diff` 或文件检索时，会被识别为 Glob Pattern 从而触发 `zsh: no matches found` 阻断命令；所有涉及此类路径的命令行参数**必须统一用单引号包裹**（例如 `git add 'src/app/p/[slug]/page.tsx'`），严禁裸敲包含方括号的路径；
-    - 分支合并遵循无冲突流程：Worktree 提 PR 并通过 `gh pr merge <id> --squash` 合并（**严禁携带 `--delete-branch`**，避免 Git 尝试自动检出已被主仓库锁定的 main 分支触发 `fatal: 'main' is already checked out` 错误）。主仓库 `git pull origin main` 后，Worktree 执行 `git reset --hard origin/main` 对齐，远端分支在 Web 界面或主仓库安全清理；
-    - **生产部署状态秒级监听**：项目通过 GitHub 官方应用连接 Vercel 自动化部署，严禁在本地临时执行 `npx vercel`。监听流水线状态统一调用 `gh api /repos/QingYunA/Pagepod/commits/<sha>/statuses` 秒级解析 `state: "success" | "pending"`；
-    - **GitHub CLI 代理与 REST 接口避坑**：本地存在代理端口（如 `127.0.0.1:10808`）时，执行 `gh` 命令前须显式配置 `https_proxy=http://127.0.0.1:10808 http_proxy=http://127.0.0.1:10808`；PR 合并优先采用稳定 REST API 路径（`gh api -X PUT /repos/QingYunA/Pagepod/pulls/<id>/merge -f merge_method=squash`），避免 GraphQL 连接重置失败；
-    - **子进程工具链 PATH 显式保护**：非交互式子 shell 执行命令时确保 PATH 包含 Node 解释器路径（如 `/Users/mac/.nvm/versions/node/v24.14.1/bin`），生产探针使用 `npm run probe:prod`（内部基于 Node `tsx` 原生 Undici 执行，消灭底层 Socket 偶发断联）；
-    - **静态工程门禁前置校验**：代码提交前统一运行 `npm run check:standards` 自动校验冲突标记（`<<<<<<<`）、原生 `<a>` 标签违规及反模式文案。
-
-11. **批量操作全等防线准则 (Batch Operation Parity Invariant)**：
-    - **领域与风控断言全等**：任何批量操作（如 `batchDelete`、`batchUpdateVisibility`、`batchMove`）绝非仅是底层数据库执行，必须与单项领域服务保持 100% 语义全等；
-    - **强制逐项校验与副作用闭环**：必须在执行底层变更前对受影响的每个项目逐一执行 Seam RBAC 权限核验（`assertCanManageProject`）与业务合规断言（如 `assertCanSetVisibility` 阻断标记争议项目直接公开），并完整触发物理存储清理等关键生命周期副作用（如 `deleteProjectFiles()` 清除 R2/Blob 孤儿资产），严禁绕过领域服务防线。
-
-12. **写入路径零同步无头渲染准则 (Zero Synchronous Headless Invariant)**：
-    - **响应主链路绝对非阻塞**：面向用户的项目创建（`createProject`）、代码更新（`updateProject`）及游客即时上传等交互主链路，**严禁在请求/响应生命周期内同步 `await` 重型无头浏览器渲染**（Headless Chrome、Puppeteer、Playwright 或外部截屏抓取 API）；
-    - **海报截图全权异步化**：所有海报截图与缩略图捕获必须统一委托至 Next.js `after(runCapture)` 或后台异步队列静默执行，并在生成后以异步形式回填更新数据库，保证服务端创建与更新操作在 **< 50ms（毫秒级）** 内完成响应返回；
-    - **未公开项目免除无谓开销**：`unlisted`（口令保护）及 `private` 项目因其隐私属性及不进入公共画廊，严禁触发外网无头截图抓取，节省服务器与第三方算力。
+### 4. 工程协同、流水线与门禁规范 (Engineering Workflow & Tool Discipline)
+- **Git Worktree 与 Webpack 构建**：新建/切换 Worktree 缺少依赖首选软链接主仓库 `ln -s .../node_modules node_modules`（零安装、秒级可用）；规避 Turbopack Panic 本地构建使用 `npm run build:webpack`。
+- **Worktree 冲突合并防伪冲突原则**：特性分支拉取主分支更新**优先采用 `git merge origin/main`**（或先 squash 分支历史再 rebase）；Zsh 下包含方括号的动态路由路径命令行参数**必须统一用单引号包裹**（如 `git add 'src/app/p/[slug]/page.tsx'`）。
+- **分支合并与流水线规约**：Worktree 提 PR 并通过 `gh pr merge <id> --squash` 合并（**严禁携带 `--delete-branch`**）；合并后本地通过 `git reset --hard origin/main` 对齐。
+- **部署监听与自动化探针**：
+  - 监听流水线状态优先执行 `npm run deploy:wait`（基于 `scripts/wait-deploy.sh` 秒级轮询），告别高开销交互式重复轮询；
+  - 部署验证首选轻量探针 `npm run probe:prod` 秒级断言；仅在复杂视觉排版或人机交互审核时按需调用浏览器。
+- **静态工程门禁前置校验与合并回检**：
+  - 静态门禁 `scripts/check-standards.ts` 机械化硬拦截冲突标记、亚 12px 微缩字号（`text-[10px]` 等）、原生 `<a>` 标签、反模式文案及 UI 组件中未受控的硬编码中文与回退（Bilingual i18n Guard），并已内置于 `npm test` 首位；
+  - **跨分支合并后设计一致性回检 (Post-Merge Design Parity Invariant)**：执行 `git merge origin/main` 后，必须对所有受影响或新增 UI 组件运行 `npm run check:standards`。
 
 ---
 

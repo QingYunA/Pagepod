@@ -24,15 +24,15 @@ export default function RunnerLoading() {
         <div className="flex items-center border border-border rounded-lg p-0.5 bg-muted/40 opacity-70">
           <div className="h-8 px-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Monitor className="w-4 h-4" />
-            <span className="hidden md:inline">桌面</span>
+            <Skeleton className="h-3 w-8 hidden md:inline-block" />
           </div>
           <div className="h-8 px-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground/50">
             <Tablet className="w-4 h-4" />
-            <span className="hidden md:inline">平板</span>
+            <Skeleton className="h-3 w-8 hidden md:inline-block" />
           </div>
           <div className="h-8 px-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground/50">
             <Smartphone className="w-4 h-4" />
-            <span className="hidden md:inline">手机</span>
+            <Skeleton className="h-3 w-8 hidden md:inline-block" />
           </div>
         </div>
 
@@ -62,7 +62,7 @@ export default function RunnerLoading() {
 
           <div className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-border bg-card shadow-xs">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-            <span className="text-xs font-mono text-muted-foreground">正在加载运行环境...</span>
+            <Skeleton className="h-3.5 w-28" />
           </div>
         </div>
       </div>

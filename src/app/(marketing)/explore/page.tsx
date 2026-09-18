@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getAllProjects } from "@/db";
+import { getSiteUrl } from "@/lib/site-url";
 import ExploreClient from "./explore-client";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.pagepod.dev";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "Curated Collections & Topics - AI Tools, Games & Web Apps",

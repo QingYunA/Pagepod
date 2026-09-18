@@ -6,6 +6,46 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
+
+// Auto-heal missing node_modules in Git Worktree environments (ADR-Worktree Discipline)
+function autoHealWorktreeNodeModules() {
+  const localNodeModules = path.resolve(process.cwd(), "node_modules");
+  if (fs.existsSync(localNodeModules)) {
+    return;
+  }
+
+  try {
+    const gitCommonDir = execSync("git rev-parse --git-common-dir", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "ignore"],
+    }).trim();
+
+    if (gitCommonDir) {
+      const mainRepoRoot = path.resolve(process.cwd(), gitCommonDir, "..");
+      const mainNodeModules = path.join(mainRepoRoot, "node_modules");
+      if (fs.existsSync(mainNodeModules) && mainNodeModules !== localNodeModules) {
+        fs.symlinkSync(mainNodeModules, localNodeModules, "junction");
+        console.log(`[Auto-Heal] Successfully symlinked missing node_modules from: ${mainNodeModules}`);
+        return;
+      }
+    }
+  } catch {
+    // Fallback if git rev-parse fails
+  }
+
+  const fallback = "/Users/mac/cyq/Code/开源/html-manager/node_modules";
+  if (fs.existsSync(fallback) && fallback !== localNodeModules) {
+    try {
+      fs.symlinkSync(fallback, localNodeModules, "junction");
+      console.log(`[Auto-Heal] Successfully symlinked missing node_modules from fallback: ${fallback}`);
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+autoHealWorktreeNodeModules();
 
 interface Violation {
   file: string;
@@ -99,15 +139,64 @@ function scanFile(filePath: string) {
         }
       }
 
-      // Check hardcoded Chinese admin fallback
-      if (lineText.includes('|| "管理员"') || lineText.includes("|| '管理员'")) {
-        violations.push({
-          file: relPath,
-          line: lineNum,
-          rule: "AGENTS.md 1.4 (Bilingual Internationalization)",
-          match: lineText.trim(),
-          message: "Hardcoded Chinese fallback '管理员' detected. Must dynamically support 'Admin' in English mode.",
-        });
+      // Check hardcoded Chinese in UI components (AGENTS.md 1.4: Bilingual Internationalization Invariant)
+      const isCoreUiFile =
+        relPath.includes("src/app/p/") ||
+        relPath.includes("src/components/hover-sandbox-preview.tsx") ||
+        relPath.includes("src/components/static-project-poster.tsx") ||
+        relPath.includes("src/components/theme-toggle.tsx") ||
+        relPath.includes("src/components/home-header.tsx") ||
+        relPath.includes("src/components/user-dropdown.tsx") ||
+        relPath.includes("src/components/showcase-gallery.tsx") ||
+        relPath.includes("src/components/public-risk-dialog.tsx");
+
+      if (isCoreUiFile && /[\u4e00-\u9fa5]/.test(lineText)) {
+        const cleanLine = lineText.replace(/\/\/.*$/, "").replace(/\/\*.*?\*\//g, "").trim();
+        const hasI18nProtection =
+          cleanLine.includes("locale") ||
+          cleanLine.includes("isZh") ||
+          cleanLine.includes("activeLocale") ||
+          cleanLine.includes("languageZh") ||
+          cleanLine.includes("nameZh") ||
+          cleanLine.includes("descZh") ||
+          cleanLine.includes("badgeZh") ||
+          cleanLine.includes(" / "); // Bilingual slash pattern in Server Component error pages
+
+        // A. Hardcoded logical fallback: || "中文"
+        const fallbackMatch = cleanLine.match(/\|\|\s*["'`][^"'`]*[\u4e00-\u9fa5]+[^"'`]*["'`]/);
+        if (fallbackMatch && !hasI18nProtection) {
+          violations.push({
+            file: relPath,
+            line: lineNum,
+            rule: "AGENTS.md 1.4 (Bilingual Internationalization / No Chinese Fallback)",
+            match: fallbackMatch[0],
+            message: `Hardcoded Chinese fallback '${fallbackMatch[0]}' detected in UI component. Must dynamically provide English string via translations.ts.`,
+          });
+        }
+
+        // B. Hardcoded HTML accessibility/tooltip attributes: title="..." or aria-label="..."
+        const attrMatch = cleanLine.match(/(title|aria-label)\s*=\s*["'`][^"'`]*[\u4e00-\u9fa5]+[^"'`]*["'`]/);
+        if (attrMatch && !hasI18nProtection) {
+          violations.push({
+            file: relPath,
+            line: lineNum,
+            rule: "AGENTS.md 1.4 (Bilingual Internationalization / No Hardcoded Tooltip/Aria)",
+            match: attrMatch[0],
+            message: `Hardcoded Chinese attribute '${attrMatch[0]}' detected in UI component. Must use localized string from translations.ts or dynamic locale condition.`,
+          });
+        }
+
+        // C. Hardcoded standalone Chinese text in JSX tags: <span>中文</span> or >中文<
+        const jsxTextMatch = cleanLine.match(/<[A-Za-z0-9_.]+\b[^>]*>[^<]*[\u4e00-\u9fa5]+[^<]*<\/[A-Za-z0-9_.]+>/);
+        if (jsxTextMatch && !hasI18nProtection) {
+          violations.push({
+            file: relPath,
+            line: lineNum,
+            rule: "AGENTS.md 1.4 (Bilingual Internationalization / No Hardcoded JSX Text)",
+            match: jsxTextMatch[0],
+            message: `Hardcoded Chinese JSX text '${jsxTextMatch[0]}' detected in UI component. Must be wrapped with t.runner / t.gallery or conditional on locale.`,
+          });
+        }
       }
 
       // Check banned emoji icons in UI code (AGENTS.md 1.1)
@@ -121,6 +210,21 @@ function scanFile(filePath: string) {
           match: emojiMatch[0],
           message: `Banned emoji '${emojiMatch[0]}' detected in UI component. AGENTS.md strictly forbids emoji icons; use lucide-react line icons instead.`,
         });
+      }
+
+      // Check banned sub-12px micro-text in UI components (AGENTS.md 1.2 & ADR-0008)
+      const customPxMatch = lineText.match(/\btext-\[([0-9]+(?:\.[0-9]+)?)px\]/);
+      if (customPxMatch) {
+        const px = parseFloat(customPxMatch[1]);
+        if (px < 12) {
+          violations.push({
+            file: relPath,
+            line: lineNum,
+            rule: "AGENTS.md 1.2 & ADR-0008 (Absolute 12px Typography Floor)",
+            match: customPxMatch[0],
+            message: `Banned sub-12px font size '${customPxMatch[0]}' (${px}px) detected. Standard minimum is 12px (text-xs).`,
+          });
+        }
       }
     }
   });

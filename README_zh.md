@@ -9,6 +9,7 @@
 # Pagepod
 
 <p><strong>简单、轻量且支持自托管的 HTML 运行与分享工具。</strong><br>
+在线免配置托管：<a href="https://www.pagepod.dev"><strong>Pagepod (pagepod.dev)</strong></a> — 免配置 HTML 文件免费托管，拖拽 3 秒生成在线分享链接与作品展台。<br>
 单文件 HTML 或带素材的 zip 压缩包，拖进来就能安全运行并生成分享链接。零构建步骤、严格沙箱隔离、没有云厂商高额流量费。</p>
 
 <p>
@@ -20,8 +21,8 @@
 </p>
 
 <p>
-  <a href="https://pagepod.dev">官方网站</a> ·
-  <a href="https://pagepod.dev/explore">在线演示</a> ·
+  <a href="https://www.pagepod.dev">免费在线托管</a> ·
+  <a href="https://www.pagepod.dev/explore">作品画廊</a> ·
   <a href="#部署方案">部署方案</a> ·
   <a href="#工作原理">工作原理</a> ·
   <a href="#对比矩阵">对比矩阵</a> ·

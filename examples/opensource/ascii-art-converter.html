@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image to ASCII Art Converter</title>
+  <!--
+    Open Source Provenance:
+    Author: Creative Coding Open Community
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: ui-monospace, monospace;
+      background: #09090b;
+      color: #fafafa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 0.75rem 1.5rem;
+      background: #18181b;
+      border-bottom: 1px solid #27272a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 { font-size: 1rem; font-weight: 600; font-family: -apple-system, sans-serif; }
+    .toolbar { display: flex; gap: 0.75rem; align-items: center; }
+    button {
+      background: #27272a;
+      color: #fafafa;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    button.primary { background: #fafafa; color: #09090b; font-weight: 600; }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem;
+      overflow: auto;
+    }
+    .ascii-pre {
+      font-size: 6px;
+      line-height: 6px;
+      letter-spacing: 1px;
+      color: #38bdf8;
+      background: #111113;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #27272a;
+      white-space: pre;
+      user-select: all;
+    }
+    canvas { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Image to ASCII Art Converter</h1>
+    <div class="toolbar">
+      <input type="file" id="imageLoader" accept="image/*" style="display:none" onchange="handleImage(event)">
+      <button onclick="document.getElementById('imageLoader').click()">Upload Image</button>
+      <button class="primary" onclick="copyAscii()">Copy ASCII Text</button>
+    </div>
+  </header>
+
+  <main>
+    <canvas id="canvas"></canvas>
+    <pre class="ascii-pre" id="asciiOutput">Loading sample art...</pre>
+  </main>
+
+  <script>
+    const chars = '@%#*+=-:. ';
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const asciiOutput = document.getElementById('asciiOutput');
+
+    function renderAscii(img) {
+      const width = 80;
+      const height = Math.round((img.height / img.width) * width * 0.5);
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.drawImage(img, 0, 0, width, height);
+      const imgData = ctx.getImageData(0, 0, width, height).data;
+
+      let result = '';
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const offset = (y * width + x) * 4;
+          const r = imgData[offset];
+          const g = imgData[offset + 1];
+          const b = imgData[offset + 2];
+          const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+          const charIndex = Math.floor(brightness * (chars.length - 1));
+          result += chars[charIndex];
+        }
+        result += '\n';
+      }
+      asciiOutput.textContent = result;
+    }
+
+    function handleImage(e) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = () => renderAscii(img);
+        img.src = event.target.result;
+      }
+      reader.readAsDataURL(e.target.files[0]);
+    }
+
+    function copyAscii() {
+      navigator.clipboard.writeText(asciiOutput.textContent);
+      alert('ASCII Art copied to clipboard!');
+    }
+
+    // Default procedural demo image
+    window.onload = function() {
+      const demoCanvas = document.createElement('canvas');
+      demoCanvas.width = 100; demoCanvas.height = 100;
+      const dctx = demoCanvas.getContext('2d');
+      dctx.fillStyle = '#ffffff';
+      dctx.beginPath();
+      dctx.arc(50, 50, 40, 0, Math.PI * 2);
+      dctx.fill();
+      dctx.fillStyle = '#000000';
+      dctx.beginPath();
+      dctx.arc(35, 40, 6, 0, Math.PI * 2);
+      dctx.arc(65, 40, 6, 0, Math.PI * 2);
+      dctx.fill();
+      dctx.beginPath();
+      dctx.arc(50, 60, 20, 0, Math.PI);
+      dctx.stroke();
+
+      const img = new Image();
+      img.onload = () => renderAscii(img);
+      img.src = demoCanvas.toDataURL();
+    };
+  </script>
+</body>
+</html>

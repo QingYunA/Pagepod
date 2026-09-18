@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>社交动态与朋友圈排版原型设计器 - Social Feed Prototype</title>
+  <title>朋友圈界面模拟器 - 社交动态排版与预览 (Social Feed)</title>
   <style>
     :root {
       --bg: #09090b;
@@ -45,7 +45,7 @@
       font-weight: 600;
     }
     .badge {
-      font-size: 11px;
+      font-size: 12px;
       padding: 2px 8px;
       border-radius: 999px;
       border: 1px solid var(--border);
@@ -254,8 +254,8 @@
 
   <header>
     <div class="brand">
-      <h1>社交动态与朋友圈排版原型设计器</h1>
-      <span class="badge">高保真移动端预览</span>
+      <h1>朋友圈界面模拟器</h1>
+      <span class="badge">移动端高保真预览</span>
       <span class="badge">MIT License</span>
     </div>
     <div>
@@ -280,7 +280,7 @@
           <div class="post-item">
             <div class="avatar" id="dispAvatar">青</div>
             <div class="post-content">
-              <div class="post-author" id="dispAuthor">云青实验室</div>
+              <div class="post-author" id="dispAuthor">云青</div>
               <div class="post-text" id="dispText">经过数周密闭打磨，Pagepod 全新纯自包含开源 HTML 展厅正式上线！基于极简 Zinc 工业美学，零外部不可靠 CDN 依赖，毫秒级独立沙箱运行。欢迎同道朋友品鉴交流！</div>
               <div class="media-grid grid-4" id="dispMediaGrid">
                 <div class="media-cell" style="background: #3b82f6; color: #fff;">配图 1</div>
@@ -314,7 +314,7 @@
         <div class="card-title">基本信息与文案编辑</div>
         <div class="form-group">
           <label>发布者昵称</label>
-          <input type="text" id="inputAuthor" value="云青实验室">
+          <input type="text" id="inputAuthor" value="云青">
         </div>
         <div class="form-group">
           <label>动态正文内容</label>
@@ -325,7 +325,7 @@
           <select id="selectGrid">
             <option value="4">4 张图片 (2x2 对称排版)</option>
             <option value="1">1 张大图 (单图横幅视差)</option>
-            <option value="9">9 张图片 (九宫格矩阵)</option>
+            <option value="9">9 张图片 (九宫格排版)</option>
             <option value="0">无配图 (纯文字动态)</option>
           </select>
         </div>
@@ -402,7 +402,7 @@
     });
 
     document.getElementById('btnPresetLaunch').addEventListener('click', () => {
-      inputAuthor.value = '云青实验室';
+      inputAuthor.value = '云青';
       inputText.value = '经过数周密闭打磨，Pagepod 全新纯自包含开源 HTML 展厅正式上线！基于极简 Zinc 工业美学，零外部不可靠 CDN 依赖，毫秒级独立沙箱运行。欢迎同道朋友品鉴交流！';
       selectGrid.value = '4';
       inputMeta.value = '10 分钟前 · 深圳市';

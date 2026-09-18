@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Bird - HTML5 Canvas Arcade</title>
+  <!--
+    Open Source Provenance:
+    Author: Nebez Briefkani & Open Source Contributors
+    Upstream: https://github.com/nebez/floppybird
+    License: MIT
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #09090b;
+      color: #fafafa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .wrapper {
+      position: relative;
+      border: 1px solid #27272a;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+    canvas {
+      display: block;
+      background: #70c5ce;
+      cursor: pointer;
+    }
+    .instructions {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #71717a;
+      font-mono: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <canvas id="gameCanvas" width="320" height="480"></canvas>
+  </div>
+  <div class="instructions">Press Space or Tap Screen to Flap</div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let frames = 0;
+    const DEGREE = Math.PI / 180;
+
+    const state = {
+      current: 0,
+      getReady: 0,
+      game: 1,
+      over: 2
+    };
+
+    const startBtn = {
+      x: 120,
+      y: 263,
+      w: 83,
+      h: 29
+    };
+
+    function flapAction() {
+      switch(state.current) {
+        case state.getReady:
+          state.current = state.game;
+          break;
+        case state.game:
+          bird.flap();
+          break;
+        case state.over:
+          pipes.reset();
+          bird.speedReset();
+          score.reset();
+          state.current = state.getReady;
+          break;
+      }
+    }
+
+    canvas.addEventListener('click', flapAction);
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        e.preventDefault();
+        flapAction();
+      }
+    });
+
+    const bird = {
+      x: 50,
+      y: 150,
+      w: 24,
+      h: 24,
+      radius: 12,
+      gravity: 0.25,
+      jump: 4.6,
+      speed: 0,
+      rotation: 0,
+
+      draw: function() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+
+        // Draw bird body
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eye
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(4, -4, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(5, -4, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Beak
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.moveTo(8, -2);
+        ctx.lineTo(16, 2);
+        ctx.lineTo(8, 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Wing
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.ellipse(-4, 2, 6, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      },
+
+      flap: function() {
+        this.speed = -this.jump;
+      },
+
+      update: function() {
+        if (state.current === state.getReady) {
+          this.y = 150 + Math.sin(frames * 0.1) * 5;
+          this.rotation = 0;
+        } else {
+          this.speed += this.gravity;
+          this.y += this.speed;
+
+          if (this.y + this.radius >= canvas.height - 40) {
+            this.y = canvas.height - 40 - this.radius;
+            state.current = state.over;
+          }
+
+          if (this.speed >= this.jump) {
+            this.rotation = 90 * DEGREE;
+          } else {
+            this.rotation = -25 * DEGREE;
+          }
+        }
+      },
+
+      speedReset: function() {
+        this.speed = 0;
+        this.y = 150;
+      }
+    };
+
+    const pipes = {
+      position: [],
+      w: 48,
+      gap: 100,
+      dx: 2,
+
+      draw: function() {
+        for (let i = 0; i < this.position.length; i++) {
+          let p = this.position[i];
+          let topY = p.y;
+          let bottomY = p.y + this.gap;
+
+          ctx.fillStyle = '#22c55e';
+          ctx.strokeStyle = '#15803d';
+          ctx.lineWidth = 2;
+
+          // Top pipe
+          ctx.fillRect(p.x, 0, this.w, topY);
+          ctx.strokeRect(p.x, 0, this.w, topY);
+
+          // Bottom pipe
+          ctx.fillRect(p.x, bottomY, this.w, canvas.height - bottomY - 40);
+          ctx.strokeRect(p.x, bottomY, this.w, canvas.height - bottomY - 40);
+        }
+      },
+
+      update: function() {
+        if (state.current !== state.game) return;
+
+        if (frames % 100 === 0) {
+          this.position.push({
+            x: canvas.width,
+            y: Math.floor(Math.random() * (canvas.height - 200 - 40)) + 40
+          });
+        }
+
+        for (let i = 0; i < this.position.length; i++) {
+          let p = this.position[i];
+          p.x -= this.dx;
+
+          // Collision detection
+          let bottomPipeY = p.y + this.gap;
+
+          // Top pipe collision
+          if (
+            bird.x + bird.radius > p.x &&
+            bird.x - bird.radius < p.x + this.w &&
+            bird.y - bird.radius < p.y
+          ) {
+            state.current = state.over;
+          }
+
+          // Bottom pipe collision
+          if (
+            bird.x + bird.radius > p.x &&
+            bird.x - bird.radius < p.x + this.w &&
+            bird.y + bird.radius > bottomPipeY
+          ) {
+            state.current = state.over;
+          }
+
+          // Score check
+          if (p.x + this.w < bird.x && !p.scored) {
+            score.value += 1;
+            score.best = Math.max(score.value, score.best);
+            p.scored = true;
+          }
+
+          // Remove offscreen pipes
+          if (p.x + this.w <= 0) {
+            this.position.shift();
+            i--;
+          }
+        }
+      },
+
+      reset: function() {
+        this.position = [];
+      }
+    };
+
+    const score = {
+      best: 0,
+      value: 0,
+
+      draw: function() {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+
+        if (state.current === state.game) {
+          ctx.font = 'bold 36px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(this.value, canvas.width / 2, 50);
+          ctx.strokeText(this.value, canvas.width / 2, 50);
+        } else if (state.current === state.over) {
+          ctx.fillStyle = 'rgba(0,0,0,0.6)';
+          ctx.fillRect(40, 160, 240, 160);
+          ctx.strokeStyle = '#71717a';
+          ctx.strokeRect(40, 160, 240, 160);
+
+          ctx.fillStyle = '#ef4444';
+          ctx.font = 'bold 24px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('GAME OVER', canvas.width / 2, 200);
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = '16px monospace';
+          ctx.fillText(`Score: ${this.value}`, canvas.width / 2, 240);
+          ctx.fillText(`Best:  ${this.best}`, canvas.width / 2, 270);
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = '12px monospace';
+          ctx.fillText('Click to Play Again', canvas.width / 2, 305);
+        } else if (state.current === state.getReady) {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = 'bold 22px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('GET READY', canvas.width / 2, 220);
+          ctx.font = '14px monospace';
+          ctx.fillText('Tap or Space to Flap', canvas.width / 2, 250);
+        }
+      },
+
+      reset: function() {
+        this.value = 0;
+      }
+    };
+
+    function drawGround() {
+      ctx.fillStyle = '#ded895';
+      ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+      ctx.fillStyle = '#73bf2e';
+      ctx.fillRect(0, canvas.height - 40, canvas.width, 8);
+    }
+
+    function loop() {
+      ctx.fillStyle = '#70c5ce';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      pipes.update();
+      pipes.draw();
+
+      drawGround();
+
+      bird.update();
+      bird.draw();
+
+      score.draw();
+
+      frames++;
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>
