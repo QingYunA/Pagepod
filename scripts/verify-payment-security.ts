@@ -185,12 +185,12 @@ assert(WAFFO_PRODUCTS.pro.currency === "USD", "Waffo Pro tier currency is USD");
 assert(WAFFO_PRODUCTS.pro.productId.startsWith("PROD_"), "Waffo Pro has valid Product ID");
 
 assert(
-  WAFFO_PRODUCTS.lite.amount === PLAN_PRICING.lite.amount,
-  "Price parity: Waffo Lite equals PayPal Lite ($4.90)"
+  WAFFO_PRODUCTS.lite.amount === PLAN_PRICING.lite.originalAmount,
+  "Price parity: Waffo Lite base price equals PayPal Lite base price ($4.90)"
 );
 assert(
-  WAFFO_PRODUCTS.pro.amount === PLAN_PRICING.pro.amount,
-  "Price parity: Waffo Pro equals PayPal Pro ($9.90)"
+  WAFFO_PRODUCTS.pro.amount === PLAN_PRICING.pro.originalAmount,
+  "Price parity: Waffo Pro base price equals PayPal Pro base price ($9.90)"
 );
 
 console.log("\n=== 6. Waffo IDOR & Order Status Security ===");
