@@ -6,6 +6,7 @@
 import { sanitizeRedirectPath } from "../src/lib/safe-redirect";
 import { PLAN_PRICING, type PlanTier } from "../src/lib/paypal";
 import { PLAN_ENTITLEMENTS } from "../src/lib/services/billing-service";
+import { WAFFO_PRODUCTS } from "../src/lib/waffo";
 
 let passed = 0;
 let failed = 0;
@@ -169,8 +170,118 @@ assert(PLAN_ENTITLEMENTS.free.maxProjects === 20, "Free tier allows 20 projects"
 assert(PLAN_ENTITLEMENTS.lite.maxProjects === 500, "Lite tier allows 500 projects");
 assert(PLAN_ENTITLEMENTS.pro.maxProjects === Infinity, "Pro tier allows unlimited projects");
 
+console.log("\n=== 5. Waffo Pancake Pricing & Product Invariants ===");
+
+assert(WAFFO_PRODUCTS.lite !== undefined, "Lite tier is defined in WAFFO_PRODUCTS");
+assert(WAFFO_PRODUCTS.lite.amount === "4.90", "Waffo Lite tier price is strictly $4.90 USD");
+assert(WAFFO_PRODUCTS.lite.currency === "USD", "Waffo Lite tier currency is USD");
+assert(WAFFO_PRODUCTS.lite.productId.startsWith("PROD_"), "Waffo Lite has valid Product ID");
+
+assert(WAFFO_PRODUCTS.pro !== undefined, "Pro tier is defined in WAFFO_PRODUCTS");
+assert(WAFFO_PRODUCTS.pro.amount === "9.90", "Waffo Pro tier price is strictly $9.90 USD");
+assert(WAFFO_PRODUCTS.pro.currency === "USD", "Waffo Pro tier currency is USD");
+assert(WAFFO_PRODUCTS.pro.productId.startsWith("PROD_"), "Waffo Pro has valid Product ID");
+
+assert(
+  WAFFO_PRODUCTS.lite.amount === PLAN_PRICING.lite.amount,
+  "Price parity: Waffo Lite equals PayPal Lite ($4.90)"
+);
+assert(
+  WAFFO_PRODUCTS.pro.amount === PLAN_PRICING.pro.amount,
+  "Price parity: Waffo Pro equals PayPal Pro ($9.90)"
+);
+
+console.log("\n=== 6. Waffo IDOR & Order Status Security ===");
+
+interface TestWaffoOrder {
+  id: string;
+  userId: string;
+  waffoSessionId: string;
+  status: "created" | "completed";
+  planTier: "lite" | "pro";
+}
+
+function checkWaffoOrderStatus(
+  order: TestWaffoOrder | null | undefined,
+  user: TestUser | null | undefined
+): { allowed: boolean; status: number; completed?: boolean; error?: string } {
+  if (!user || !user.id) {
+    return { allowed: false, status: 401, error: "Authentication required" };
+  }
+  if (!order) {
+    return { allowed: false, status: 404, error: "Order not found" };
+  }
+  if (order.userId !== user.id && user.role !== "admin") {
+    return { allowed: false, status: 403, error: "Forbidden: You are not authorized to access this order" };
+  }
+  return { allowed: true, status: 200, completed: order.status === "completed" };
+}
+
+const aliceWaffoOrder: TestWaffoOrder = {
+  id: "ord_waffo_alice_001",
+  userId: "user_alice_123",
+  waffoSessionId: "cs_waffo_test_123",
+  status: "created",
+  planTier: "pro",
+};
+
+// 1. Unauthenticated check
+const waffoUnauth = checkWaffoOrderStatus(aliceWaffoOrder, null);
+assert(!waffoUnauth.allowed && waffoUnauth.status === 401, "Waffo: Blocks unauthenticated status check (401)");
+
+// 2. Not found check
+const waffoNotFound = checkWaffoOrderStatus(null, alice);
+assert(!waffoNotFound.allowed && waffoNotFound.status === 404, "Waffo: Returns 404 for missing order");
+
+// 3. Legitimate owner check
+const waffoOwner = checkWaffoOrderStatus(aliceWaffoOrder, alice);
+assert(waffoOwner.allowed && waffoOwner.status === 200 && !waffoOwner.completed, "Waffo: Allows owner to check order status (200)");
+
+// 4. IDOR attempt by Bob
+const waffoIdor = checkWaffoOrderStatus(aliceWaffoOrder, bobAttacker);
+assert(!waffoIdor.allowed && waffoIdor.status === 403, "Waffo BLOCKS IDOR: Attacker cannot check Alice's order status (403)");
+
+// 5. Admin check
+const waffoAdmin = checkWaffoOrderStatus(aliceWaffoOrder, adminUser);
+assert(waffoAdmin.allowed && waffoAdmin.status === 200, "Waffo: Allows platform admin to inspect order status");
+
+console.log("\n=== 7. Waffo Webhook Delivery Deduplication & Idempotency ===");
+
+const processedDeliveries = new Set<string>();
+
+function simulateWebhookDelivery(
+  deliveryId: string,
+  eventType: string,
+  order: TestWaffoOrder
+): { processed: boolean; duplicated: boolean } {
+  if (processedDeliveries.has(deliveryId)) {
+    return { processed: false, duplicated: true };
+  }
+  if (eventType === "order.completed") {
+    order.status = "completed";
+  }
+  processedDeliveries.add(deliveryId);
+  return { processed: true, duplicated: false };
+}
+
+const testDeliveryId = "del_waffo_event_uuid_101";
+const firstDelivery = simulateWebhookDelivery(testDeliveryId, "order.completed", aliceWaffoOrder);
+assert(firstDelivery.processed && !firstDelivery.duplicated, "First webhook delivery is processed successfully");
+assert(aliceWaffoOrder.status === "completed", "Webhook marks Waffo order as completed");
+
+const duplicateDelivery = simulateWebhookDelivery(testDeliveryId, "order.completed", aliceWaffoOrder);
+assert(!duplicateDelivery.processed && duplicateDelivery.duplicated, "Duplicate webhook delivery is deduplicated (idempotent)");
+
+// Re-check order status after completion
+const postCompletionCheck = checkWaffoOrderStatus(aliceWaffoOrder, alice);
+assert(
+  postCompletionCheck.allowed && postCompletionCheck.completed === true,
+  "Order status reflects completed state after webhook"
+);
+
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
 
 if (failed > 0) {
   process.exit(1);
 }
+

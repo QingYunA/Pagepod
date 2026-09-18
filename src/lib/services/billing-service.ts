@@ -10,7 +10,18 @@ import {
   getOrderByPayPalId,
   completeOrderRecord,
   getUserProjectsCount,
+  getOrderById,
+  getOrderByWaffoSessionId,
+  completeWaffoOrderRecord,
+  isWebhookDeliveryProcessed,
+  recordWebhookDelivery,
 } from "@/db";
+import {
+  createWaffoCheckoutSession,
+  verifyWaffoWebhookSignature,
+  WAFFO_PRODUCTS,
+  type WaffoPlanTier,
+} from "@/lib/waffo";
 import type { CurrentUser } from "@/lib/auth";
 import {
   ProjectForbiddenError,
@@ -195,3 +206,170 @@ export async function captureCheckoutOrder(
     planTier: updated?.planTier || localOrder?.planTier || "lite",
   };
 }
+
+/**
+ * Initiates a Waffo Pancake hosted checkout order for a lifetime plan tier.
+ */
+export async function createWaffoCheckoutOrder(
+  user: CurrentUser,
+  planTier: string,
+  successUrl?: string
+): Promise<{
+  orderId: string;
+  sessionId: string;
+  checkoutUrl: string;
+  planTier: "lite" | "pro";
+  amount: string;
+  expiresAt?: string;
+}> {
+  if (isSelfHosted()) {
+    throw new ProjectForbiddenError("Commercial payment is disabled in self-hosted mode");
+  }
+
+  if (!user || !user.id) {
+    throw new ProjectForbiddenError("Authentication required to initiate checkout");
+  }
+
+  if (!planTier || !(planTier in WAFFO_PRODUCTS)) {
+    throw new ProjectValidationError("Invalid or missing plan tier. Supported: 'lite', 'pro'");
+  }
+
+  const tier = planTier as WaffoPlanTier;
+  const localOrderId = `ord_${nanoid(16)}`;
+
+  const session = await createWaffoCheckoutSession({
+    planTier: tier,
+    userId: user.id,
+    userEmail: user.email || undefined,
+    orderId: localOrderId,
+    successUrl,
+  });
+
+  await createOrderRecord({
+    id: localOrderId,
+    userId: user.id,
+    userEmail: user.email || null,
+    planTier: tier,
+    amount: session.amount,
+    currency: "USD",
+    status: "created",
+    provider: "waffo",
+    waffoSessionId: session.sessionId,
+  });
+
+  return {
+    orderId: localOrderId,
+    sessionId: session.sessionId,
+    checkoutUrl: session.checkoutUrl,
+    planTier: tier,
+    amount: session.amount,
+    expiresAt: session.expiresAt,
+  };
+}
+
+/**
+ * Handles incoming Waffo Pancake webhook deliveries with RSA verification and deduplication.
+ */
+export async function processWaffoWebhook(
+  rawBody: string,
+  signature: string
+): Promise<{ success: boolean; eventType?: string; orderId?: string; duplicated?: boolean }> {
+  const event = verifyWaffoWebhookSignature(rawBody, signature);
+
+  if (!event || !event.id) {
+    throw new ProjectValidationError("Invalid Waffo webhook payload structure");
+  }
+
+  // Deduplication check
+  const alreadyProcessed = await isWebhookDeliveryProcessed(event.id);
+  if (alreadyProcessed) {
+    return { success: true, eventType: event.eventType, duplicated: true };
+  }
+
+  const eventType = event.eventType;
+  let targetOrderId: string | undefined;
+
+  if (
+    eventType === "order.completed" ||
+    eventType === "subscription.activated"
+  ) {
+    const data = event.data as Record<string, any> | undefined;
+    const localOrderId =
+      data?.orderMetadata?.orderId ||
+      data?.orderMerchantExternalId;
+    const waffoOrderId = (data?.orderId as string) || event.eventId || `waffo_${Date.now()}`;
+    const waffoSessionId = data?.sessionId as string | undefined;
+
+    const lookupKey = localOrderId || waffoSessionId || waffoOrderId;
+    if (lookupKey) {
+      const completedOrder = await completeWaffoOrderRecord(lookupKey, waffoOrderId);
+      if (completedOrder) {
+        targetOrderId = completedOrder.id;
+      } else {
+        // Enforce local order existence: do NOT mark delivery processed so upstream can retry
+        throw new ProjectNotFoundError(`Target order not found in local records for: ${lookupKey}`);
+      }
+    } else {
+      throw new ProjectValidationError("Missing order identifier in webhook payload");
+    }
+  }
+
+  // Record delivery record only after successful order processing
+  await recordWebhookDelivery(event.id, eventType, "waffo");
+
+  return {
+    success: true,
+    eventType,
+    orderId: targetOrderId,
+    duplicated: false,
+  };
+}
+
+/**
+ * Verifies user ownership (IDOR defense) and returns the current payment status of a Waffo order.
+ */
+export async function getWaffoOrderStatus(
+  user: CurrentUser,
+  orderIdOrSessionId: string
+): Promise<{
+  orderId: string;
+  sessionId: string | null;
+  status: string;
+  planTier: string;
+  completed: boolean;
+}> {
+  if (isSelfHosted()) {
+    throw new ProjectForbiddenError("Commercial payment is disabled in self-hosted mode");
+  }
+
+  if (!user || !user.id) {
+    throw new ProjectForbiddenError("Authentication required to check order status");
+  }
+
+  if (!orderIdOrSessionId || typeof orderIdOrSessionId !== "string") {
+    throw new ProjectValidationError("Invalid or missing orderIdOrSessionId");
+  }
+
+  // 1. Verify order exists
+  let localOrder = await getOrderById(orderIdOrSessionId);
+  if (!localOrder) {
+    localOrder = await getOrderByWaffoSessionId(orderIdOrSessionId);
+  }
+  if (!localOrder) {
+    throw new ProjectNotFoundError("Order record not found");
+  }
+
+  // 2. Strict IDOR protection: only the ordering user or admin can view status
+  if (localOrder.userId !== user.id && user.role !== "admin") {
+    throw new ProjectForbiddenError("Forbidden: You are not authorized to access this order");
+  }
+
+  return {
+    orderId: localOrder.id,
+    sessionId: localOrder.waffoSessionId,
+    status: localOrder.status,
+    planTier: localOrder.planTier,
+    completed: localOrder.status === "completed",
+  };
+}
+

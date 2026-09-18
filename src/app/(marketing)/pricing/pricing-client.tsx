@@ -7,7 +7,7 @@ import { Check, Shield, Sparkles, Zap, ArrowRight, HelpCircle } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/i18n/context";
-import PayPalCheckoutDialog from "@/components/pricing/paypal-checkout-dialog";
+import UnifiedCheckoutDialog from "@/components/pricing/unified-checkout-dialog";
 
 export default function PricingClient() {
   const { t, locale } = useLanguage();
@@ -15,6 +15,7 @@ export default function PricingClient() {
   const searchParams = useSearchParams();
 
   const [checkoutTier, setCheckoutTier] = useState<"lite" | "pro" | null>(null);
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     email?: string;
@@ -33,9 +34,25 @@ export default function PricingClient() {
       .catch(() => {});
   }, []);
 
-  // Auto-open checkout modal if redirected back with ?tier=...
+  // Auto-open checkout modal if redirected back with ?tier=... or handle payment success
   useEffect(() => {
+    const statusParam = searchParams.get("status");
     const tierParam = searchParams.get("tier");
+
+    // Handle return from hosted checkout after completion
+    if (statusParam === "completed") {
+      setShowSuccessBanner(true);
+      fetch("/api/user/me")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.authenticated && data?.user) {
+            setCurrentUser(data.user);
+          }
+        })
+        .catch(() => {});
+      return;
+    }
+
     if (tierParam === "lite" || tierParam === "pro") {
       if (currentUser) {
         if (currentUser.planTier !== "pro" && (tierParam === "pro" || currentUser.planTier !== "lite")) {
@@ -68,6 +85,28 @@ export default function PricingClient() {
           {t.pricing.desc}
         </p>
       </div>
+
+      {/* Payment Success Alert Banner */}
+      {showSuccessBanner && (
+        <div className="max-w-2xl mx-auto mb-6 p-3.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-card-foreground flex items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <p className="text-xs sm:text-sm font-medium text-foreground">
+              {isZh
+                ? "支付成功！您的会员方案已生效，账号状态已自动刷新。"
+                : "Payment successful! Your membership plan is now active."}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => setShowSuccessBanner(false)}
+          >
+            {isZh ? "知道了" : "Dismiss"}
+          </Button>
+        </div>
+      )}
 
       {/* Account Status Pill */}
       <div className="flex justify-center mb-12">
@@ -284,8 +323,8 @@ export default function PricingClient() {
         </div>
       </div>
 
-      {/* PayPal Checkout Dialog */}
-      <PayPalCheckoutDialog
+      {/* Unified Multi-Channel Checkout Dialog (Waffo Pancake + PayPal) */}
+      <UnifiedCheckoutDialog
         isOpen={Boolean(checkoutTier)}
         planTier={checkoutTier || "lite"}
         onClose={() => setCheckoutTier(null)}
