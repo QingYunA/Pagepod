@@ -99,8 +99,11 @@ export const orders = pgTable("orders", {
   amount: text("amount").notNull(), // '4.90' | '9.90'
   currency: text("currency").notNull().default("USD"),
   status: text("status").notNull().default("created"), // 'created' | 'completed' | 'failed'
-  paypalOrderId: text("paypal_order_id").notNull().unique(),
+  provider: text("provider").notNull().default("paypal"), // 'paypal' | 'waffo'
+  paypalOrderId: text("paypal_order_id").unique(),
   paypalCaptureId: text("paypal_capture_id"),
+  waffoSessionId: text("waffo_session_id").unique(),
+  waffoOrderId: text("waffo_order_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -110,6 +113,13 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   planTier: text("plan_tier").notNull().default("free"), // 'free' | 'lite' | 'pro'
   orderId: text("order_id"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const webhookDeliveries = pgTable("webhook_deliveries", {
+  id: text("id").primaryKey(), // Delivery ID (e.g. event.id)
+  provider: text("provider").notNull().default("waffo"),
+  eventType: text("event_type").notNull(),
+  processedAt: timestamp("processed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const notifications = pgTable(
@@ -137,6 +147,8 @@ export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type NewUserSubscription = typeof userSubscriptions.$inferInsert;
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
+export type NewWebhookDelivery = typeof webhookDeliveries.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 export type Folder = typeof folders.$inferSelect;

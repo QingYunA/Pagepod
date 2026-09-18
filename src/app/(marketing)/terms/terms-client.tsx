@@ -25,7 +25,7 @@ export default function TermsClient() {
         {page.sections.map((sec, idx) => (
           <section key={idx} className="space-y-2">
             <h2 className="text-base font-semibold text-foreground">{sec.title}</h2>
-            <p>{sec.content}</p>
+            <p className="whitespace-pre-line">{sec.content}</p>
           </section>
         ))}
       </div>

@@ -17,6 +17,8 @@ import type {
   NewOrder,
   UserSubscription,
   NewUserSubscription,
+  WebhookDelivery,
+  NewWebhookDelivery,
   Notification,
   NewNotification,
 } from "./schema";
@@ -57,6 +59,7 @@ interface LocalData {
   apiTokens?: ApiToken[];
   orders?: Order[];
   userSubscriptions?: UserSubscription[];
+  webhookDeliveries?: WebhookDelivery[];
   notifications?: Notification[];
 }
 
@@ -282,12 +285,32 @@ const SQL_ORDERS = `
     amount TEXT NOT NULL,
     currency TEXT NOT NULL DEFAULT 'USD',
     status TEXT NOT NULL DEFAULT 'created',
-    paypal_order_id TEXT NOT NULL UNIQUE,
+    provider TEXT NOT NULL DEFAULT 'paypal',
+    paypal_order_id TEXT UNIQUE,
     paypal_capture_id TEXT,
+    waffo_session_id TEXT UNIQUE,
+    waffo_order_id TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
 `;
+
+const SQL_WEBHOOK_DELIVERIES = `
+  CREATE TABLE IF NOT EXISTS webhook_deliveries (
+    id TEXT PRIMARY KEY,
+    provider TEXT NOT NULL DEFAULT 'waffo',
+    event_type TEXT NOT NULL,
+    processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+`;
+
+const SQL_ORDERS_MIGRATIONS = [
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS provider TEXT NOT NULL DEFAULT 'paypal';`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS waffo_session_id TEXT;`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS waffo_order_id TEXT;`,
+  `ALTER TABLE orders ALTER COLUMN paypal_order_id DROP NOT NULL;`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS orders_waffo_session_id_idx ON orders(waffo_session_id);`,
+];
 
 const SQL_USER_SUBSCRIPTIONS = `
   CREATE TABLE IF NOT EXISTS user_subscriptions (
@@ -391,8 +414,10 @@ async function ensurePostgresTables() {
       SQL_API_TOKENS,
       SQL_ORDERS,
       SQL_USER_SUBSCRIPTIONS,
+      SQL_WEBHOOK_DELIVERIES,
       SQL_NOTIFICATIONS,
       ...SQL_PROJECTS_MIGRATIONS,
+      ...SQL_ORDERS_MIGRATIONS,
     ]) {
       try {
         await pgPool.query(sql);
@@ -1052,13 +1077,17 @@ export async function deleteApiTokenById(id: string, userId: string): Promise<bo
 }
 
 // ----------------------------------------------------
-// Orders & User Subscriptions Operations (PayPal)
+// Orders & User Subscriptions Operations (PayPal & Waffo Pancake)
 // ----------------------------------------------------
 
 export async function createOrderRecord(data: NewOrder): Promise<Order> {
   const db = getDatabase();
   const now = new Date();
-  const existing = await getOrderByPayPalId(data.paypalOrderId);
+  const existing = data.paypalOrderId
+    ? await getOrderByPayPalId(data.paypalOrderId)
+    : data.waffoSessionId
+    ? await getOrderByWaffoSessionId(data.waffoSessionId)
+    : await getOrderById(data.id);
   if (existing) {
     return existing;
   }
@@ -1071,8 +1100,11 @@ export async function createOrderRecord(data: NewOrder): Promise<Order> {
     amount: data.amount,
     currency: data.currency ?? "USD",
     status: data.status ?? "created",
-    paypalOrderId: data.paypalOrderId,
+    provider: data.provider ?? (data.waffoSessionId ? "waffo" : "paypal"),
+    paypalOrderId: data.paypalOrderId ?? null,
     paypalCaptureId: data.paypalCaptureId ?? null,
+    waffoSessionId: data.waffoSessionId ?? null,
+    waffoOrderId: data.waffoOrderId ?? null,
     createdAt: now,
     updatedAt: now,
   };
@@ -1100,6 +1132,29 @@ export async function createOrderRecord(data: NewOrder): Promise<Order> {
   }
 }
 
+export async function getOrderById(orderId: string): Promise<Order | null> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      const rows = await withTableFallback(() =>
+        db
+          .select()
+          .from(schema.orders)
+          .where(eq(schema.orders.id, orderId))
+          .limit(1)
+      );
+      return rows[0] || null;
+    } catch (err) {
+      console.error("getOrderById DB error, fallback to local:", err);
+      const local = readLocalData();
+      return (local.orders || []).find((o) => o.id === orderId) || null;
+    }
+  } else {
+    const local = readLocalData();
+    return (local.orders || []).find((o) => o.id === orderId) || null;
+  }
+}
+
 export async function getOrderByPayPalId(paypalOrderId: string): Promise<Order | null> {
   const db = getDatabase();
   if (db) {
@@ -1120,6 +1175,29 @@ export async function getOrderByPayPalId(paypalOrderId: string): Promise<Order |
   } else {
     const local = readLocalData();
     return (local.orders || []).find((o) => o.paypalOrderId === paypalOrderId) || null;
+  }
+}
+
+export async function getOrderByWaffoSessionId(waffoSessionId: string): Promise<Order | null> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      const rows = await withTableFallback(() =>
+        db
+          .select()
+          .from(schema.orders)
+          .where(eq(schema.orders.waffoSessionId, waffoSessionId))
+          .limit(1)
+      );
+      return rows[0] || null;
+    } catch (err) {
+      console.error("getOrderByWaffoSessionId DB error, fallback to local:", err);
+      const local = readLocalData();
+      return (local.orders || []).find((o) => o.waffoSessionId === waffoSessionId) || null;
+    }
+  } else {
+    const local = readLocalData();
+    return (local.orders || []).find((o) => o.waffoSessionId === waffoSessionId) || null;
   }
 }
 
@@ -1169,6 +1247,119 @@ export async function completeOrderRecord(
 
   await setUserPlanTier(target.userId, target.planTier as "lite" | "pro", target.id);
   return target;
+}
+
+export async function completeWaffoOrderRecord(
+  orderIdOrSessionId: string,
+  waffoOrderId: string
+): Promise<Order | null> {
+  const db = getDatabase();
+  const now = new Date();
+
+  if (db) {
+    try {
+      const updated = await withTableFallback(() =>
+        db
+          .update(schema.orders)
+          .set({
+            status: "completed",
+            waffoOrderId,
+            updatedAt: now,
+          })
+          .where(
+            or(
+              eq(schema.orders.id, orderIdOrSessionId),
+              eq(schema.orders.waffoSessionId, orderIdOrSessionId),
+              eq(schema.orders.waffoOrderId, orderIdOrSessionId)
+            )
+          )
+          .returning()
+      );
+      if (updated[0]) {
+        await setUserPlanTier(
+          updated[0].userId,
+          updated[0].planTier as "lite" | "pro",
+          updated[0].id
+        );
+        return updated[0];
+      }
+    } catch (err) {
+      console.error("completeWaffoOrderRecord DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.orders) local.orders = [];
+  const target = local.orders.find(
+    (o) =>
+      o.id === orderIdOrSessionId ||
+      o.waffoSessionId === orderIdOrSessionId ||
+      o.waffoOrderId === orderIdOrSessionId
+  );
+  if (!target) return null;
+
+  target.status = "completed";
+  target.waffoOrderId = waffoOrderId;
+  target.updatedAt = now;
+  writeLocalData(local);
+
+  await setUserPlanTier(target.userId, target.planTier as "lite" | "pro", target.id);
+  return target;
+}
+
+export async function isWebhookDeliveryProcessed(deliveryId: string): Promise<boolean> {
+  const db = getDatabase();
+  if (db) {
+    try {
+      const rows = await withTableFallback(() =>
+        db
+          .select()
+          .from(schema.webhookDeliveries)
+          .where(eq(schema.webhookDeliveries.id, deliveryId))
+          .limit(1)
+      );
+      return Boolean(rows[0]);
+    } catch (err) {
+      console.error("isWebhookDeliveryProcessed DB error, fallback to local:", err);
+      const local = readLocalData();
+      return (local.webhookDeliveries || []).some((d) => d.id === deliveryId);
+    }
+  } else {
+    const local = readLocalData();
+    return (local.webhookDeliveries || []).some((d) => d.id === deliveryId);
+  }
+}
+
+export async function recordWebhookDelivery(
+  deliveryId: string,
+  eventType: string,
+  provider: string = "waffo"
+): Promise<void> {
+  const db = getDatabase();
+  const newRecord: WebhookDelivery = {
+    id: deliveryId,
+    provider,
+    eventType,
+    processedAt: new Date(),
+  };
+
+  if (db) {
+    try {
+      await withTableFallback(() =>
+        db.insert(schema.webhookDeliveries).values(newRecord).onConflictDoNothing()
+      );
+      return;
+    } catch (err) {
+      console.error("recordWebhookDelivery DB error, fallback to local:", err);
+    }
+  }
+
+  const local = readLocalData();
+  if (!local.webhookDeliveries) local.webhookDeliveries = [];
+  if (!local.webhookDeliveries.some((d) => d.id === deliveryId)) {
+    local.webhookDeliveries.push(newRecord);
+    writeLocalData(local);
+  }
 }
 
 export async function getUserPlanTier(userId: string): Promise<"free" | "lite" | "pro"> {

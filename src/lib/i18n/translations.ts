@@ -457,6 +457,10 @@ export const translations = {
           q: "支持哪些类型的文件上传？",
           a: "支持直接粘贴 HTML 代码、上传 `.html` 文件，以及包含 CSS、JS、图片等完整静态资源的 `.zip` 压缩包。系统会自动解析入口文件并安全加载所有相对路径资源，单个文件最大支持 50MB。",
         },
+        {
+          q: "付费终身版方案支持退款吗？具体的退款政策是什么？",
+          a: "支持。我们为首次购买 Lite 终身版或 Pro 终身版的用户提供 7 天无理由退款保障。如果您在购买后 7 个自然日内需要退款，只需联系 support@pagepod.dev 并附带您的账号与订单号，我们将原路退款。详细条件与例外情况请参阅《服务条款》退款章节。",
+        },
       ],
     },
     explore: {
@@ -529,7 +533,7 @@ export const translations = {
       ],
     },
     termsPage: {
-      badge: "生效日期：2026 年 9 月",
+      badge: "生效日期：2026 年 9 月 (含计费与退款政策更新)",
       title: "服务条款 (Terms of Service)",
       subtitle: "在您使用 Pagepod 托管平台或发布任何 HTML 内容之前，请认真阅读以下服务条款与免责协议。",
       sections: [
@@ -552,6 +556,21 @@ export const translations = {
         {
           title: "5. 侵权与下架机制 (DMCA)",
           content: "我们充分尊重知识产权。如果您发现平台上托管的作品侵犯了您的著作权，请通过 GitHub 仓库或工单提交下架申请，管理员将在核实后迅速处理。",
+        },
+        {
+          title: "6. 付费方案、计费与支付授权",
+          content:
+            "Pagepod 为数字在线软件服务 (SaaS)，提供免费版以及一次性买断制方案（Lite 终身版 $4.90、Pro 终身版 $9.90）。一次性买断方案属于单一授权交易，生效后永久享有对应的项目托管数量与存储空间配额，无任何自动续费或周期性隐形扣费。\n\n本平台的支付服务由具备行业最高安全认证 (PCI-DSS) 的合规商业记录商 (Merchant of Record) Waffo Pancake 及 PayPal 提供安全处理。Pagepod 服务器绝不存储您的完整信用卡号、CVC 码等敏感支付数据。标价未包含各地区法定消费税或增值税（如适用），税费将在收银台结账时根据您所在的国家与法域依法结算。",
+        },
+        {
+          title: "7. 退款政策、申请条件与例外情况",
+          content:
+            "由于数字软件与云端算力资源的即时交付属性，付费方案的退款遵循以下明确规则：\n\n• 7 天退款保障：针对首次购买 Lite 终身版或 Pro 终身版的个人用户，自订单完成之日起 7 个自然日内，若未使用超出合理限度的存储配额，可申请全额退款。\n• 账单错误与重复扣款：凡经核实因系统网络抖动造成的重复扣费或异常扣款，一律承诺 100% 全额原路退还。\n• 不予退款的例外情况：\n  1) 自购买之日起超过 7 个自然日的订单不予受理退款；\n  2) 严重违反本协议第 3 条“合理使用与安全红线”（如利用平台进行钓鱼欺诈、分发恶意代码、侵权滥用）而被平台封禁的违规账号，不予退款；\n  3) 已享受过退款政策的用户再次购买同一方案，不再享受 7 天退款保障。\n• 退款处理流程：请使用您的注册邮箱向 support@pagepod.dev（或通过官方技术工单）提交退款申请，附上订单号（waffoOrderId 或 paypalOrderId）。我们将在 2 个工作日内核验答复，经批准的款项将在 3–5 个工作日内原路退回至您的支付方式。退款完成后，账号权益将即时恢复至免费版。",
+        },
+        {
+          title: "8. 账单异议与先行协商机制",
+          content:
+            "如您在银行对账单上发现任何未识别或存有疑问的扣款条目，我们强烈建议您在联系发卡机构发起争议（Chargeback）前，优先发送邮件至 support@pagepod.dev 与我们沟通。我们承诺在 2 个工作日内响应，并在 5 个工作日内完成排查并妥善解决任何已确认的计费偏差，协助您以最高效透明的方式解决问题。",
         },
       ],
     },
@@ -1047,6 +1066,10 @@ export const translations = {
           q: "What file formats and upload sizes are supported?",
           a: "Pasted HTML code, `.html` files, and `.zip` archives containing CSS, JS, and image assets up to 50MB per upload. Pagepod automatically resolves index entrypoints and relative paths.",
         },
+        {
+          q: "Do you offer refunds for lifetime plans? What is the refund policy?",
+          a: "Yes. We provide a 7-day money-back guarantee for first-time purchasers of Lite and Pro lifetime plans. If you are not satisfied within 7 days of purchase, email support@pagepod.dev with your account and order ID for a full refund. Please refer to Section 7 of our Terms of Service for complete details.",
+        },
       ],
     },
     explore: {
@@ -1119,7 +1142,7 @@ export const translations = {
       ],
     },
     termsPage: {
-      badge: "Last Updated: September 2026",
+      badge: "Last Updated: September 2026 (Billing & Refund Policy Added)",
       title: "Terms of Service",
       subtitle: "Please read these terms carefully before deploying or publishing projects on Pagepod.",
       sections: [
@@ -1142,6 +1165,21 @@ export const translations = {
         {
           title: "5. Termination & Takedowns",
           content: "We reserve the right to remove any public project or suspend accounts that violate our acceptable use policy. Copyright owners may submit takedown notices via GitHub issues or directly to platform administrators.",
+        },
+        {
+          title: "6. Plans, Pricing & Payment Authorization",
+          content:
+            "Pagepod provides digital Software-as-a-Service (SaaS) products, offering a free Starter plan and one-time payment lifetime deals (Lite Lifetime at $4.90, Pro Lifetime at $9.90). Lifetime plans are single, one-time transactions granting perpetual storage quotas and perks without recurring subscription renewals or hidden fees.\n\nAll commercial transactions are processed securely by PCI-DSS compliant payment processors, primarily Waffo Pancake (Merchant of Record / Global Card Processing) and PayPal. Pagepod does not store payment card numbers or sensitive credentials on its servers. Prices are exclusive of applicable taxes unless stated otherwise; applicable VAT or sales tax will be collected at checkout based on your jurisdiction.",
+        },
+        {
+          title: "7. Refund Policy, Conditions & Exceptions",
+          content:
+            "Due to the immediate provisioning of digital software access and cloud storage resources, the following refund rules apply:\n\n• 7-Day Money-Back Guarantee: First-time purchasers of Lite or Pro lifetime plans may request a full refund within 7 calendar days of purchase, provided that resource consumption has not exceeded reasonable limits.\n• Duplicate Charges & Billing Errors: Any confirmed duplicate charges or technical billing errors will be refunded in full.\n• Non-Refundable Exceptions:\n  1) Refund requests submitted more than 7 calendar days after the purchase date are strictly non-refundable;\n  2) Accounts suspended or terminated for violations of Section 3 (Acceptable Use Policy, such as phishing, malware hosting, or copyright infringement) forfeit all refund eligibility;\n  3) Repeat purchases by the same user following a previous refund are not eligible for the 7-day guarantee.\n• Refund Request Process: To request a refund, contact support@pagepod.dev from your registered email address with your transaction ID (waffoOrderId or paypalOrderId). We will review requests within 2 business days and process approved refunds back to your original payment method within 3–5 business days. Upon refund, account privileges will revert to the Starter tier.",
+        },
+        {
+          title: "8. Billing Disputes & Pre-Dispute Resolution",
+          content:
+            "If you notice an unfamiliar charge on your credit card or bank statement, please contact us at support@pagepod.dev before initiating a dispute or chargeback with your financial institution. We commit to responding within 2 business days and resolving confirmed billing discrepancies within 5 business days.",
         },
       ],
     },
