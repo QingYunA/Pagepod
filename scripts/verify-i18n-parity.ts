@@ -97,9 +97,13 @@ if (failures === 0) {
 const CRITICAL_FILES = [
   "src/app/workspace/upload/page.tsx",
   "src/app/workspace/projects/[id]/edit/editor-client.tsx",
+  "src/app/workspace/settings/settings-client.tsx",
+  "src/app/workspace/settings/page.tsx",
   "src/app/workspace/settings/tokens/tokens-client.tsx",
   "src/app/workspace/settings/tokens/page.tsx",
   "src/app/workspace/admin-table.tsx",
+  "src/app/workspace/move-folder-dialog.tsx",
+  "src/app/workspace/workspace-folder-tree.tsx",
   "src/components/public-risk-dialog.tsx",
 ];
 

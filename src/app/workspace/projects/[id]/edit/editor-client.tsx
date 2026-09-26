@@ -368,12 +368,12 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <div>
-                  <label htmlFor="edit-title" className="block text-sm font-medium text-foreground mb-1.5">{t.upload.titleLabel}</label>
+                  <label htmlFor="edit-title" className="block text-sm font-medium text-foreground mb-1.5">{t.editor.titleLabel}</label>
                   <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} className="h-9 text-sm" />
                 </div>
 
                 <div>
-                  <label htmlFor="edit-description" className="block text-sm font-medium text-foreground mb-1.5">{t.upload.descLabel}</label>
+                  <label htmlFor="edit-description" className="block text-sm font-medium text-foreground mb-1.5">{t.editor.descLabel}</label>
                   <Textarea
                     id="edit-description"
                     rows={3}
@@ -384,7 +384,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">{t.upload.categoryLabel}</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">{t.editor.categoryLabel}</label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {CATEGORY_ITEMS.map((cat) => {
                       const Icon = cat.icon;
@@ -455,7 +455,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">{t.upload.tagsLabel}</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">{t.editor.tagsLabel}</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {tags.map((tagItem) => (
                       <Badge key={tagItem} variant="secondary" className="text-xs gap-1 px-2.5 py-1">
@@ -480,7 +480,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                           handleAddTag(tagInput);
                         }
                       }}
-                      placeholder={t.upload.tagPlaceholder}
+                      placeholder={t.editor.tagPlaceholder}
                       className="h-9 text-sm"
                     />
                     <Button
@@ -490,14 +490,14 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       onClick={() => handleAddTag(tagInput)}
                       className="h-9 px-3 text-sm shrink-0"
                     >
-                      {t.upload.addTag}
+                      {t.editor.addTag}
                     </Button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-border">
                   <div>
-                    <label htmlFor="edit-visibility" className="block text-sm font-medium text-foreground mb-1.5">{t.upload.visibilityLabel}</label>
+                    <label htmlFor="edit-visibility" className="block text-sm font-medium text-foreground mb-1.5">{t.editor.visibilityLabel}</label>
                     <Select
                       id="edit-visibility"
                       value={visibility}
@@ -542,7 +542,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-foreground" />
-                      <span>{t.upload.proPerksTitle}</span>
+                      <span>{t.editor.proPerksTitle}</span>
                     </span>
                     <Badge variant="outline" className="text-xs font-mono border-border text-foreground">PRO</Badge>
                   </div>
@@ -550,7 +550,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="edit-subdomain" className="block text-sm font-medium text-foreground mb-1.5">
-                        {t.upload.subdomainLabel}
+                        {t.editor.subdomainLabel}
                       </label>
                       <div className="flex items-center rounded-md border border-input bg-background px-3 py-1.5 text-sm text-muted-foreground focus-within:ring-1 focus-within:ring-ring">
                         <span className="text-xs select-none text-muted-foreground">https://</span>
@@ -564,7 +564,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         />
                         <span className="text-xs select-none text-muted-foreground">.pagepod.dev</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{t.upload.subdomainNotice}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t.editor.subdomainNotice.replace("{slug}", project.slug)}</p>
                     </div>
 
                     <div className="flex flex-col justify-center">
@@ -575,10 +575,10 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         />
                         <div>
                           <span className="text-sm text-foreground font-medium block">
-                            {t.upload.whiteLabelTitle}
+                            {t.editor.whiteLabelTitle}
                           </span>
                           <span className="text-xs text-muted-foreground leading-tight block">
-                            {t.upload.whiteLabelDesc}
+                            {t.editor.whiteLabelDesc}
                           </span>
                         </div>
                       </label>

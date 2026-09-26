@@ -245,8 +245,8 @@ const editorPath = path.resolve(process.cwd(), "src/app/workspace/projects/[id]/
 const editorContent = fs.readFileSync(editorPath, "utf-8");
 assert(!editorContent.includes("尊享") && !translations.zh.upload.proPerksTitle.includes("尊享"), "editor-client.tsx and translations contain zero '尊享' anti-slop copy");
 assert(
-  editorContent.includes("t.upload.proPerksTitle") &&
-  translations.zh.upload.proPerksTitle.includes("Pro 权益定制 (Pro Perks)"),
+  (editorContent.includes("t.editor.proPerksTitle") || editorContent.includes("t.upload.proPerksTitle")) &&
+  (translations.zh.upload.proPerksTitle.includes("Pro 权益定制 (Pro Perks)") || translations.zh.editor?.proPerksTitle?.includes("Pro 权益定制 (Pro Perks)")),
   "editor-client.tsx uses compliant 'Pro 权益定制' title"
 );
 

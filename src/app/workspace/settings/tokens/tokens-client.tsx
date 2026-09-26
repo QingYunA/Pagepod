@@ -236,7 +236,7 @@ export default function TokensClient({ initialTokens, userRole }: TokensClientPr
           {/* Quickstart Code Example */}
           <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-              <Terminal className="w-4 h-4 text-sky-400" />
+              <Terminal className="w-4 h-4 text-foreground" />
               <span>{t.tokens.quickstartTitle}</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -369,11 +369,11 @@ export default function TokensClient({ initialTokens, userRole }: TokensClientPr
 
           <div className="py-3 space-y-3">
             <div className="flex items-center gap-2 p-2.5 rounded-lg bg-neutral-950 border border-border text-foreground font-mono text-xs select-all">
-              <span className="flex-1 truncate text-amber-200">{createdRawToken}</span>
+              <span className="flex-1 truncate text-foreground font-mono">{createdRawToken}</span>
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 px-2.5 text-xs gap-1 border-border shrink-0 cursor-pointer"
+                className="h-8 px-2.5 text-xs gap-1 border-border shrink-0 cursor-pointer"
                 onClick={() => createdRawToken && copyToClipboard(createdRawToken)}
               >
                 {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}

@@ -52,10 +52,10 @@ export default function MoveFolderDialog({
         <DialogHeader>
           <DialogTitle className="text-base font-semibold flex items-center gap-2">
             <Folder className="w-4 h-4 text-foreground" />
-            <span>{t.workspace?.moveToFolder || "移动至文件夹"}</span>
+            <span>{t.workspace.moveToFolder}</span>
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            {t.workspace?.selectTargetFolder || "选择目标文件夹"} ({selectedCount} 项)
+            {t.workspace.selectTargetFolder} ({selectedCount} {t.workspace.itemUnit})
           </DialogDescription>
         </DialogHeader>
 
@@ -73,7 +73,7 @@ export default function MoveFolderDialog({
           >
             <div className="flex items-center gap-2">
               <Inbox className="w-3.5 h-3.5 opacity-70" />
-              <span>{t.workspace?.rootFolderOption || "未归类 / 根目录"}</span>
+              <span>{t.workspace.rootFolderOption}</span>
             </div>
             {selectedFolderId === null && <Check className="w-3.5 h-3.5 text-foreground" />}
           </button>
@@ -117,7 +117,7 @@ export default function MoveFolderDialog({
             disabled={isPending}
             className="text-sm h-9"
           >
-            {t.workspace?.cancel || "取消"}
+            {t.workspace.cancel}
           </Button>
           <Button
             type="button"
@@ -129,10 +129,10 @@ export default function MoveFolderDialog({
             {isPending ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                <span>{t.workspace?.processing || "处理中..."}</span>
+                <span>{t.workspace.processing}</span>
               </>
             ) : (
-              <span>{t.workspace?.confirmMove || "确认移动"}</span>
+              <span>{t.workspace.confirmMove}</span>
             )}
           </Button>
         </DialogFooter>
