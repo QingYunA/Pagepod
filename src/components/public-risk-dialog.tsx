@@ -67,30 +67,35 @@ export function PublicRiskDialog({
                 <span>{t.riskDialog.detectedTitle}</span>
               </span>
               <Badge variant="destructive" className="text-xs px-2 py-0.5">
-                {locale === "zh" ? `${matches.length} 项潜在凭据` : `${matches.length} potential secrets`}
+                {matches.length} {t.riskDialog.credentialsDetected}
               </Badge>
             </div>
 
             <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-              {matches.map((m, idx) => (
-                <div
-                  key={idx}
-                  className="p-2 rounded bg-background/80 border border-border text-xs flex flex-col gap-0.5"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-foreground">{m.rule}</span>
-                    <span className="text-xs text-muted-foreground uppercase font-mono">
-                      {m.category}
-                    </span>
+              {matches.map((m, idx) => {
+                const ruleDesc =
+                  (m.ruleKey && t.riskDialog.rules?.[m.ruleKey as keyof typeof t.riskDialog.rules]) ||
+                  m.description;
+                return (
+                  <div
+                    key={idx}
+                    className="p-2 rounded bg-background/80 border border-border text-xs flex flex-col gap-0.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-foreground">{m.rule}</span>
+                      <span className="text-xs text-muted-foreground uppercase font-mono">
+                        {m.category}
+                      </span>
+                    </div>
+                    <div className="text-muted-foreground">{ruleDesc}</div>
+                    {m.sample && (
+                      <code className="text-amber-700 dark:text-amber-300 font-mono text-xs bg-muted/60 px-1 py-0.5 rounded mt-0.5">
+                        {t.riskDialog.snippetLabel}: {m.sample}
+                      </code>
+                    )}
                   </div>
-                  <div className="text-muted-foreground">{m.description}</div>
-                  {m.sample && (
-                    <code className="text-amber-700 dark:text-amber-300 font-mono text-xs bg-muted/60 px-1 py-0.5 rounded mt-0.5">
-                      {locale === "zh" ? `命中片段: ${m.sample}` : `Matched: ${m.sample}`}
-                    </code>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <p className="text-xs text-amber-700/90 dark:text-amber-300/90 leading-relaxed pt-1">

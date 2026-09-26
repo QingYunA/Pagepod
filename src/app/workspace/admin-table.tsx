@@ -240,15 +240,15 @@ export default function AdminTable({
   };
 
   const categories = useMemo(() => [
-    { id: "all", label: t.categories.all || "全部", icon: CATEGORY_ICONS.all },
-    { id: "tools", label: t.categories.tools || "实用工具", icon: CATEGORY_ICONS.tools },
-    { id: "ai", label: t.categories.ai || "AI 应用", icon: CATEGORY_ICONS.ai },
-    { id: "games", label: t.categories.games || "互动游戏", icon: CATEGORY_ICONS.games },
-    { id: "creative", label: t.categories.creative || "创意与 3D", icon: CATEGORY_ICONS.creative },
-    { id: "visualization", label: t.categories.visualization || "数据可视化", icon: CATEGORY_ICONS.visualization },
-    { id: "prototypes", label: t.categories.prototypes || "页面原型", icon: CATEGORY_ICONS.prototypes },
-    { id: "animations", label: t.categories.animations || "动效演示", icon: CATEGORY_ICONS.animations },
-    { id: "others", label: t.categories.others || "其他", icon: CATEGORY_ICONS.others },
+    { id: "all", label: t.categories.all, icon: CATEGORY_ICONS.all },
+    { id: "tools", label: t.categories.tools, icon: CATEGORY_ICONS.tools },
+    { id: "ai", label: t.categories.ai, icon: CATEGORY_ICONS.ai },
+    { id: "games", label: t.categories.games, icon: CATEGORY_ICONS.games },
+    { id: "creative", label: t.categories.creative, icon: CATEGORY_ICONS.creative },
+    { id: "visualization", label: t.categories.visualization, icon: CATEGORY_ICONS.visualization },
+    { id: "prototypes", label: t.categories.prototypes, icon: CATEGORY_ICONS.prototypes },
+    { id: "animations", label: t.categories.animations, icon: CATEGORY_ICONS.animations },
+    { id: "others", label: t.categories.others, icon: CATEGORY_ICONS.others },
   ], [t]);
 
   const categoryMap = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c])), [categories]);
@@ -317,13 +317,13 @@ export default function AdminTable({
 
   // Breadcrumbs computation
   const breadcrumbs = useMemo(() => {
-    const root = { label: t.workspace?.allProjects || "全部项目", scope: { type: "all" } as WorkspaceScope };
+    const root = { label: t.workspace.allProjects, scope: { type: "all" } as WorkspaceScope };
     if (activeScope.type === "all") return [root];
     if (activeScope.type === "uncategorized") {
-      return [root, { label: t.workspace?.uncategorized || "未归类", scope: { type: "uncategorized" } as WorkspaceScope }];
+      return [root, { label: t.workspace.uncategorized, scope: { type: "uncategorized" } as WorkspaceScope }];
     }
     if (activeScope.type === "pinned") {
-      return [root, { label: t.workspace?.pinnedFilter || "已置顶", scope: { type: "pinned" } as WorkspaceScope }];
+      return [root, { label: t.workspace.pinnedFilter, scope: { type: "pinned" } as WorkspaceScope }];
     }
     if (activeScope.type === "folder") {
       const chain: { label: string; scope: WorkspaceScope }[] = [];
@@ -366,10 +366,10 @@ export default function AdminTable({
       try {
         const created = await createFolderAction(name, parentId);
         setFolders((prev) => [...prev, created]);
-        setToastMessage({ text: "文件夹创建成功", type: "success" });
+        setToastMessage({ text: t.workspace.folderCreated, type: "success" });
         router.refresh();
       } catch (err: any) {
-        setToastMessage({ text: err?.message || "创建文件夹失败", type: "error" });
+        setToastMessage({ text: err?.message || t.workspace.folderCreateFail, type: "error" });
       }
     });
   };
@@ -379,10 +379,10 @@ export default function AdminTable({
       try {
         const updated = await updateFolderAction(folderId, { name });
         setFolders((prev) => prev.map((f) => (f.id === folderId ? updated : f)));
-        setToastMessage({ text: "重命名成功", type: "success" });
+        setToastMessage({ text: t.workspace.folderRenamed, type: "success" });
         router.refresh();
       } catch (err: any) {
-        setToastMessage({ text: err?.message || "重命名失败", type: "error" });
+        setToastMessage({ text: err?.message || t.workspace.folderRenameFail, type: "error" });
       }
     });
   };
@@ -396,10 +396,10 @@ export default function AdminTable({
         setProjects((prev) =>
           prev.map((p) => (p.folderId === folderId ? { ...p, folderId: null } : p))
         );
-        setToastMessage({ text: "文件夹已删除，内部项目已安全解绑至未归类", type: "success" });
+        setToastMessage({ text: t.workspace.folderDeleted, type: "success" });
         router.refresh();
       } catch (err: any) {
-        setToastMessage({ text: err?.message || "删除文件夹失败", type: "error" });
+        setToastMessage({ text: err?.message || t.workspace.folderDeleteFail, type: "error" });
       }
     });
   };
@@ -413,10 +413,10 @@ export default function AdminTable({
           prev.map((p) => (selectedIds.includes(p.id) ? { ...p, folderId: targetFolderId } : p))
         );
         setSelectedIds([]);
-        setToastMessage({ text: t.workspace?.batchActionSuccess || "批量移动成功！", type: "success" });
+        setToastMessage({ text: t.workspace.batchActionSuccess, type: "success" });
         router.refresh();
       } catch (err: any) {
-        setToastMessage({ text: err?.message || t.workspace?.batchActionFailed || "批量操作失败", type: "error" });
+        setToastMessage({ text: err?.message || t.workspace.batchActionFailed, type: "error" });
       }
     });
   };
@@ -429,10 +429,10 @@ export default function AdminTable({
           prev.map((p) => (selectedIds.includes(p.id) ? { ...p, visibility } : p))
         );
         setSelectedIds([]);
-        setToastMessage({ text: t.workspace?.batchActionSuccess || "可见性已批量更新！", type: "success" });
+        setToastMessage({ text: t.workspace.batchActionSuccess, type: "success" });
         router.refresh();
       } catch (err: any) {
-        setToastMessage({ text: err?.message || t.workspace?.batchActionFailed || "批量操作失败", type: "error" });
+        setToastMessage({ text: err?.message || t.workspace.batchActionFailed, type: "error" });
       }
     });
   };
@@ -444,10 +444,10 @@ export default function AdminTable({
         setProjects((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
         setSelectedIds([]);
         setBatchDeleteDialogOpen(false);
-        setToastMessage({ text: "选中的项目已批量删除", type: "success" });
+        setToastMessage({ text: t.workspace.batchDeleteSuccess, type: "success" });
         router.refresh();
       } catch (err: any) {
-        setToastMessage({ text: err?.message || "批量删除失败", type: "error" });
+        setToastMessage({ text: err?.message || t.workspace.batchDeleteFail, type: "error" });
       }
     });
   };
@@ -467,12 +467,12 @@ export default function AdminTable({
         );
         setToastMessage({
           text: !currentPinned
-            ? t.workspace?.pinWorkspaceSuccess || "已将项目置顶至工作区首行"
-            : t.workspace?.unpinWorkspaceSuccess || "已取消工作区置顶",
+            ? t.workspace.pinWorkspaceSuccess
+            : t.workspace.unpinWorkspaceSuccess,
           type: "success",
         });
       } catch {
-        setToastMessage({ text: t.workspace?.pinFail || "置顶操作失败", type: "error" });
+        setToastMessage({ text: t.workspace.pinFail, type: "error" });
       } finally {
         setPendingPinAction(null);
       }
@@ -497,12 +497,12 @@ export default function AdminTable({
         );
         setToastMessage({
           text: !currentGlobalPinned
-            ? t.workspace?.pinGlobalSuccess || "已置顶至全站公共推荐！"
-            : t.workspace?.unpinGlobalSuccess || "已取消全站推荐",
+            ? t.workspace.pinGlobalSuccess
+            : t.workspace.unpinGlobalSuccess,
           type: "success",
         });
       } catch {
-        setToastMessage({ text: t.workspace?.globalPinForbidden || "操作失败", type: "error" });
+        setToastMessage({ text: t.workspace.globalPinForbidden, type: "error" });
       } finally {
         setPendingPinAction(null);
       }
@@ -514,9 +514,15 @@ export default function AdminTable({
       try {
         await updateVisibilityAction(id, visibility);
         setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, visibility } : p)));
-        setToastMessage({ text: `项目已转为${visibility === "public" ? "公开" : "私有"}`, type: "success" });
+        setToastMessage({
+          text: t.workspace.visibilityUpdated.replace(
+            "{visibility}",
+            visibility === "public" ? t.workspace.visibilityPublic : t.workspace.visibilityPrivate
+          ),
+          type: "success",
+        });
       } catch {
-        setToastMessage({ text: "修改可见性失败", type: "error" });
+        setToastMessage({ text: t.workspace.visibilityUpdateFail, type: "error" });
       }
     });
   };
@@ -529,10 +535,10 @@ export default function AdminTable({
         setProjects((prev) => prev.filter((p) => p.id !== id));
         setSelectedIds((prev) => prev.filter((item) => item !== id));
         setDeleteTarget(null);
-        setToastMessage({ text: t.workspace?.deleteSuccessToast || "项目已删除", type: "success" });
+        setToastMessage({ text: t.workspace.deleteSuccessToast, type: "success" });
         router.refresh();
       } catch (err: any) {
-        setDeleteError(err?.message || t.workspace?.deleteFailToast || "删除失败");
+        setDeleteError(err?.message || t.workspace.deleteFailToast);
       } finally {
         setDeletingId(null);
       }
@@ -551,13 +557,13 @@ export default function AdminTable({
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setToastMessage({ text: data.error || "生成截图失败", type: "error" });
+        setToastMessage({ text: data.error || t.workspace.screenshotFail, type: "error" });
       } else {
-        setToastMessage({ text: "静态实景截图已更新！", type: "success" });
+        setToastMessage({ text: t.workspace.screenshotUpdated, type: "success" });
         router.refresh();
       }
     } catch {
-      setToastMessage({ text: "网络异常，生成截图失败", type: "error" });
+      setToastMessage({ text: t.workspace.screenshotNetworkFail, type: "error" });
     } finally {
       setCapturingId(null);
     }
@@ -570,7 +576,7 @@ export default function AdminTable({
       await navigator.clipboard.writeText(url);
       setCopiedSlug(slug);
       setTimeout(() => setCopiedSlug(null), 2000);
-      setToastMessage({ text: "运行链接已复制至剪贴板", type: "success" });
+      setToastMessage({ text: t.workspace.linkCopied, type: "success" });
     } catch {
       // Ignore
     }
@@ -646,7 +652,7 @@ export default function AdminTable({
                 );
               })}
               <span className="text-xs font-mono text-muted-foreground ml-1.5">
-                ({filtered.length} 项)
+                ({filtered.length} {t.workspace.itemUnit})
               </span>
             </div>
 
@@ -654,7 +660,7 @@ export default function AdminTable({
             <Button size="sm" asChild className="h-9 px-3.5 text-sm gap-1.5 shrink-0 self-start sm:self-auto">
               <Link href={uploadHref}>
                 <Plus className="w-4 h-4" />
-                <span>{t.gallery?.uploadNow || "+ 发布新作品"}</span>
+                <span>{t.gallery.uploadNow}</span>
               </Link>
             </Button>
           </div>
@@ -666,8 +672,8 @@ export default function AdminTable({
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="搜索项目标题、Slug、标签..."
-                aria-label="搜索项目标题、Slug、标签"
+                placeholder={t.workspace.searchPlaceholder}
+                aria-label={t.workspace.searchPlaceholder}
                 className="pl-8 text-xs bg-muted/20 border-border"
               />
             </div>
@@ -685,7 +691,7 @@ export default function AdminTable({
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {t.gallery?.languageAll || "全部语言"}
+                  {t.gallery.languageAll}
                 </button>
                 <button
                   type="button"
@@ -697,7 +703,7 @@ export default function AdminTable({
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {t.gallery?.languageZh || "中文"}
+                  {t.gallery.languageZh}
                 </button>
                 <button
                   type="button"
@@ -709,20 +715,20 @@ export default function AdminTable({
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {t.gallery?.languageEn || "English"}
+                  {t.gallery.languageEn}
                 </button>
               </div>
 
               {/* Sort selector */}
               <Select
-                aria-label={t.gallery?.sortBy || "排序方式"}
+                aria-label={t.gallery.sortBy}
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as "newest" | "views" | "alpha")}
                 className="text-xs h-7 px-2 py-0.5 bg-muted/20 border-border w-auto"
               >
-                <option value="newest">{t.gallery?.sortNewest || "最新发布"}</option>
-                <option value="views">{t.gallery?.sortViews || "最多浏览"}</option>
-                <option value="alpha">{t.gallery?.sortAlpha || "名称 A-Z"}</option>
+                <option value="newest">{t.gallery.sortNewest}</option>
+                <option value="views">{t.gallery.sortViews}</option>
+                <option value="alpha">{t.gallery.sortAlpha}</option>
               </Select>
 
               {/* View Mode Toggle */}
@@ -732,7 +738,7 @@ export default function AdminTable({
                   size="icon"
                   className="h-6 w-6 rounded-sm"
                   onClick={() => handleViewModeChange("table")}
-                  title="紧凑表格视图 (Table)"
+                  title={t.workspace.compactTableView}
                 >
                   <List className="w-3.5 h-3.5" />
                 </Button>
@@ -741,7 +747,7 @@ export default function AdminTable({
                   size="icon"
                   className="h-6 w-6 rounded-sm"
                   onClick={() => handleViewModeChange("grid")}
-                  title="卡片网格视图 (Grid)"
+                  title={t.workspace.cardGridView}
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
                 </Button>
@@ -759,18 +765,18 @@ export default function AdminTable({
                       <Checkbox
                         checked={isAllSelected}
                         onChange={handleToggleSelectAll}
-                        aria-label="全选项目"
+                        aria-label={t.workspace.selectAll}
                       />
                     </th>
-                    <th className="py-2.5 px-2 w-8 text-center">{t.workspace?.tableHeaderPin || "置顶"}</th>
-                    {isAdmin && <th className="py-2.5 px-2 w-8 text-center">{t.workspace?.tableHeaderGlobal || "全站"}</th>}
-                    <th className="py-2.5 px-3 w-16">预览</th>
-                    <th className="py-2.5 px-3">项目</th>
-                    <th className="py-2.5 px-3">{t.workspace?.tableHeaderCategoryLang || "分类与语言"}</th>
-                    <th className="py-2.5 px-3">访问量</th>
-                    <th className="py-2.5 px-3">可见性</th>
-                    <th className="py-2.5 px-3">创建时间</th>
-                    <th className="py-2.5 px-3 text-right">操作</th>
+                    <th className="py-2.5 px-2 w-8 text-center">{t.workspace.tableHeaderPin}</th>
+                    {isAdmin && <th className="py-2.5 px-2 w-8 text-center">{t.workspace.tableHeaderGlobal}</th>}
+                    <th className="py-2.5 px-3 w-16">{t.workspace.tableHeaderPreview}</th>
+                    <th className="py-2.5 px-3">{t.workspace.tableHeaderProject}</th>
+                    <th className="py-2.5 px-3">{t.workspace.tableHeaderCategoryLang}</th>
+                    <th className="py-2.5 px-3">{t.workspace.tableHeaderViews}</th>
+                    <th className="py-2.5 px-3">{t.workspace.tableHeaderVisibility}</th>
+                    <th className="py-2.5 px-3">{t.workspace.tableHeaderCreatedAt}</th>
+                    <th className="py-2.5 px-3 text-right">{t.workspace.tableHeaderActions}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border text-xs">
@@ -778,8 +784,8 @@ export default function AdminTable({
                     <tr>
                       <td colSpan={isAdmin ? 10 : 9} className="py-16 text-center text-muted-foreground space-y-1">
                         <Inbox className="w-6 h-6 mx-auto opacity-50 mb-1" />
-                        <p>{t.workspace?.noProjectsFound || "暂无匹配的 HTML 项目。"}</p>
-                        <p className="text-xs text-muted-foreground/60">可尝试切换左侧文件夹或调整搜索条件。</p>
+                        <p>{t.workspace.noProjectsFound}</p>
+                        <p className="text-xs text-muted-foreground/60">{t.workspace.emptyFilterHint}</p>
                       </td>
                     </tr>
                   ) : (
@@ -802,7 +808,7 @@ export default function AdminTable({
                             <Checkbox
                               checked={isSelected}
                               onChange={() => handleToggleSelect(item.id)}
-                              aria-label={`选择 ${item.title}`}
+                              aria-label={t.workspace.selectItem.replace("{title}", item.title)}
                             />
                           </td>
 
@@ -827,10 +833,10 @@ export default function AdminTable({
                                   )}
                                   title={
                                     !isOwner
-                                      ? t.workspace?.onlyOwnerCanPinWorkspace || "仅项目所有者可置顶"
+                                      ? t.workspace.onlyOwnerCanPinWorkspace
                                       : item.isPinned
-                                      ? t.workspace?.unpinWorkspaceTitle || "取消工作区置顶"
-                                      : t.workspace?.pinWorkspaceTitle || "置顶至工作区首位"
+                                      ? t.workspace.unpinWorkspaceTitle
+                                      : t.workspace.pinWorkspaceTitle
                                   }
                                 >
                                   {isPendingThis ? (
@@ -862,8 +868,8 @@ export default function AdminTable({
                                     )}
                                     title={
                                       item.isGlobalPinned
-                                        ? t.workspace?.unpinGlobalTitle || "取消全站置顶"
-                                        : t.workspace?.pinGlobalTitle || "设置全站置顶"
+                                        ? t.workspace.unpinGlobalTitle
+                                        : t.workspace.pinGlobalTitle
                                     }
                                   >
                                     {isPendingThis ? (
@@ -930,21 +936,21 @@ export default function AdminTable({
                           {/* Visibility */}
                           <td className="py-3 px-3">
                             <Select
-                              aria-label="修改可见性"
+                              aria-label={t.workspace.tableHeaderVisibility}
                               value={item.visibility}
                               onChange={(e) =>
                                 handleUpdateVisibility(item.id, e.target.value as "public" | "private")
                               }
                               className="text-xs h-7 px-2 py-0.5 max-w-[100px]"
                             >
-                              <option value="public">公开</option>
-                              <option value="private">私有</option>
+                              <option value="public">{t.workspace.visibilityPublic}</option>
+                              <option value="private">{t.workspace.visibilityPrivate}</option>
                             </Select>
                           </td>
 
                           {/* Created Time */}
                           <td className="py-3 px-3 text-muted-foreground text-xs font-mono whitespace-nowrap">
-                            {new Date(item.createdAt).toLocaleDateString()}
+                            {new Date(item.createdAt).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US")}
                           </td>
 
                           {/* Operations */}
@@ -956,7 +962,7 @@ export default function AdminTable({
                                   size="icon"
                                   asChild
                                   className="h-6 w-6 text-amber-500 hover:text-amber-600"
-                                  title="申诉复核"
+                                  title={t.workspace.appealReview}
                                 >
                                   <a href={createAppealMailtoUrl(item)}>
                                     <HelpCircle className="w-3 h-3" />
@@ -969,7 +975,7 @@ export default function AdminTable({
                                 size="icon"
                                 onClick={(e) => handleShare(item.slug, e)}
                                 className="h-6 w-6 text-muted-foreground hover:text-foreground cursor-pointer"
-                                title="复制运行链接"
+                                title={t.workspace.copyRunnerLink}
                               >
                                 {copiedSlug === item.slug ? (
                                   <Check className="w-3 h-3 text-emerald-400" />
@@ -984,7 +990,7 @@ export default function AdminTable({
                                 disabled={capturingId === item.id || isPending}
                                 onClick={(e) => handleRegenerateScreenshot(item.id, e)}
                                 className="h-6 w-6 text-muted-foreground hover:text-foreground cursor-pointer"
-                                title="重新生成截图"
+                                title={t.workspace.regenerateScreenshot}
                               >
                                 {capturingId === item.id ? (
                                   <Loader2 className="w-3 h-3 animate-spin text-foreground" />
@@ -999,7 +1005,7 @@ export default function AdminTable({
                                 className="h-6 w-6 text-muted-foreground hover:text-foreground"
                                 asChild
                               >
-                                <Link href={`/workspace/projects/${item.id}/edit`} title="在线编辑代码">
+                                <Link href={`/workspace/projects/${item.id}/edit`} title={t.workspace.editCodeOnline}>
                                   <Edit3 className="w-3 h-3" />
                                 </Link>
                               </Button>
@@ -1013,7 +1019,7 @@ export default function AdminTable({
                                 }}
                                 disabled={deletingId === item.id || isPending}
                                 className="h-6 w-6 text-muted-foreground hover:text-destructive cursor-pointer"
-                                title={t.workspace?.deleteTitle || "删除项目"}
+                                title={t.workspace.deleteTitle}
                               >
                                 {deletingId === item.id ? (
                                   <Loader2 className="w-3 h-3 animate-spin text-destructive" />
@@ -1036,8 +1042,8 @@ export default function AdminTable({
               {filtered.length === 0 ? (
                 <div className="col-span-full py-16 text-center text-xs text-muted-foreground space-y-2">
                   <Inbox className="w-8 h-8 mx-auto text-muted-foreground/50" />
-                  <p className="font-medium text-foreground">没有找到匹配的 HTML 项目</p>
-                  <p>请尝试调整搜索关键词或切换左侧文件夹。</p>
+                  <p className="font-medium text-foreground">{t.workspace.emptyFolderProjects}</p>
+                  <p>{t.workspace.emptyFolderAdjust}</p>
                 </div>
               ) : (
                 filtered.map((item) => {
@@ -1086,7 +1092,7 @@ export default function AdminTable({
                           {item.isPinned && (
                             <Badge variant="outline" className="text-xs px-2 py-0.5 gap-1 backdrop-blur-md bg-black/75 border-neutral-400 text-neutral-100 font-medium">
                               <Pin className="w-3 h-3 fill-current" />
-                              <span>{t.workspace?.workspacePinned || "工作区置顶"}</span>
+                              <span>{t.workspace.workspacePinned}</span>
                             </Badge>
                           )}
                           <ReviewStatusBadge status={item.reviewStatus} t={t} isOverlay />
@@ -1096,7 +1102,7 @@ export default function AdminTable({
                         <button
                           type="button"
                           onClick={(e) => handleShare(item.slug, e)}
-                          title="复制运行链接"
+                          title={t.workspace.copyRunnerLink}
                           className="absolute top-2.5 right-2.5 p-1.5 rounded-md bg-black/70 hover:bg-black/90 text-neutral-300 hover:text-white border border-neutral-800 backdrop-blur-md transition-colors cursor-pointer z-20"
                         >
                           {copiedSlug === item.slug ? (
@@ -1124,7 +1130,7 @@ export default function AdminTable({
                             {item.description}
                           </CardDescription>
                         ) : (
-                          <p className="text-xs text-muted-foreground/60 italic pt-0.5">暂无描述</p>
+                          <p className="text-xs text-muted-foreground/60 italic pt-0.5">{t.workspace.noDescription}</p>
                         )}
                       </CardHeader>
 
@@ -1133,23 +1139,23 @@ export default function AdminTable({
                         <div className="flex items-center justify-between text-xs text-muted-foreground font-mono pt-2 border-t border-border/60">
                           <span className="inline-flex items-center gap-1">
                             <Eye className="w-3.5 h-3.5" />
-                            <span>{item.viewCount || 0} 次加载</span>
+                            <span>{item.viewCount || 0} {t.workspace.viewCountUnit}</span>
                           </span>
                           <span className="inline-flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
-                            <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                            <span>{new Date(item.createdAt).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US")}</span>
                           </span>
                         </div>
 
                         <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
                           <Select
-                            aria-label="修改可见性"
+                            aria-label={t.workspace.tableHeaderVisibility}
                             value={item.visibility}
                             onChange={(e) => handleUpdateVisibility(item.id, e.target.value as "public" | "private")}
                             className="text-xs h-8 px-2.5 py-1 max-w-[120px]"
                           >
-                            <option value="public">公开 (Public)</option>
-                            <option value="private">私有 (Private)</option>
+                            <option value="public">{t.workspace.visibilityPublicOption}</option>
+                            <option value="private">{t.workspace.visibilityPrivateOption}</option>
                           </Select>
 
                           <div className="flex items-center gap-0.5">
@@ -1162,7 +1168,7 @@ export default function AdminTable({
                                 "h-7 w-7 rounded-sm",
                                 item.isPinned ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground"
                               )}
-                              title={item.isPinned ? "取消置顶" : "置顶至首位"}
+                              title={item.isPinned ? t.workspace.unpinWorkspaceTitle : t.workspace.pinWorkspaceTitle}
                             >
                               <Pin className={cn("w-3.5 h-3.5", item.isPinned && "fill-current")} />
                             </Button>
@@ -1173,7 +1179,7 @@ export default function AdminTable({
                               className="h-7 w-7 text-muted-foreground hover:text-foreground"
                               asChild
                             >
-                              <Link href={`/workspace/projects/${item.id}/edit`} title="在线编辑代码">
+                              <Link href={`/workspace/projects/${item.id}/edit`} title={t.workspace.editCodeOnline}>
                                 <Edit3 className="w-3.5 h-3.5" />
                               </Link>
                             </Button>
@@ -1187,7 +1193,7 @@ export default function AdminTable({
                               }}
                               disabled={deletingId === item.id || isPending}
                               className="h-7 w-7 text-muted-foreground hover:text-destructive cursor-pointer"
-                              title="删除项目"
+                              title={t.workspace.deleteTitle}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
@@ -1229,10 +1235,10 @@ export default function AdminTable({
           <DialogHeader>
             <DialogTitle className="text-base font-semibold text-destructive flex items-center gap-1.5">
               <Trash2 className="w-4 h-4" />
-              <span>{t.workspace?.batchDeleteConfirmTitle || "批量删除确认"}</span>
+              <span>{t.workspace.batchDeleteConfirmTitle}</span>
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground pt-1.5 leading-relaxed">
-              {(t.workspace?.batchDeleteConfirmDesc || "确定要永久删除选中的 {count} 个项目吗？此操作不可逆！").replace(
+              {t.workspace.batchDeleteConfirmDesc.replace(
                 "{count}",
                 String(selectedIds.length)
               )}
@@ -1246,7 +1252,7 @@ export default function AdminTable({
               onClick={() => setBatchDeleteDialogOpen(false)}
               className="text-sm h-9"
             >
-              {t.workspace?.cancel || "取消"}
+              {t.workspace.cancel}
             </Button>
             <Button
               type="button"
@@ -1257,7 +1263,7 @@ export default function AdminTable({
               className="text-sm h-9"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
-              <span>确认批量删除</span>
+              <span>{t.workspace.batchDeleteConfirmBtn}</span>
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1269,10 +1275,10 @@ export default function AdminTable({
           <DialogHeader>
             <DialogTitle className="text-base font-semibold text-destructive flex items-center gap-1.5">
               <Trash2 className="w-4 h-4" />
-              <span>{t.workspace?.deleteTitle || "删除项目"}</span>
+              <span>{t.workspace.deleteTitle}</span>
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground pt-1.5 leading-relaxed">
-              {t.workspace?.deleteConfirmText || "确定要永久删除此项目吗？此操作不可逆，将抹除所有存储资源。"}
+              {t.workspace.deleteConfirmText}
             </DialogDescription>
           </DialogHeader>
           {deleteError && (
@@ -1288,7 +1294,7 @@ export default function AdminTable({
               onClick={() => setDeleteTarget(null)}
               className="text-sm h-9"
             >
-              {t.workspace?.cancel || "取消"}
+              {t.workspace.cancel}
             </Button>
             <Button
               type="button"
@@ -1299,7 +1305,7 @@ export default function AdminTable({
               className="text-sm h-9"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
-              <span>{t.workspace?.confirmDelete || "确认永久删除"}</span>
+              <span>{t.workspace.confirmDelete}</span>
             </Button>
           </DialogFooter>
         </DialogContent>

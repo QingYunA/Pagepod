@@ -148,7 +148,13 @@ function scanFile(filePath: string) {
         relPath.includes("src/components/home-header.tsx") ||
         relPath.includes("src/components/user-dropdown.tsx") ||
         relPath.includes("src/components/showcase-gallery.tsx") ||
-        relPath.includes("src/components/public-risk-dialog.tsx");
+        relPath.includes("src/components/public-risk-dialog.tsx") ||
+        relPath.includes("src/app/workspace/upload/") ||
+        relPath.includes("src/app/workspace/projects/") ||
+        relPath.includes("src/app/workspace/settings/") ||
+        relPath.includes("src/app/workspace/admin-table.tsx") ||
+        relPath.includes("src/app/workspace/move-folder-dialog.tsx") ||
+        relPath.includes("src/app/workspace/workspace-folder-tree.tsx");
 
       if (isCoreUiFile && /[\u4e00-\u9fa5]/.test(lineText)) {
         const cleanLine = lineText.replace(/\/\/.*$/, "").replace(/\/\*.*?\*\//g, "").trim();

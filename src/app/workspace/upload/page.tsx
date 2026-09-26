@@ -46,22 +46,24 @@ import { sandboxPool } from "@/lib/sandbox-pool";
 import { buildIndentedFolderList } from "@/lib/utils";
 import { detectHtmlLanguage } from "@/lib/parser/language-detector";
 import { useLanguage } from "@/lib/i18n/context";
+import { LanguageToggle } from "@/components/language-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 
-const CATEGORIES = [
-  { id: "tools", label: "实用工具", icon: Wrench },
-  { id: "ai", label: "AI 应用", icon: Bot },
-  { id: "games", label: "互动游戏", icon: Gamepad2 },
-  { id: "creative", label: "创意与 3D", icon: Palette },
-  { id: "visualization", label: "数据可视化", icon: BarChart3 },
-  { id: "prototypes", label: "页面原型", icon: Smartphone },
-  { id: "animations", label: "动效演示", icon: Sparkles },
-  { id: "others", label: "其他", icon: Layers },
-];
+const CATEGORY_ITEMS = [
+  { id: "tools", icon: Wrench },
+  { id: "ai", icon: Bot },
+  { id: "games", icon: Gamepad2 },
+  { id: "creative", icon: Palette },
+  { id: "visualization", icon: BarChart3 },
+  { id: "prototypes", icon: Smartphone },
+  { id: "animations", icon: Sparkles },
+  { id: "others", icon: Layers },
+] as const;
 
 const SUGGESTED_TAGS = ["Canvas", "SVG", "Three.js", "Tailwind", "Vue", "React", "WebAudio", "ECharts"];
 
 export default function WorkspaceUploadPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [isPending, startTransition] = useTransition();
   const [mode, setMode] = useState<"file" | "paste">("file");
   const [file, setFile] = useState<File | null>(null);
@@ -241,7 +243,7 @@ export default function WorkspaceUploadPage() {
 
     if (mode === "file") {
       if (!file) {
-        setErrorMessage("请先选择或拖拽要上传的文件（.html 或 .zip）");
+        setErrorMessage(t.upload.errors.selectFile);
         return;
       }
       if (!finalTitle) {
@@ -249,11 +251,11 @@ export default function WorkspaceUploadPage() {
       }
     } else {
       if (!pasteContent.trim()) {
-        setErrorMessage("请输入或粘贴 HTML 源代码");
+        setErrorMessage(t.upload.errors.emptyPaste);
         return;
       }
       if (!finalTitle) {
-        finalTitle = "未命名 HTML 项目";
+        finalTitle = t.upload.errors.untitledFallback;
       }
     }
 
@@ -343,13 +345,13 @@ export default function WorkspaceUploadPage() {
               setSuccessSlug(apiData.slug);
               return;
             }
-            setErrorMessage(apiData.error || (serverActionErr as Error)?.message || "发布失败，请重试");
+            setErrorMessage(apiData.error || (serverActionErr as Error)?.message || t.upload.errors.publishFailed);
           } catch {
-            setErrorMessage((serverActionErr as Error)?.message || "发布过程中网络异常，请重试");
+            setErrorMessage((serverActionErr as Error)?.message || t.upload.errors.networkFailed);
           }
         }
       } catch (err: unknown) {
-        setErrorMessage((err as Error)?.message || "发布过程中出现异常，请重试");
+        setErrorMessage((err as Error)?.message || t.upload.errors.unexpectedFailed);
       }
     });
   };
@@ -396,21 +398,25 @@ export default function WorkspaceUploadPage() {
         <div className="flex items-center justify-between pb-4 border-b border-border">
           <Button variant="ghost" size="sm" asChild className="h-9 text-sm text-muted-foreground hover:text-foreground">
             <Link href="/workspace" prefetch={true}>
-              <ArrowLeft className="w-4 h-4 mr-1.5" /> 返回项目列表
+              <ArrowLeft className="w-4 h-4 mr-1.5" /> {t.upload.backToProjects}
             </Link>
           </Button>
-          <Badge variant="outline" className="text-xs px-2.5 py-0.5 font-mono">
-            upload hub
-          </Badge>
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+            <Badge variant="outline" className="text-xs px-2.5 py-0.5 font-mono">
+              {t.upload.hubBadge}
+            </Badge>
+          </div>
         </div>
 
         {/* Page Title */}
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            发布与托管 HTML
+            {t.upload.pageTitle}
           </h1>
           <p className="text-sm text-muted-foreground">
-            支持 HTML 拖拽上传、静态资源 Zip 压缩包自动解压平铺，或直接粘贴源代码。
+            {t.upload.pageSubtitle}
           </p>
         </div>
 
@@ -420,9 +426,9 @@ export default function WorkspaceUploadPage() {
               <CheckCircle2 className="w-7 h-7" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">发布成功！</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t.upload.successTitle}</h2>
               <p className="text-sm text-muted-foreground">
-                已分配专属独立沙箱路由：
+                {t.upload.successRouteNotice}
                 <code className="mx-1 px-2 py-0.5 rounded bg-muted text-foreground font-mono text-xs">
                   /p/{successSlug}
                 </code>
@@ -435,7 +441,7 @@ export default function WorkspaceUploadPage() {
                 slug={successSlug}
                 title={title || successSlug}
                 category={category}
-                openRunnerText="立即体验"
+                openRunnerText={t.upload.openRunner}
               />
             </div>
 
@@ -447,17 +453,17 @@ export default function WorkspaceUploadPage() {
                 onClick={handleCopyUrl}
               >
                 {copiedUrl ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                <span>{copiedUrl ? "已复制直链" : "复制运行链接"}</span>
+                <span>{copiedUrl ? t.upload.copiedLink : t.upload.copyLink}</span>
               </Button>
             </div>
 
             {visibility === "private" && (
               <div className="p-4 rounded-xl bg-muted/60 border border-border text-left space-y-1.5 max-w-md mx-auto">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> 账号级私有保护已生效
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> {t.upload.privateNoticeTitle}
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  该项目仅限您当前登录的账号访问。在任何电脑或手机上登录 GitHub / Google 账号即可直接打开，无需输入任何密码；未登录访客将被严格拒绝。
+                  {t.upload.privateNoticeDesc}
                 </p>
               </div>
             )}
@@ -465,7 +471,7 @@ export default function WorkspaceUploadPage() {
             <div className="pt-2 flex items-center justify-center gap-2.5">
               <Button size="sm" asChild className="h-9 text-sm">
                 <Link href={`/p/${successSlug}`}>
-                  立即在运行台体验
+                  {t.upload.viewInRunner}
                 </Link>
               </Button>
               <Button
@@ -483,7 +489,7 @@ export default function WorkspaceUploadPage() {
                   setBypassedRiskCheck(false);
                 }}
               >
-                继续上传下一个
+                {t.upload.continueUploadNext}
               </Button>
             </div>
           </Card>
@@ -494,11 +500,11 @@ export default function WorkspaceUploadPage() {
               <TabsList className="grid grid-cols-2 w-full h-10">
                 <TabsTrigger value="file" className="gap-2 text-sm font-medium">
                   <FolderArchive className="w-4 h-4" />
-                  <span>上传文件 (.html / .zip)</span>
+                  <span>{t.upload.tabFile}</span>
                 </TabsTrigger>
                 <TabsTrigger value="paste" className="gap-2 text-sm font-medium">
                   <FileCode2 className="w-4 h-4" />
-                  <span>直接粘贴代码</span>
+                  <span>{t.upload.tabPaste}</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -523,11 +529,10 @@ export default function WorkspaceUploadPage() {
                         }`}
                       />
                       <p className="text-sm font-medium text-foreground">
-                        {isDragging ? "松开鼠标即可上传该文件" : "点击选择 或 直接将文件拖拽至此处"}
+                        {isDragging ? t.upload.dropActive : t.upload.dropIdle}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        支持单个 <code className="font-mono text-foreground font-semibold">.html</code> 或包含子资源的{" "}
-                        <code className="font-mono text-foreground font-semibold">.zip</code> 压缩包
+                        {t.upload.supportedFormats}
                       </p>
 
                       <Button
@@ -537,7 +542,7 @@ export default function WorkspaceUploadPage() {
                         className="mt-4 h-9 text-sm gap-2 pointer-events-none"
                       >
                         <Upload className="w-4 h-4" />
-                        <span>浏览本地文件</span>
+                        <span>{t.upload.browseFiles}</span>
                       </Button>
 
                       <input
@@ -560,7 +565,7 @@ export default function WorkspaceUploadPage() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <Badge variant="secondary" className="text-xs px-2 py-0.5 text-emerald-500 font-medium">
-                            已就绪
+                            {t.upload.fileReady}
                           </Badge>
                           <Button
                             type="button"
@@ -571,7 +576,7 @@ export default function WorkspaceUploadPage() {
                               e.stopPropagation();
                               setFile(null);
                             }}
-                            title="移除文件"
+                            title={t.upload.removeFile}
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -587,15 +592,15 @@ export default function WorkspaceUploadPage() {
                 <Card>
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>HTML 源代码</span>
-                      <span>粘贴后将自动抽取 &lt;title&gt; 作为标题</span>
+                      <span>{t.upload.htmlSourceLabel}</span>
+                      <span>{t.upload.autoExtractNotice}</span>
                     </div>
                     <Textarea
                       rows={9}
-                      aria-label="HTML 源代码"
+                      aria-label={t.upload.htmlSourceLabel}
                       value={pasteContent}
                       onChange={(e) => handlePasteChange(e.target.value)}
-                      placeholder="<!DOCTYPE html><html>... 在此粘贴 AI 编写的 HTML 代码"
+                      placeholder={t.upload.pastePlaceholder}
                       className="bg-neutral-950 border-border font-mono resize-y text-neutral-200 text-sm"
                     />
                   </CardContent>
@@ -607,27 +612,27 @@ export default function WorkspaceUploadPage() {
             <Card>
               <CardHeader className="p-4 pb-2">
                 <CardTitle className="text-base font-semibold text-foreground">
-                  项目属性与展示设置
+                  {t.upload.sectionMetadata}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="upload-title" className="block mb-1.5 text-sm">
-                      项目标题
+                      {t.upload.titleLabel}
                     </Label>
                     <Input
                       id="upload-title"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder={file ? file.name.replace(/\.[^/.]+$/, "") : "例如：2048 小游戏"}
+                      placeholder={file ? file.name.replace(/\.[^/.]+$/, "") : t.upload.titlePlaceholder}
                       className="h-9 text-sm"
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="upload-slug" className="block mb-1.5 text-sm">
-                      短链接路由 Slug
+                      {t.upload.slugLabel}
                     </Label>
                     <div className="flex items-center rounded-lg border border-input bg-transparent px-3 h-9 text-sm">
                       <span className="text-muted-foreground font-mono text-xs mr-1">/p/</span>
@@ -636,7 +641,7 @@ export default function WorkspaceUploadPage() {
                         type="text"
                         value={slug}
                         onChange={(e) => setSlug(e.target.value)}
-                        placeholder="game-2048"
+                        placeholder={t.upload.slugPlaceholder}
                         className="w-full bg-transparent text-foreground outline-none font-mono text-sm"
                       />
                     </div>
@@ -645,13 +650,13 @@ export default function WorkspaceUploadPage() {
 
                 <div>
                   <Label htmlFor="upload-description" className="block mb-1.5 text-sm">
-                    简介描述（可选）
+                    {t.upload.descLabel}
                   </Label>
                   <Input
                     id="upload-description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="简要概括项目的功能或操作指南"
+                    placeholder={t.upload.descPlaceholder}
                     className="h-9 text-sm"
                   />
                 </div>
@@ -659,12 +664,13 @@ export default function WorkspaceUploadPage() {
                 {/* Category Selection */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">
-                    所属分类
+                    {t.upload.categoryLabel}
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {CATEGORIES.map((cat) => {
+                    {CATEGORY_ITEMS.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.id;
+                      const label = (t.categories && t.categories[cat.id as keyof typeof t.categories]) || cat.id;
                       return (
                         <button
                           key={cat.id}
@@ -677,7 +683,7 @@ export default function WorkspaceUploadPage() {
                           }`}
                         >
                           <Icon className="w-4 h-4" />
-                          <span>{cat.label}</span>
+                          <span>{label}</span>
                         </button>
                       );
                     })}
@@ -687,7 +693,7 @@ export default function WorkspaceUploadPage() {
                 {/* Folder Selection */}
                 <div>
                   <Label htmlFor="upload-folder" className="block mb-1.5">
-                    {t.workspace?.folders || "所属文件夹"}
+                    {t.workspace.folders}
                   </Label>
                   <div className="flex items-center gap-2.5">
                     <Select
@@ -696,7 +702,7 @@ export default function WorkspaceUploadPage() {
                       onChange={(e) => setSelectedFolderId(e.target.value ? e.target.value : null)}
                       className="text-xs h-8 px-2.5 py-1 bg-muted/20 border-border w-52"
                     >
-                      <option value="">{t.workspace?.rootFolderOption || "未归类 / 根目录"}</option>
+                      <option value="">{t.workspace.rootFolderOption}</option>
                       {buildIndentedFolderList(folders).map((f) => (
                         <option key={f.id} value={f.id}>
                           {"\u00A0\u00A0".repeat(f.depth)}{f.depth > 0 ? "└─ " : ""}{f.name}
@@ -704,7 +710,7 @@ export default function WorkspaceUploadPage() {
                       ))}
                     </Select>
                     <span className="text-xs text-muted-foreground">
-                      {t.workspace?.selectTargetFolder || "选择存放项目的文件夹，可在左侧目录树随时移动"}
+                      {t.workspace.selectTargetFolder}
                     </span>
                   </div>
                 </div>
@@ -712,7 +718,7 @@ export default function WorkspaceUploadPage() {
                 {/* Language Selection */}
                 <div>
                   <Label htmlFor="upload-language" className="block mb-1.5 text-sm">
-                    {t.workspace?.languageLabel || "主要语言 (Language)"}
+                    {t.workspace.languageLabel}
                   </Label>
                   <div className="flex items-center gap-2.5">
                     <Select
@@ -722,14 +728,14 @@ export default function WorkspaceUploadPage() {
                       className="text-xs sm:text-sm h-9 px-3 py-1 bg-muted/20 border-border w-56"
                     >
                       <option value="auto">
-                        {t.workspace?.languageAuto || "自动检测 (Auto)"}{detectedLangHint ? ` → ${detectedLangHint === "zh" ? (t.workspace?.langZh || "中文") : detectedLangHint === "en" ? (t.workspace?.langEn || "English") : (t.workspace?.langOther || "Other")}` : ""}
+                        {t.workspace.languageAuto}{detectedLangHint ? ` → ${detectedLangHint === "zh" ? t.workspace.langZh : detectedLangHint === "en" ? t.workspace.langEn : t.workspace.langOther}` : ""}
                       </option>
-                      <option value="zh">{t.workspace?.langZh || "中文 (Chinese)"}</option>
-                      <option value="en">{t.workspace?.langEn || "英文 (English)"}</option>
-                      <option value="other">{t.workspace?.langOther || "其他 (Other)"}</option>
+                      <option value="zh">{t.workspace.langZh}</option>
+                      <option value="en">{t.workspace.langEn}</option>
+                      <option value="other">{t.workspace.langOther}</option>
                     </Select>
                     <span className="text-xs text-muted-foreground">
-                      {t.workspace?.languageHint || "基于 HTML 智能启发式算法自动识别，亦可手动锁定"}
+                      {t.workspace.languageHint}
                     </span>
                   </div>
                 </div>
@@ -737,15 +743,15 @@ export default function WorkspaceUploadPage() {
                 {/* Tags */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">
-                    标签 (Tags)
+                    {t.upload.tagsLabel}
                   </label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
-                    {tags.map((t) => (
-                      <Badge key={t} variant="secondary" className="text-xs gap-1.5 px-2.5 py-1">
-                        <span>{t}</span>
+                    {tags.map((tagItem) => (
+                      <Badge key={tagItem} variant="secondary" className="text-xs gap-1.5 px-2.5 py-1">
+                        <span>{tagItem}</span>
                         <button
                           type="button"
-                          onClick={() => handleRemoveTag(t)}
+                          onClick={() => handleRemoveTag(tagItem)}
                           className="hover:text-destructive text-muted-foreground ml-0.5 cursor-pointer"
                         >
                           ×
@@ -763,7 +769,7 @@ export default function WorkspaceUploadPage() {
                           handleAddTag(tagInput);
                         }
                       }}
-                      placeholder="输入标签按回车添加..."
+                      placeholder={t.upload.tagPlaceholder}
                       className="h-9 text-sm"
                     />
                     <Button
@@ -773,11 +779,11 @@ export default function WorkspaceUploadPage() {
                       onClick={() => handleAddTag(tagInput)}
                       className="h-9 text-sm shrink-0"
                     >
-                      添加
+                      {t.upload.addTag}
                     </Button>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 mt-2 text-xs text-muted-foreground">
-                    <span>推荐标签：</span>
+                    <span>{t.upload.recommendedTags}</span>
                     {SUGGESTED_TAGS.map((st) => (
                       <button
                         key={st}
@@ -795,7 +801,7 @@ export default function WorkspaceUploadPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-border">
                   <div>
                     <Label htmlFor="upload-visibility" className="block mb-1.5 text-sm">
-                      公开访问状态
+                      {t.upload.visibilityLabel}
                     </Label>
                     <Select
                       id="upload-visibility"
@@ -806,8 +812,8 @@ export default function WorkspaceUploadPage() {
                       }}
                       className="h-9 text-sm"
                     >
-                      <option value="public">公开 (Showcase 画廊展示)</option>
-                      <option value="private">私有 (仅自己可见，绝对保密)</option>
+                      <option value="public">{t.upload.visibilityPublic}</option>
+                      <option value="private">{t.upload.visibilityPrivate}</option>
                     </Select>
                   </div>
 
@@ -818,7 +824,7 @@ export default function WorkspaceUploadPage() {
                         onChange={(e) => setIsPinned(e.target.checked)}
                       />
                       <span className="text-sm text-foreground font-medium">
-                        {t.workspace?.workspacePinLabel || "置顶到个人工作区"}
+                        {t.workspace.workspacePinLabel}
                       </span>
                     </label>
 
@@ -830,7 +836,7 @@ export default function WorkspaceUploadPage() {
                         />
                         <span className="text-sm text-foreground font-medium flex items-center gap-1.5">
                           <Globe className="w-4 h-4 text-foreground" />
-                          <span>{t.workspace?.globalPinLabel || "全站展台首屏置顶 (Admin)"}</span>
+                          <span>{t.workspace.globalPinLabel}</span>
                         </span>
                       </label>
                     )}
@@ -843,7 +849,7 @@ export default function WorkspaceUploadPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                         <Sparkles className="w-4 h-4 text-foreground" />
-                        <span>Pro 权益定制 (Pro Perks)</span>
+                        <span>{t.upload.proPerksTitle}</span>
                       </span>
                       <Badge variant="outline" className="text-xs font-mono border-border text-foreground">PRO</Badge>
                     </div>
@@ -851,7 +857,7 @@ export default function WorkspaceUploadPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="upload-subdomain" className="block text-sm font-medium text-foreground mb-1.5">
-                          专属二级子域名 (Subdomain)
+                          {t.upload.subdomainLabel}
                         </label>
                         <div className="flex items-center rounded-md border border-input bg-background px-3 py-1.5 text-sm text-muted-foreground focus-within:ring-1 focus-within:ring-ring">
                           <span className="text-xs select-none text-muted-foreground">https://</span>
@@ -865,7 +871,7 @@ export default function WorkspaceUploadPage() {
                           />
                           <span className="text-xs select-none text-muted-foreground">.pagepod.dev</span>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">留空则默认使用全局 /p/{slug || "slug"} 路由</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t.upload.subdomainNotice}</p>
                       </div>
 
                       <div className="flex flex-col justify-center">
@@ -876,10 +882,10 @@ export default function WorkspaceUploadPage() {
                           />
                           <div>
                             <span className="text-sm text-foreground font-medium block">
-                              白标模式 (White-Label)
+                              {t.upload.whiteLabelTitle}
                             </span>
                             <span className="text-xs text-muted-foreground leading-tight block">
-                              隐藏全屏运行台右下角的 "Hosted on Pagepod" 徽标
+                              {t.upload.whiteLabelDesc}
                             </span>
                           </div>
                         </label>
@@ -905,10 +911,10 @@ export default function WorkspaceUploadPage() {
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>正在解析文件与部署沙箱资源...</span>
+                  <span>{t.upload.submitting}</span>
                 </>
               ) : (
-                "立即保存并发布"
+                t.upload.submitButton
               )}
             </Button>
           </form>

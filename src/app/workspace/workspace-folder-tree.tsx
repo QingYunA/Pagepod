@@ -195,7 +195,7 @@ export default function WorkspaceFolderTree({
                 type="button"
                 onClick={(e) => toggleExpand(node.folder.id, e)}
                 className="w-4 h-4 flex items-center justify-center text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
-                title={isExpanded ? (t.workspace?.collapse || "折叠") : (t.workspace?.expand || "展开")}
+                title={isExpanded ? t.workspace.collapse : t.workspace.expand}
               >
                 {isExpanded ? (
                   <ChevronDown className="w-3 h-3" />
@@ -235,7 +235,7 @@ export default function WorkspaceFolderTree({
                 <button
                   type="button"
                   className="opacity-0 group-hover:opacity-100 hover:bg-muted p-1 rounded-sm text-muted-foreground hover:text-foreground cursor-pointer transition-opacity"
-                  title={t.workspace?.folders || "文件夹选项"}
+                  title={t.workspace.folders}
                 >
                   <MoreVertical className="w-3 h-3" />
                 </button>
@@ -246,21 +246,21 @@ export default function WorkspaceFolderTree({
                   className="gap-2 cursor-pointer text-xs"
                 >
                   <FolderPlus className="w-3.5 h-3.5" />
-                  <span>{t.workspace?.newSubFolder || "新建子文件夹"}</span>
+                  <span>{t.workspace.newSubFolder}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => handleOpenRename(node.folder, e)}
                   className="gap-2 cursor-pointer text-xs"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
-                  <span>{t.workspace?.renameFolder || "重命名"}</span>
+                  <span>{t.workspace.renameFolder}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => handleOpenDelete(node.folder, e)}
                   className="gap-2 cursor-pointer text-xs text-destructive focus:text-destructive"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>{t.workspace?.deleteFolder || "删除文件夹"}</span>
+                  <span>{t.workspace.deleteFolder}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -282,7 +282,7 @@ export default function WorkspaceFolderTree({
       {/* System Virtual Views */}
       <div className="space-y-1">
         <div className="text-xs font-semibold text-muted-foreground px-2 pb-1 uppercase tracking-wider">
-          {t.workspace?.allProjects || "项目范围"}
+          {t.workspace.allProjects}
         </div>
 
         {/* All Projects */}
@@ -298,7 +298,7 @@ export default function WorkspaceFolderTree({
         >
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 opacity-80" />
-            <span>{t.workspace?.allProjects || "全部项目"}</span>
+            <span>{t.workspace.allProjects}</span>
           </div>
           <span className="text-xs font-mono opacity-80">{totalCount}</span>
         </button>
@@ -316,7 +316,7 @@ export default function WorkspaceFolderTree({
         >
           <div className="flex items-center gap-2">
             <Inbox className="w-4 h-4 opacity-80" />
-            <span>{t.workspace?.uncategorized || "未归类"}</span>
+            <span>{t.workspace.uncategorized}</span>
           </div>
           <span className="text-xs font-mono opacity-80">{uncategorizedCount}</span>
         </button>
@@ -334,7 +334,7 @@ export default function WorkspaceFolderTree({
         >
           <div className="flex items-center gap-2">
             <Pin className="w-4 h-4 opacity-80" />
-            <span>{t.workspace?.pinnedFilter || "已置顶"}</span>
+            <span>{t.workspace.pinnedFilter}</span>
           </div>
           <span className="text-xs font-mono opacity-80">{pinnedCount}</span>
         </button>
@@ -346,14 +346,14 @@ export default function WorkspaceFolderTree({
       <div className="space-y-1.5 flex-1">
         <div className="flex items-center justify-between px-2">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            {t.workspace?.folders || "我的文件夹"}
+            {t.workspace.folders}
           </span>
           <Button
             variant="ghost"
             size="icon"
             onClick={(e) => handleOpenCreate(null, e)}
             className="h-6 w-6 rounded text-muted-foreground hover:text-foreground cursor-pointer"
-            title={t.workspace?.newFolder || "新建文件夹"}
+            title={t.workspace.newFolder}
           >
             <Plus className="w-4 h-4" />
           </Button>
@@ -361,14 +361,14 @@ export default function WorkspaceFolderTree({
 
         {folders.length === 0 ? (
           <div className="py-4 px-2 text-center text-xs text-muted-foreground/70 border border-dashed border-border/60 rounded-md">
-            <p>{t.workspace?.noFoldersYet || "暂无自定义文件夹"}</p>
+            <p>{t.workspace.noFoldersYet}</p>
             <Button
               variant="link"
               size="sm"
               onClick={(e) => handleOpenCreate(null, e)}
               className="h-auto p-0 text-xs text-foreground mt-1 cursor-pointer"
             >
-              + {t.workspace?.newFolder || "新建文件夹"}
+              + {t.workspace.newFolder}
             </Button>
           </div>
         ) : (
@@ -384,14 +384,14 @@ export default function WorkspaceFolderTree({
           <DialogHeader>
             <DialogTitle className="text-base font-semibold flex items-center gap-1.5">
               <FolderPlus className="w-4 h-4" />
-              <span>{createParentId ? t.workspace?.newSubFolder || "新建子文件夹" : t.workspace?.newFolder || "新建文件夹"}</span>
+              <span>{createParentId ? t.workspace.newSubFolder : t.workspace.newFolder}</span>
             </DialogTitle>
           </DialogHeader>
           <div className="py-2">
             <Input
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder={t.workspace?.folderNamePlaceholder || "输入文件夹名称..."}
+              placeholder={t.workspace.folderNamePlaceholder}
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleConfirmCreate();
@@ -407,7 +407,7 @@ export default function WorkspaceFolderTree({
               onClick={() => setCreateDialogOpen(false)}
               className="text-sm h-9"
             >
-              {t.workspace?.cancel || "取消"}
+              {t.workspace.cancel}
             </Button>
             <Button
               type="button"
@@ -417,7 +417,7 @@ export default function WorkspaceFolderTree({
               className="text-sm h-9"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
-              <span>{t.workspace?.confirmCreate || "确定创建"}</span>
+              <span>{t.workspace.confirmCreate}</span>
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -429,14 +429,14 @@ export default function WorkspaceFolderTree({
           <DialogHeader>
             <DialogTitle className="text-base font-semibold flex items-center gap-1.5">
               <Edit2 className="w-4 h-4" />
-              <span>{t.workspace?.renameFolder || "重命名文件夹"}</span>
+              <span>{t.workspace.renameFolder}</span>
             </DialogTitle>
           </DialogHeader>
           <div className="py-2">
             <Input
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
-              placeholder={t.workspace?.folderNamePlaceholder || "输入新名称..."}
+              placeholder={t.workspace.folderNamePlaceholder}
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleConfirmRename();
@@ -452,7 +452,7 @@ export default function WorkspaceFolderTree({
               onClick={() => setRenameDialogOpen(false)}
               className="text-sm h-9"
             >
-              {t.workspace?.cancel || "取消"}
+              {t.workspace.cancel}
             </Button>
             <Button
               type="button"
@@ -462,7 +462,7 @@ export default function WorkspaceFolderTree({
               className="text-sm h-9"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
-              <span>{t.workspace?.confirmRename || "确定重命名"}</span>
+              <span>{t.workspace.confirmRename}</span>
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -474,11 +474,10 @@ export default function WorkspaceFolderTree({
           <DialogHeader>
             <DialogTitle className="text-base font-semibold text-destructive flex items-center gap-1.5">
               <Trash2 className="w-4 h-4" />
-              <span>{t.workspace?.deleteFolderConfirmTitle || "删除文件夹确认"}</span>
+              <span>{t.workspace.deleteFolderConfirmTitle}</span>
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground pt-1.5 leading-relaxed">
-              {t.workspace?.deleteFolderConfirmDesc ||
-                "删除文件夹后，其中的所有项目将自动转为【未归类】，项目源码与数据绝对不会丢失。确定删除吗？"}
+              {t.workspace.deleteFolderConfirmDesc}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -489,7 +488,7 @@ export default function WorkspaceFolderTree({
               onClick={() => setDeleteDialogOpen(false)}
               className="text-sm h-9"
             >
-              {t.workspace?.cancel || "取消"}
+              {t.workspace.cancel}
             </Button>
             <Button
               type="button"
@@ -500,7 +499,7 @@ export default function WorkspaceFolderTree({
               className="text-sm h-9"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
-              <span>{t.workspace?.confirmDelete || "确认删除"}</span>
+              <span>{t.workspace.confirmDelete}</span>
             </Button>
           </DialogFooter>
         </DialogContent>
