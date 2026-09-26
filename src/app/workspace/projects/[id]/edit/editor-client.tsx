@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import type { Project, Folder } from "@/db/schema";
 import { useLanguage } from "@/lib/i18n/context";
+import { LanguageToggle } from "@/components/language-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { buildIndentedFolderList } from "@/lib/utils";
 
 // CodeMirror (+ @codemirror/lang-html) is large. Load the whole editor only when the
@@ -34,8 +36,8 @@ import { buildIndentedFolderList } from "@/lib/utils";
 const CodeMirror = dynamic(() => import("./code-editor"), {
   ssr: false,
   loading: () => (
-    <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
-      正在加载编辑器…
+    <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground gap-2">
+      <Loader2 className="w-4 h-4 animate-spin" />
     </div>
   ),
 });
@@ -55,16 +57,16 @@ interface EditorClientProps {
   folders?: Folder[];
 }
 
-const CATEGORIES = [
-  { id: "tools", label: "实用工具", icon: Wrench },
-  { id: "ai", label: "AI 应用", icon: Bot },
-  { id: "games", label: "互动游戏", icon: Gamepad2 },
-  { id: "creative", label: "创意与 3D", icon: Palette },
-  { id: "visualization", label: "数据可视化", icon: BarChart3 },
-  { id: "prototypes", label: "页面原型", icon: Smartphone },
-  { id: "animations", label: "动效演示", icon: Sparkles },
-  { id: "others", label: "其他", icon: Layers },
-];
+const CATEGORY_ITEMS = [
+  { id: "tools", icon: Wrench },
+  { id: "ai", icon: Bot },
+  { id: "games", icon: Gamepad2 },
+  { id: "creative", icon: Palette },
+  { id: "visualization", icon: BarChart3 },
+  { id: "prototypes", icon: Smartphone },
+  { id: "animations", icon: Sparkles },
+  { id: "others", icon: Layers },
+] as const;
 
 export default function ProjectEditorClient({ project, initialCode, isAdmin = false, folders = [] }: EditorClientProps) {
   const { t } = useLanguage();
@@ -104,13 +106,13 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setErrorMsg(data.error || "更新截图失败");
+        setErrorMsg(data.error || t.editor.screenshotFailed);
       } else {
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 3000);
       }
     } catch {
-      setErrorMsg("网络异常，更新截图失败");
+      setErrorMsg(t.editor.networkScreenshotFailed);
     } finally {
       setCapturingScreenshot(false);
     }
@@ -153,7 +155,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
         setPreviewKey((k) => k + 1);
         setTimeout(() => setSavedSuccess(false), 3000);
       } catch (err: unknown) {
-        setErrorMsg((err as Error)?.message || "保存失败");
+        setErrorMsg((err as Error)?.message || t.editor.saveFailed);
       }
     });
   };
@@ -170,7 +172,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
           </Button>
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-foreground max-w-xs truncate">
-              {title || "编辑项目"}
+              {title || t.editor.editProjectTitle}
             </span>
             <span className="text-xs font-mono text-muted-foreground">/p/{project.slug}</span>
           </div>
@@ -184,7 +186,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             onClick={() => setActiveTab("code")}
             className="h-8 px-3 text-xs font-medium gap-1.5 rounded-md"
           >
-            <Code2 className="w-3.5 h-3.5" /> 代码与即时预览
+            <Code2 className="w-3.5 h-3.5" /> {t.editor.tabCodePreview}
           </Button>
           <Button
             variant={activeTab === "settings" ? "secondary" : "ghost"}
@@ -192,16 +194,20 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             onClick={() => setActiveTab("settings")}
             className="h-8 px-3 text-xs font-medium gap-1.5 rounded-md"
           >
-            <Settings className="w-3.5 h-3.5" /> 项目元数据
+            <Settings className="w-3.5 h-3.5" /> {t.editor.tabMetadata}
           </Button>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <LanguageToggle />
+          <ThemeToggle />
+          <div className="h-4 w-px bg-border mx-1" />
+
           <Button variant="outline" size="sm" asChild className="h-8 px-3 text-xs font-medium">
             <Link href={`/p/${project.slug}`} target="_blank">
               <Eye className="w-3.5 h-3.5 mr-1" />
-              <span>运行台</span>
+              <span>{t.editor.openInRunner}</span>
               <ExternalLink className="w-3 h-3 ml-1" />
             </Link>
           </Button>
@@ -212,14 +218,14 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             onClick={handleManualScreenshot}
             disabled={capturingScreenshot || isPending}
             className="h-8 px-3 text-xs font-medium gap-1.5 cursor-pointer"
-            title="手动重新截取并更新静态封面图"
+            title={t.editor.updateScreenshotTitle}
           >
             {capturingScreenshot ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-foreground" />
             ) : (
               <Camera className="w-3.5 h-3.5" />
             )}
-            <span>更新截图</span>
+            <span>{t.editor.updateScreenshot}</span>
           </Button>
 
           <Button
@@ -231,17 +237,17 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             {savedSuccess ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-300" />
-                <span>已保存</span>
+                <span>{t.editor.saved}</span>
               </>
             ) : isPending ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>保存中...</span>
+                <span>{t.editor.saving}</span>
               </>
             ) : (
               <>
                 <Save className="w-3.5 h-3.5" />
-                <span>保存修改</span>
+                <span>{t.editor.saveChanges}</span>
               </>
             )}
           </Button>
@@ -265,7 +271,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   <span className="font-mono flex items-center gap-1.5 text-xs">
                     <Code2 className="w-3.5 h-3.5 text-sky-400" /> {project.entryPath}
                   </span>
-                  <span className="text-xs">修改后点击右上角保存即可生效</span>
+                  <span className="text-xs">{t.editor.codeEditorHint}</span>
                 </div>
                 <div className="flex-1 overflow-auto">
                   <CodeMirror
@@ -283,7 +289,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
               {/* Right: Live Preview */}
               <div className="h-full flex flex-col bg-background overflow-hidden">
                 <div className="h-8 px-4 border-b border-border flex items-center justify-between text-xs text-muted-foreground bg-muted/20">
-                  <span className="text-xs">沙箱隔离实时预览</span>
+                  <span className="text-xs">{t.editor.sandboxLivePreview}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -294,7 +300,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                     }}
                   >
                     <RotateCw className={`w-3.5 h-3.5 ${previewLoading ? "animate-spin" : ""}`} />
-                    <span>刷新预览</span>
+                    <span>{t.editor.refreshPreview}</span>
                   </Button>
                 </div>
                 <div className="flex-1 p-2 bg-neutral-950 relative overflow-hidden">
@@ -313,7 +319,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   >
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card/90 shadow-xs">
                       <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-                      <span className="text-xs font-mono text-muted-foreground">正在初始化安全沙箱预览...</span>
+                      <span className="text-xs font-mono text-muted-foreground">{t.editor.initializingSandbox}</span>
                     </div>
                   </div>
 
@@ -337,9 +343,9 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
               <div className="p-3 rounded-full bg-muted text-muted-foreground mb-3">
                 <Code2 className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-semibold text-foreground">此项目为 Zip 多资源包</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t.editor.zipNoticeTitle}</h3>
               <p className="text-xs text-muted-foreground max-w-sm mt-1">
-                包含独立引用的相对路径图片与脚本资源，暂不支持在线直接编辑。如需更新静态资源，请重新上传新的压缩包。
+                {t.editor.zipNotice}
               </p>
               <Button
                 variant="outline"
@@ -347,7 +353,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                 className="mt-4 text-xs"
                 onClick={() => setActiveTab("settings")}
               >
-                前往编辑项目元数据
+                {t.editor.goToMetadata}
               </Button>
             </div>
           )
@@ -357,17 +363,17 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
             <Card>
               <CardHeader className="p-5 pb-2">
                 <CardTitle className="text-base font-semibold text-foreground">
-                  基本信息与展示属性
+                  {t.editor.metadataSectionTitle}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <div>
-                  <label htmlFor="edit-title" className="block text-sm font-medium text-foreground mb-1.5">项目标题</label>
+                  <label htmlFor="edit-title" className="block text-sm font-medium text-foreground mb-1.5">{t.upload.titleLabel}</label>
                   <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} className="h-9 text-sm" />
                 </div>
 
                 <div>
-                  <label htmlFor="edit-description" className="block text-sm font-medium text-foreground mb-1.5">简介描述</label>
+                  <label htmlFor="edit-description" className="block text-sm font-medium text-foreground mb-1.5">{t.upload.descLabel}</label>
                   <Textarea
                     id="edit-description"
                     rows={3}
@@ -378,11 +384,12 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">所属分类</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">{t.upload.categoryLabel}</label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {CATEGORIES.map((cat) => {
+                    {CATEGORY_ITEMS.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.id;
+                      const label = (t.categories && t.categories[cat.id as keyof typeof t.categories]) || cat.id;
                       return (
                         <button
                           key={cat.id}
@@ -395,7 +402,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                           }`}
                         >
                           <Icon className="w-4 h-4" />
-                          <span>{cat.label}</span>
+                          <span>{label}</span>
                         </button>
                       );
                     })}
@@ -404,7 +411,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
 
                 <div>
                   <label htmlFor="edit-folder" className="block text-sm font-medium text-foreground mb-1.5">
-                    {t.workspace?.folders || "所属文件夹"}
+                    {t.workspace.folders}
                   </label>
                   <div className="flex items-center gap-2">
                     <Select
@@ -413,7 +420,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       onChange={(e) => setFolderId(e.target.value ? e.target.value : null)}
                       className="text-sm h-9 px-3 py-1 bg-muted/20 border-border w-52"
                     >
-                      <option value="">{t.workspace?.rootFolderOption || "未归类 / 根目录"}</option>
+                      <option value="">{t.workspace.rootFolderOption}</option>
                       {buildIndentedFolderList(folders).map((f) => (
                         <option key={f.id} value={f.id}>
                           {"\u00A0\u00A0".repeat(f.depth)}{f.depth > 0 ? "└─ " : ""}{f.name}
@@ -421,14 +428,14 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       ))}
                     </Select>
                     <span className="text-xs text-muted-foreground">
-                      {t.workspace?.selectTargetFolder || "修改项目所属文件夹"}
+                      {t.workspace.selectTargetFolder}
                     </span>
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="edit-language" className="block text-sm font-medium text-foreground mb-1.5">
-                    {t.workspace?.languageLabel || "主要语言 (Language)"}
+                    {t.workspace.languageLabel}
                   </label>
                   <div className="flex items-center gap-2">
                     <Select
@@ -437,25 +444,25 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       onChange={(e) => setLanguage(e.target.value as "zh" | "en" | "other")}
                       className="text-sm h-9 px-3 py-1 bg-muted/20 border-border w-48"
                     >
-                      <option value="zh">{t.workspace?.langZh || "中文 (Chinese)"}</option>
-                      <option value="en">{t.workspace?.langEn || "英文 (English)"}</option>
-                      <option value="other">{t.workspace?.langOther || "其他 (Other)"}</option>
+                      <option value="zh">{t.workspace.langZh}</option>
+                      <option value="en">{t.workspace.langEn}</option>
+                      <option value="other">{t.workspace.langOther}</option>
                     </Select>
                     <span className="text-xs text-muted-foreground">
-                      {t.workspace?.languageHint || "用于正交多语言筛选与索引"}
+                      {t.workspace.languageHint}
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">标签管理</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">{t.upload.tagsLabel}</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
-                    {tags.map((t) => (
-                      <Badge key={t} variant="secondary" className="text-xs gap-1 px-2.5 py-1">
-                        <span>{t}</span>
+                    {tags.map((tagItem) => (
+                      <Badge key={tagItem} variant="secondary" className="text-xs gap-1 px-2.5 py-1">
+                        <span>{tagItem}</span>
                         <button
                           type="button"
-                          onClick={() => handleRemoveTag(t)}
+                          onClick={() => handleRemoveTag(tagItem)}
                           className="hover:text-destructive text-muted-foreground ml-0.5 cursor-pointer"
                         >
                           ×
@@ -473,7 +480,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                           handleAddTag(tagInput);
                         }
                       }}
-                      placeholder="输入标签按回车..."
+                      placeholder={t.upload.tagPlaceholder}
                       className="h-9 text-sm"
                     />
                     <Button
@@ -483,14 +490,14 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       onClick={() => handleAddTag(tagInput)}
                       className="h-9 px-3 text-sm shrink-0"
                     >
-                      添加
+                      {t.upload.addTag}
                     </Button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-border">
                   <div>
-                    <label htmlFor="edit-visibility" className="block text-sm font-medium text-foreground mb-1.5">公开状态</label>
+                    <label htmlFor="edit-visibility" className="block text-sm font-medium text-foreground mb-1.5">{t.upload.visibilityLabel}</label>
                     <Select
                       id="edit-visibility"
                       value={visibility}
@@ -499,8 +506,8 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                       }}
                       className="h-9 text-sm"
                     >
-                      <option value="public">公开 (Showcase 展示)</option>
-                      <option value="private">私有 (Private，完全隐蔽)</option>
+                      <option value="public">{t.workspace.visibilityPublicOption}</option>
+                      <option value="private">{t.workspace.visibilityPrivateOption}</option>
                     </Select>
                   </div>
 
@@ -511,7 +518,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         onChange={(e) => setIsPinned(e.target.checked)}
                       />
                       <span className="text-sm text-foreground font-medium">
-                        {t.workspace?.workspacePinLabel || "置顶到个人工作区"}
+                        {t.workspace.workspacePinLabel}
                       </span>
                     </label>
 
@@ -523,7 +530,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         />
                         <span className="text-sm text-foreground font-medium flex items-center gap-1.5">
                           <Globe className="w-4 h-4 text-foreground" />
-                          <span>{t.workspace?.globalPinLabel || "全站展台首屏置顶 (Admin)"}</span>
+                          <span>{t.workspace.globalPinLabel}</span>
                         </span>
                       </label>
                     )}
@@ -535,7 +542,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-foreground" />
-                      <span>Pro 权益定制 (Pro Perks)</span>
+                      <span>{t.upload.proPerksTitle}</span>
                     </span>
                     <Badge variant="outline" className="text-xs font-mono border-border text-foreground">PRO</Badge>
                   </div>
@@ -543,7 +550,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="edit-subdomain" className="block text-sm font-medium text-foreground mb-1.5">
-                        专属二级子域名 (Subdomain)
+                        {t.upload.subdomainLabel}
                       </label>
                       <div className="flex items-center rounded-md border border-input bg-background px-3 py-1.5 text-sm text-muted-foreground focus-within:ring-1 focus-within:ring-ring">
                         <span className="text-xs select-none text-muted-foreground">https://</span>
@@ -557,7 +564,7 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         />
                         <span className="text-xs select-none text-muted-foreground">.pagepod.dev</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">留空则默认使用全局 /p/{project.slug} 路由</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t.upload.subdomainNotice}</p>
                     </div>
 
                     <div className="flex flex-col justify-center">
@@ -568,10 +575,10 @@ export default function ProjectEditorClient({ project, initialCode, isAdmin = fa
                         />
                         <div>
                           <span className="text-sm text-foreground font-medium block">
-                            白标模式 (White-Label)
+                            {t.upload.whiteLabelTitle}
                           </span>
                           <span className="text-xs text-muted-foreground leading-tight block">
-                            隐藏全屏运行台右下角的 "Hosted on Pagepod" 徽标
+                            {t.upload.whiteLabelDesc}
                           </span>
                         </div>
                       </label>

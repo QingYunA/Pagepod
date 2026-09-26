@@ -1,6 +1,7 @@
 import { uploadPayloadSchema, updateProjectInputSchema } from "@/lib/validation";
 import { updateProject, createProject, ProjectForbiddenError } from "@/lib/services/project-service";
 import type { CurrentUser } from "@/lib/auth";
+import { translations } from "@/lib/i18n/translations";
 
 let passed = 0;
 let failed = 0;
@@ -242,8 +243,12 @@ console.log("\n=== 5. Anti-Slop Copy & Ingestion Integrity Tests ===");
 // 1. Verify editor-client.tsx complies with Anti-Slop (no "尊享")
 const editorPath = path.resolve(process.cwd(), "src/app/workspace/projects/[id]/edit/editor-client.tsx");
 const editorContent = fs.readFileSync(editorPath, "utf-8");
-assert(!editorContent.includes("尊享"), "editor-client.tsx contains zero '尊享' anti-slop copy");
-assert(editorContent.includes("Pro 权益定制 (Pro Perks)"), "editor-client.tsx uses compliant 'Pro 权益定制' title");
+assert(!editorContent.includes("尊享") && !translations.zh.upload.proPerksTitle.includes("尊享"), "editor-client.tsx and translations contain zero '尊享' anti-slop copy");
+assert(
+  editorContent.includes("t.upload.proPerksTitle") &&
+  translations.zh.upload.proPerksTitle.includes("Pro 权益定制 (Pro Perks)"),
+  "editor-client.tsx uses compliant 'Pro 权益定制' title"
+);
 
 // 2. Verify isProActor helper function
 assert(isProActor(proUser) === true, "isProActor returns true for Pro user");

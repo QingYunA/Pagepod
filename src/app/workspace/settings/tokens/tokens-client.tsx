@@ -1,7 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Key, Plus, Trash2, Copy, Check, Terminal, ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
+import Link from "next/link";
+import {
+  Key,
+  Plus,
+  Trash2,
+  Copy,
+  Check,
+  Terminal,
+  ShieldCheck,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  BookOpen,
+  ExternalLink,
+} from "lucide-react";
 import type { ApiToken } from "@/db/schema";
 import { createTokenAction, deleteTokenAction } from "@/app/actions/tokens";
 import { Button } from "@/components/ui/button";
@@ -15,12 +29,17 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useLanguage } from "@/lib/i18n/context";
+import { LanguageToggle } from "@/components/language-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface TokensClientProps {
   initialTokens: ApiToken[];
+  userRole?: string;
 }
 
-export default function TokensClient({ initialTokens }: TokensClientProps) {
+export default function TokensClient({ initialTokens, userRole }: TokensClientProps) {
+  const { t, locale } = useLanguage();
   const [tokens, setTokens] = useState<ApiToken[]>(initialTokens);
   const [isCreating, setIsCreating] = useState(false);
   const [tokenName, setTokenName] = useState("");
@@ -53,7 +72,7 @@ export default function TokensClient({ initialTokens }: TokensClientProps) {
       setIsCreating(false);
       setTokenName("");
     } else {
-      setCreateError(res.error || "创建失败，请稍后重试");
+      setCreateError(res.error || t.tokens.createFailed);
     }
   };
 
@@ -66,10 +85,10 @@ export default function TokensClient({ initialTokens }: TokensClientProps) {
     setDeleting(false);
 
     if (res.success) {
-      setTokens(tokens.filter((t) => t.id !== deleteTargetId));
+      setTokens(tokens.filter((tok) => tok.id !== deleteTargetId));
       setDeleteTargetId(null);
     } else {
-      setDeleteError(res.error || "撤销失败，请稍后重试");
+      setDeleteError(res.error || t.tokens.revokeFailed);
     }
   };
 
@@ -80,140 +99,203 @@ export default function TokensClient({ initialTokens }: TokensClientProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Action Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground">活动中的令牌</span>
-          <Badge variant="secondary" className="text-xs font-mono h-5 px-2">
-            {tokens.length}
-          </Badge>
-        </div>
-        <Button onClick={handleOpenCreate} className="h-9 px-4 text-sm gap-2 font-medium cursor-pointer">
-          <Plus className="w-4 h-4" />
-          <span>生成新令牌 (Generate new token)</span>
-        </Button>
-      </div>
-
-      {/* Token List */}
-      <div className="border border-border rounded-lg overflow-hidden divide-y divide-border bg-card">
-        {tokens.length === 0 ? (
-          <div className="p-10 text-center space-y-3">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground border border-border">
-              <Key className="w-5 h-5" />
-            </div>
-            <div className="text-sm font-medium text-foreground">暂无 API 密钥</div>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              创建一个 Personal Access Token，即可在外部脚本、CI/CD 或 Cursor 中使用标准 API 自动化上传 HTML。
-            </p>
+    <div className="min-h-screen bg-background text-foreground flex flex-col antialiased">
+      {/* Top Bar */}
+      <header className="sticky top-0 z-30 w-full border-b border-border bg-background/95 backdrop-blur-xs px-3 sm:px-8 h-12 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Button variant="ghost" size="icon" asChild className="h-8 w-8 text-muted-foreground hover:text-foreground">
+            <Link href="/workspace" prefetch={true}>
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+          </Button>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Key className="w-4 h-4 text-foreground shrink-0" />
+            <span className="font-semibold text-sm tracking-tight truncate max-w-[130px] sm:max-w-none">
+              {t.tokens.title}
+            </span>
           </div>
-        ) : (
-          tokens.map((token) => (
-            <div key={token.id} className="p-4 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground tracking-tight truncate">
-                    {token.name}
-                  </span>
-                  <code className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">
-                    pp_live_...{token.tokenHint}
-                  </code>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono">
-                  <span>创建于: {new Date(token.createdAt).toLocaleDateString()}</span>
-                  <span>•</span>
-                  <span>
-                    最近使用: {token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleDateString() : "从未调用"}
-                  </span>
-                </div>
-              </div>
+          {userRole && (
+            <>
+              <span className="text-border">/</span>
+              <Badge variant="outline" className="text-xs font-mono shrink-0">
+                {userRole === "admin" ? "admin-pat" : "user-pat"}
+              </Badge>
+            </>
+          )}
+        </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setDeleteError(null);
-                  setDeleteTargetId(token.id);
-                }}
-                className="h-8 px-3 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">撤销 (Revoke)</span>
-              </Button>
+        <div className="flex items-center gap-2">
+          <LanguageToggle />
+          <ThemeToggle />
+          <div className="h-4 w-px bg-border mx-1" />
+          <Button variant="outline" size="sm" asChild className="h-8 px-3 text-xs gap-1.5 border-border">
+            <Link href="/api/docs" target="_blank">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>{t.tokens.interactiveDocs}</span>
+              <ExternalLink className="w-3 h-3 text-muted-foreground" />
+            </Link>
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-8 py-8 space-y-6">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">{t.tokens.title}</h1>
+          <p className="text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
+            {t.tokens.subtitle}
+          </p>
+        </div>
+
+        {/* Sub-Navigation Tabs */}
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="h-8 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            <Link href="/workspace/settings">
+              <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+              <span>{t.tokens.tabSecurity}</span>
+            </Link>
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-8 text-xs font-medium cursor-default"
+          >
+            <Key className="w-3.5 h-3.5 mr-1.5 text-foreground" />
+            <span>{t.tokens.tabTokens}</span>
+          </Button>
+        </div>
+
+        <div className="space-y-6">
+          {/* Action Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">{t.tokens.activeTokens}</span>
+              <Badge variant="secondary" className="text-xs font-mono h-5 px-2">
+                {tokens.length}
+              </Badge>
             </div>
-          ))
-        )}
-      </div>
+            <Button onClick={handleOpenCreate} className="h-9 px-4 text-sm gap-2 font-medium cursor-pointer">
+              <Plus className="w-4 h-4" />
+              <span>{t.tokens.generateToken}</span>
+            </Button>
+          </div>
 
-      {/* Quick Integration / cURL Cheat Sheet */}
-      <div className="border border-border rounded-lg p-4 bg-muted/20 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Terminal className="w-4 h-4 text-muted-foreground" />
-          <span>cURL 快速上传调用范例 (API Quickstart)</span>
+          {/* Token List */}
+          <div className="border border-border rounded-lg overflow-hidden divide-y divide-border bg-card">
+            {tokens.length === 0 ? (
+              <div className="p-8 text-center space-y-2">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div className="text-sm font-medium text-foreground">{t.tokens.emptyTokensTitle}</div>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                  {t.tokens.emptyTokensDesc}
+                </p>
+              </div>
+            ) : (
+              tokens.map((token) => (
+                <div key={token.id} className="p-4 flex items-center justify-between gap-4">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm text-foreground truncate">{token.name}</span>
+                      <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground border border-border">
+                        {token.tokenHint}...
+                      </code>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{t.tokens.createdAt}: {new Date(token.createdAt).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US")}</span>
+                      <span>•</span>
+                      <span>
+                        {t.tokens.lastUsed}: {token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US") : t.tokens.neverUsed}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setDeleteError(null);
+                      setDeleteTargetId(token.id);
+                    }}
+                    className="h-8 px-2.5 text-xs text-destructive hover:bg-destructive/10 border-border hover:border-destructive/30 shrink-0 gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{t.tokens.revoke}</span>
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Quickstart Code Example */}
+          <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+              <Terminal className="w-4 h-4 text-sky-400" />
+              <span>{t.tokens.quickstartTitle}</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {t.tokens.quickstartDesc}
+            </p>
+            <div className="bg-neutral-950 text-neutral-200 rounded p-3 text-xs font-mono overflow-x-auto border border-border/40 select-all">
+              curl -X POST https://pagepod.dev/api/upload \<br />
+              &nbsp;&nbsp;-H &quot;Authorization: Bearer &lt;YOUR_API_TOKEN&gt;&quot; \<br />
+              &nbsp;&nbsp;-F &quot;file=@index.html&quot; \<br />
+              &nbsp;&nbsp;-F &quot;title=My Awesome Project&quot;
+            </div>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          将下方的 Bearer Token 替换为你生成的 Token，即可通过标准 HTTP POST 将单个 HTML 文件直接部署上线：
-        </p>
-        <div className="relative group">
-          <pre className="p-3 bg-neutral-950 text-neutral-200 rounded-md font-mono text-xs overflow-x-auto leading-relaxed border border-neutral-800">
-{`curl -X POST https://www.pagepod.dev/api/upload \\
-  -H "Authorization: Bearer YOUR_PERSONAL_ACCESS_TOKEN" \\
-  -F "file=@./index.html" \\
-  -F "title=My Interactive Tool" \\
-  -F "slug=my-interactive-tool" \\
-  -F "category=tools" \\
-  -F "description=Interactive utility built with AI" \\
-  -F "visibility=public"`}
-          </pre>
-        </div>
-      </div>
+      </main>
 
       {/* Create Token Modal */}
-      <Dialog open={isCreating} onOpenChange={(open) => {
-        setIsCreating(open);
-        if (!open) setCreateError(null);
-      }}>
+      <Dialog open={isCreating} onOpenChange={setIsCreating}>
         <DialogContent className="max-w-md border-border bg-card">
-          <DialogHeader>
-            <DialogTitle className="text-base font-semibold">生成新 Personal Access Token</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              为密钥指定一个备注名，以便日后识别它的使用场景。
-            </DialogDescription>
-          </DialogHeader>
+          <form onSubmit={handleCreate}>
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold">{t.tokens.dialogGenerateTitle}</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                {t.tokens.dialogGenerateDesc}
+              </DialogDescription>
+            </DialogHeader>
 
-          <form onSubmit={handleCreate} className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <label htmlFor="token-name" className="text-sm font-medium text-foreground">Token 备注名称</label>
-              <Input
-                id="token-name"
-                required
-                autoFocus
-                placeholder="例如：Cursor Sync / CLI Uploader / Raycast"
-                value={tokenName}
-                onChange={(e) => setTokenName(e.target.value)}
-                className="h-9 text-sm"
-              />
+            <div className="py-4 space-y-3">
+              <div className="space-y-1.5">
+                <label htmlFor="token-name" className="text-sm font-medium text-foreground">{t.tokens.tokenNameLabel}</label>
+                <Input
+                  id="token-name"
+                  value={tokenName}
+                  onChange={(e) => setTokenName(e.target.value)}
+                  placeholder={t.tokens.tokenNamePlaceholder}
+                  className="h-9 text-sm"
+                  autoFocus
+                />
+              </div>
+
+              {createError && (
+                <div role="alert" className="text-xs text-destructive flex items-center gap-1.5 p-2 rounded bg-destructive/10 border border-destructive/20">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{createError}</span>
+                </div>
+              )}
             </div>
 
-            {createError && (
-              <div role="alert" className="p-2.5 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{createError}</span>
-              </div>
-            )}
-
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setIsCreating(false)} className="h-9 text-sm cursor-pointer">
-                取消
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setIsCreating(false)} className="h-9 text-sm">
+                {t.tokens.cancel}
               </Button>
-              <Button type="submit" size="sm" disabled={loading} className="h-9 text-sm font-medium cursor-pointer">
+              <Button type="submit" size="sm" disabled={!tokenName.trim() || loading} className="h-9 text-sm gap-1.5">
                 {loading ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                    <span>正在生成...</span>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>{t.tokens.generating}</span>
                   </>
                 ) : (
-                  "立即生成"
+                  t.tokens.generateConfirm
                 )}
               </Button>
             </DialogFooter>
@@ -221,98 +303,96 @@ export default function TokensClient({ initialTokens }: TokensClientProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Revoke Confirmation Dialog */}
-      <Dialog open={Boolean(deleteTargetId)} onOpenChange={(open) => {
-        if (!open) {
-          setDeleteTargetId(null);
-          setDeleteError(null);
-        }
-      }}>
+      {/* Delete / Revoke Token Confirmation Modal */}
+      <Dialog open={Boolean(deleteTargetId)} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
         <DialogContent className="max-w-md border-border bg-card">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold">撤销 API 密钥</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              确定要撤销并吊销此 API Token 吗？撤销后所有依赖该密钥的脚本与自动化任务将立刻失效，此操作无法撤销。
+            <DialogTitle className="text-base font-semibold">{t.tokens.revokeDialogTitle}</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              {t.tokens.revokeDialogDesc}
             </DialogDescription>
           </DialogHeader>
 
           {deleteError && (
-            <div role="alert" className="p-2.5 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div role="alert" className="text-xs text-destructive flex items-center gap-1.5 p-2 rounded bg-destructive/10 border border-destructive/20 mt-2">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{deleteError}</span>
             </div>
           )}
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              disabled={deleting}
               onClick={() => setDeleteTargetId(null)}
-              className="h-9 text-sm cursor-pointer"
+              disabled={deleting}
+              className="h-9 text-sm"
             >
-              取消
+              {t.tokens.cancel}
             </Button>
             <Button
               type="button"
               variant="destructive"
               size="sm"
-              disabled={deleting}
               onClick={handleConfirmDelete}
-              className="h-9 text-sm font-medium cursor-pointer"
+              disabled={deleting}
+              className="h-9 text-sm gap-1.5"
             >
               {deleting ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                  <span>正在撤销...</span>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>{t.tokens.revoking}</span>
                 </>
               ) : (
-                "确认撤销"
+                t.tokens.revokeConfirm
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Success / Show Token Once Modal */}
-      <Dialog open={Boolean(createdRawToken)} onOpenChange={(open) => !open && setCreatedRawToken(null)}>
+      {/* Token Generated Success Modal */}
+      <Dialog open={Boolean(createdRawToken)} onOpenChange={() => setCreatedRawToken(null)}>
         <DialogContent className="max-w-lg border-border bg-card">
           <DialogHeader>
-            <div className="flex items-center gap-2 text-emerald-500 font-semibold text-sm mb-1">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Token 已成功生成</span>
+            <div className="flex items-center gap-2 text-emerald-400">
+              <ShieldCheck className="w-5 h-5" />
+              <DialogTitle className="text-base font-semibold text-foreground">
+                {t.tokens.tokenSuccessTitle}
+              </DialogTitle>
             </div>
-            <DialogTitle className="text-sm font-normal text-muted-foreground">
-              出于安全原因，此 API 密钥<strong>仅在此时展示一次</strong>。请立即复制并妥善保管在本地。
-            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              {t.tokens.tokenSuccessWarning}
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="py-2 space-y-3">
-            <div className="flex items-center gap-2 bg-muted p-2 rounded-md border border-border">
-              <code className="text-sm font-mono font-medium text-foreground flex-1 break-all select-all">
-                {createdRawToken}
-              </code>
+          <div className="py-3 space-y-3">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-neutral-950 border border-border text-foreground font-mono text-xs select-all">
+              <span className="flex-1 truncate text-amber-200">{createdRawToken}</span>
               <Button
                 size="sm"
-                variant="secondary"
+                variant="outline"
+                className="h-7 px-2.5 text-xs gap-1 border-border shrink-0 cursor-pointer"
                 onClick={() => createdRawToken && copyToClipboard(createdRawToken)}
-                className="h-8 px-3 text-xs gap-1.5 shrink-0 cursor-pointer"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? "已复制" : "复制"}</span>
+                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copied ? t.tokens.copied : t.tokens.copy}</span>
               </Button>
             </div>
 
-            <div className="flex items-start gap-2 text-xs text-amber-500/90 bg-amber-500/10 p-2.5 rounded border border-amber-500/20">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>一旦关闭此对话框，你将无法再次查看明文，丢失后需重新生成。</span>
+            <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{t.tokens.tokenCloseNotice}</span>
             </div>
           </div>
 
           <DialogFooter>
-            <Button size="sm" onClick={() => setCreatedRawToken(null)} className="h-9 px-4 text-sm font-medium cursor-pointer">
-              我已复制并安全保存
+            <Button
+              className="w-full h-9 text-sm"
+              onClick={() => setCreatedRawToken(null)}
+            >
+              {t.tokens.iHaveSaved}
             </Button>
           </DialogFooter>
         </DialogContent>
