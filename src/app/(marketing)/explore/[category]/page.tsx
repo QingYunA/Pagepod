@@ -106,10 +106,6 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     keywords: catInfo.keywords,
     alternates: {
       canonical: `/explore/${category}`,
-      languages: {
-        "en-US": `/explore/${category}`,
-        "zh-CN": `/explore/${category}`,
-      },
     },
     openGraph: {
       title: `${title} | Pagepod`,
