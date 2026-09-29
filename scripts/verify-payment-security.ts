@@ -175,22 +175,22 @@ assert(PLAN_ENTITLEMENTS.pro.maxProjects === Infinity, "Pro tier allows unlimite
 console.log("\n=== 5. Waffo Pancake Pricing & Product Invariants ===");
 
 assert(WAFFO_PRODUCTS.lite !== undefined, "Lite tier is defined in WAFFO_PRODUCTS");
-assert(WAFFO_PRODUCTS.lite.amount === "4.90", "Waffo Lite tier price is strictly $4.90 USD");
+assert(WAFFO_PRODUCTS.lite.amount === "3.90", "Waffo Lite tier price is strictly $3.90 USD (early-bird)");
 assert(WAFFO_PRODUCTS.lite.currency === "USD", "Waffo Lite tier currency is USD");
 assert(WAFFO_PRODUCTS.lite.productId.startsWith("PROD_"), "Waffo Lite has valid Product ID");
 
 assert(WAFFO_PRODUCTS.pro !== undefined, "Pro tier is defined in WAFFO_PRODUCTS");
-assert(WAFFO_PRODUCTS.pro.amount === "9.90", "Waffo Pro tier price is strictly $9.90 USD");
+assert(WAFFO_PRODUCTS.pro.amount === "7.90", "Waffo Pro tier price is strictly $7.90 USD (early-bird)");
 assert(WAFFO_PRODUCTS.pro.currency === "USD", "Waffo Pro tier currency is USD");
 assert(WAFFO_PRODUCTS.pro.productId.startsWith("PROD_"), "Waffo Pro has valid Product ID");
 
 assert(
-  WAFFO_PRODUCTS.lite.amount === PLAN_PRICING.lite.originalAmount,
-  "Price parity: Waffo Lite base price equals PayPal Lite base price ($4.90)"
+  WAFFO_PRODUCTS.lite.amount === PLAN_PRICING.lite.amount,
+  "Price parity: Waffo Lite charged price equals PayPal Lite charged price ($3.90)"
 );
 assert(
-  WAFFO_PRODUCTS.pro.amount === PLAN_PRICING.pro.originalAmount,
-  "Price parity: Waffo Pro base price equals PayPal Pro base price ($9.90)"
+  WAFFO_PRODUCTS.pro.amount === PLAN_PRICING.pro.amount,
+  "Price parity: Waffo Pro charged price equals PayPal Pro charged price ($7.90)"
 );
 
 console.log("\n=== 6. Waffo IDOR & Order Status Security ===");
