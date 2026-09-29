@@ -10,6 +10,7 @@ import {
   WebhookEventType,
   type WebhookEvent,
 } from "@waffo/pancake-ts";
+import { PLAN_PRICING } from "@/lib/paypal";
 
 export { WebhookEventType, type WebhookEvent };
 
@@ -18,14 +19,14 @@ export const WAFFO_PRODUCTS = {
     tier: "lite" as const,
     name: "Pagepod Lite Lifetime Deal",
     productId: process.env.WAFFO_PROD_LITE_ID || "PROD_1bH5KadMHylrRe400OYbRD",
-    amount: "4.90",
+    amount: PLAN_PRICING.lite.amount,
     currency: "USD",
   },
   pro: {
     tier: "pro" as const,
     name: "Pagepod Pro Lifetime Deal",
     productId: process.env.WAFFO_PROD_PRO_ID || "PROD_4thgHLWRM3rmPX01a5eYSR",
-    amount: "9.90",
+    amount: PLAN_PRICING.pro.amount,
     currency: "USD",
   },
 };
