@@ -18,7 +18,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Pagepod - Host HTML Files Free | Upload HTML & Get Link",
+    default: "Pagepod - Free HTML Hosting: Preview & Share HTML Online",
     template: "%s | Pagepod",
   },
   description:
@@ -35,10 +35,6 @@ export const metadata: Metadata = {
   creator: "Pagepod",
   alternates: {
     canonical: "/",
-    languages: {
-      "en-US": "/",
-      "zh-CN": "/",
-    },
   },
   icons: {
     icon: [
@@ -58,13 +54,13 @@ export const metadata: Metadata = {
     alternateLocale: ["zh_CN"],
     url: siteUrl,
     siteName: "Pagepod",
-    title: "Pagepod - Host HTML Files Free | Upload HTML & Get Link",
+    title: "Pagepod - Free HTML Hosting: Preview & Share HTML Online",
     description:
       "Free zero-config HTML hosting. Upload HTML files to get a secure shareable link in 3 seconds. Run and share web apps safely in a hardened sandbox.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pagepod - Host HTML Files Free | Upload HTML & Get Link",
+    title: "Pagepod - Free HTML Hosting: Preview & Share HTML Online",
     description:
       "Free zero-config HTML hosting. Upload HTML files to get a secure shareable link in 3 seconds. Run and share web apps safely in a hardened sandbox.",
   },

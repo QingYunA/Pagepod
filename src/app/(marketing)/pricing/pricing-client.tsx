@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/i18n/context";
 import UnifiedCheckoutDialog from "@/components/pricing/unified-checkout-dialog";
+import { trackEvent } from "@/lib/analytics";
 
 export default function PricingClient() {
   const { t, locale } = useLanguage();
@@ -67,6 +68,7 @@ export default function PricingClient() {
   const isPro = currentTier === "pro";
 
   const handleBuyClick = (tier: "lite" | "pro") => {
+    trackEvent("pricing_buy_click", { tier, logged_in: Boolean(currentUser) });
     if (!currentUser) {
       window.location.href = `/login?from=${encodeURIComponent(`/pricing?tier=${tier}`)}`;
       return;

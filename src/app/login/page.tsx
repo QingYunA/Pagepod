@@ -32,6 +32,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 type AuthStep = "auth" | "forgot" | "reset-password" | "verify";
 
@@ -150,6 +151,7 @@ function LoginForm() {
   const handleOAuthLogin = async (provider: "github" | "google") => {
     setOauthError(null);
     setOauthLoading(provider);
+    trackEvent("login_oauth_start", { provider });
 
     const supabase = createSupabaseClient();
     if (!supabase) {

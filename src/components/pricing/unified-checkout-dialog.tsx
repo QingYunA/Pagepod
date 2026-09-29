@@ -26,6 +26,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
+import { trackEvent } from "@/lib/analytics";
 
 // Global PayPal types declaration
 declare global {
@@ -160,6 +161,7 @@ export default function UnifiedCheckoutDialog({
       if (!res.ok) return false;
       const data = await res.json();
       if (data?.completed || data?.status === "completed") {
+        trackEvent("payment_success", { tier: data.planTier || planTier, channel: "waffo" });
         setIsSuccess(true);
         setWaffoState("idle");
         onSuccess?.(data.planTier || planTier);
@@ -299,6 +301,7 @@ export default function UnifiedCheckoutDialog({
                 if (!res.ok || !result.success) {
                   throw new Error(result.error || "Payment capture failed");
                 }
+                trackEvent("payment_success", { tier: result.planTier || planTier, channel: "paypal" });
                 setIsSuccess(true);
                 onSuccess?.(result.planTier || planTier);
               } catch (err: unknown) {
