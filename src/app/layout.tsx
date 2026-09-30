@@ -166,6 +166,7 @@ export default function RootLayout({
             defer
             src={umamiScriptUrl}
             data-website-id={umamiWebsiteId}
+            data-performance="true"
           />
         )}
       </head>

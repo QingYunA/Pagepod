@@ -42,7 +42,16 @@ export function LanguageProvider({
   children: React.ReactNode;
   initialLocale?: Locale;
 }) {
-  const [locale, setLocaleState] = useState<Locale>(() => initialLocale || getClientInitialLocale());
+  // 首帧必须与服务端 SSR 一致（静态 ISR 下服务端恒为默认语言），否则会触发 hydration mismatch；
+  // 真实偏好在挂载后同步。
+  const [locale, setLocaleState] = useState<Locale>(initialLocale || DEFAULT_LOCALE);
+
+  useEffect(() => {
+    if (initialLocale) return;
+    const preferred = getClientInitialLocale();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 挂载后一次性同步客户端语言偏好
+    setLocaleState((current) => (current === preferred ? current : preferred));
+  }, [initialLocale]);
 
   useEffect(() => {
     // Ensure document lang and cookie are synchronized without triggering a re-render
