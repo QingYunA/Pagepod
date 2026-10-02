@@ -132,12 +132,9 @@ const faqJsonLd = {
   ],
 };
 
-const umamiScriptUrl =
-  process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
-  "https://umami.daydayup.lat/script.js";
-const umamiWebsiteId =
-  process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ||
-  "c7ee55df-938f-4800-b6cb-18622970fe64";
+// Plausible analytics (self-hosted at plausible.sri-ai.xyz)
+const plausibleScriptUrl = "https://plausible.sri-ai.xyz/js/script.js";
+const plausibleDomain = "pagepod.dev";
 
 export default function RootLayout({
   children,
@@ -161,14 +158,11 @@ export default function RootLayout({
             __html: `(function(){try{var c=document.cookie.match(/(?:^|;\\s*)html_manager_locale=([^;]+)/);var l=c?decodeURIComponent(c[1]):((navigator.language||'').toLowerCase().indexOf('zh')===0?'zh':'en');document.documentElement.lang=l==='zh'?'zh-CN':'en';window.__INITIAL_LOCALE__=l;}catch(e){}})()`,
           }}
         />
-        {umamiWebsiteId && (
-          <script
-            defer
-            src={umamiScriptUrl}
-            data-website-id={umamiWebsiteId}
-            data-performance="true"
-          />
-        )}
+        <script
+          defer
+          data-domain={plausibleDomain}
+          src={plausibleScriptUrl}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans overflow-x-hidden w-full max-w-full">
         <ThemeProvider
