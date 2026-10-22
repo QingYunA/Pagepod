@@ -335,6 +335,20 @@ const SQL_NOTIFICATIONS = `
   CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications (user_id);
 `;
 
+// Supabase exposes every public-schema table through its Data API (PostgREST) to anyone holding the
+// public anon key. RLS with no policies denies the anon/authenticated roles; this app connects directly
+// as the table owner, which bypasses RLS, so its own queries are unaffected.
+const SQL_ENABLE_RLS = [
+  `ALTER TABLE projects ENABLE ROW LEVEL SECURITY;`,
+  `ALTER TABLE folders ENABLE ROW LEVEL SECURITY;`,
+  `ALTER TABLE settings ENABLE ROW LEVEL SECURITY;`,
+  `ALTER TABLE api_tokens ENABLE ROW LEVEL SECURITY;`,
+  `ALTER TABLE orders ENABLE ROW LEVEL SECURITY;`,
+  `ALTER TABLE user_subscriptions ENABLE ROW LEVEL SECURITY;`,
+  `ALTER TABLE webhook_deliveries ENABLE ROW LEVEL SECURITY;`,
+  `ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;`,
+];
+
 let legacyProjectsApproved = false;
 let lastDbError: string | null = null;
 
@@ -418,6 +432,7 @@ async function ensurePostgresTables() {
       SQL_NOTIFICATIONS,
       ...SQL_PROJECTS_MIGRATIONS,
       ...SQL_ORDERS_MIGRATIONS,
+      ...SQL_ENABLE_RLS,
     ]) {
       try {
         await pgPool.query(sql);

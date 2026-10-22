@@ -2,6 +2,7 @@ import { assertSafeStoragePath, assertSafeStorageKey, UnsafePathError } from "..
 import { sanitizeRedirectPath, sanitizeNextParam } from "../src/lib/safe-redirect";
 import { canManageProject, type CurrentUser } from "../src/lib/auth";
 import { getAllProjects } from "../src/db";
+import fs from "node:fs";
 
 let passed = 0;
 let failed = 0;
@@ -81,6 +82,19 @@ const isolatedBob = await getAllProjects({ userId: "user_bob_isolated_empty" });
 assert(isolatedBob.length === 0, "Fallback query: Non-existent user query returns empty array (zero tenant leak)");
 const publicOnly = await getAllProjects({ includePrivate: false });
 assert(publicOnly.every((p) => p.visibility === "public"), "Fallback query: Public filter never leaks private or unlisted projects");
+
+console.log("\n=== 5. Supabase Data API Exposure (RLS) Tests ===");
+// Every table created in the public schema is reachable through Supabase PostgREST with the public anon key
+// unless Row-Level Security is enabled. The app only connects directly as the table owner, which bypasses RLS.
+const dbIndexSource = fs.readFileSync("src/db/index.ts", "utf-8");
+const createdTables = [...dbIndexSource.matchAll(/CREATE TABLE IF NOT EXISTS (\w+)/g)].map((m) => m[1]);
+const rlsTables = new Set(
+  [...dbIndexSource.matchAll(/ALTER TABLE (\w+) ENABLE ROW LEVEL SECURITY/g)].map((m) => m[1])
+);
+assert(createdTables.length > 0, "DDL source declares at least one table");
+for (const table of createdTables) {
+  assert(rlsTables.has(table), `Table '${table}' enables Row-Level Security (blocks anon PostgREST access)`);
+}
 
 console.log(`\nResults: ${passed} passed, ${failed} failed`);
 if (failed > 0) {
