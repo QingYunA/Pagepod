@@ -105,7 +105,6 @@ When you build an HTML utility, a canvas experiment, or an exported UI prototype
 | **Multi-device preview (Desktop/Pad/Phone)** | **Yes (1-click switch)** | Manual resize | Yes | No |
 | **CLI & API push (`/api/upload`)** | **Yes (OpenAPI + Token)** | No | No | S3 CLI only |
 | **Gentle on CPU/GPU (No iframe overload)** | **Yes (Poster + LRU 6)** | Heavy iframes | Heavy iframes | N/A |
-| **Client-side encryption (E2EE)** | **Yes (AES-GCM)** | No | No | No |
 | **Bandwidth egress markup** | **$0 (R2 or local disk)** | Subscription | Subscription | Cloud provider fees |
 
 ---
