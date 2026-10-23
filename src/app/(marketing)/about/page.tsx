@@ -5,16 +5,16 @@ import AboutClient from "./about-client";
 const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
-  title: "About Pagepod - Mission & Architecture",
+  title: { absolute: "About Pagepod: Host & Share HTML Files Instantly" },
   description:
-    "Learn about Pagepod, an open-source, self-hostable showcase and hosting platform tailored for HTML web applications, interactive tools, and games.",
+    "Pagepod turns any HTML file into a shareable link in seconds. No signup, sandboxed runner, open source and self-hostable.",
   alternates: {
     canonical: "/about",
   },
   openGraph: {
-    title: "About Pagepod | Mission & Architecture",
+    title: "About Pagepod: Host & Share HTML Files Instantly",
     description:
-      "Instant hosting platform tailored for HTML web applications, tools, and prototypes.",
+      "Pagepod turns any HTML file into a shareable link in seconds. No signup, sandboxed runner, open source and self-hostable.",
     url: `${siteUrl}/about`,
     type: "website",
   },

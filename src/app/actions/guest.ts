@@ -1,9 +1,14 @@
 "use server";
 
 import { headers } from "next/headers";
-import { handleGuestUpload, claimGuestProjects, type GuestUploadResult } from "@/lib/services/guest-upload";
+import { handleGuestUpload, claimGuestProjects, type GuestUploadResult, type GuestUploadErrorCode } from "@/lib/services/guest-upload";
 import { getCurrentUser } from "@/lib/auth";
 import { categorySchema } from "@/lib/validation";
+import {
+  ProjectPayloadTooLargeError,
+  ProjectForbiddenError,
+  ProjectValidationError,
+} from "@/lib/services/project-service";
 
 export async function submitGuestUpload(
   formData: FormData,
@@ -18,7 +23,7 @@ export async function submitGuestUpload(
 
   if (file instanceof File) {
     if (file.size === 0) {
-      return { success: false, error: "Uploaded file is empty." };
+      return { success: false, error: "Uploaded file is empty.", errorCode: "empty" };
     }
     const buffer = Buffer.from(await file.arrayBuffer());
     htmlContent = buffer.toString("utf-8");
@@ -30,7 +35,7 @@ export async function submitGuestUpload(
   }
 
   if (!htmlContent.trim()) {
-    return { success: false, error: "Please provide valid HTML code or a single .html file." };
+    return { success: false, error: "Please provide valid HTML code or a single .html file.", errorCode: "empty" };
   }
 
   const title = formData.get("title")?.toString();
@@ -54,9 +59,18 @@ export async function submitGuestUpload(
       currentUser,
     });
   } catch (err: any) {
+    const errorCode: GuestUploadErrorCode =
+      err instanceof ProjectPayloadTooLargeError
+        ? "too_large"
+        : err instanceof ProjectForbiddenError
+          ? "policy_blocked"
+          : err instanceof ProjectValidationError
+            ? "invalid"
+            : "server_error";
     return {
       success: false,
       error: err?.message || "Failed to process guest upload",
+      errorCode,
     };
   }
 }

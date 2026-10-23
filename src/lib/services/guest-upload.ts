@@ -22,6 +22,15 @@ export interface GuestUploadInput {
   currentUser?: CurrentUser | null;
 }
 
+export type GuestUploadErrorCode =
+  | "rate_limited"
+  | "too_large"
+  | "empty"
+  | "invalid"
+  | "policy_blocked"
+  | "secret_confirm"
+  | "server_error";
+
 export interface GuestUploadResult {
   success: boolean;
   slug?: string;
@@ -34,6 +43,7 @@ export interface GuestUploadResult {
   requiresConfirmation?: boolean;
   secretFinding?: SecretFinding;
   error?: string;
+  errorCode?: GuestUploadErrorCode;
   rateLimitResetInSeconds?: number;
 }
 
@@ -94,6 +104,7 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
       return {
         success: false,
         error: `Hourly upload limit reached (max ${GUEST_RATE_LIMIT_PER_HOUR}/hour). Please try again in ${rateLimit.resetInSeconds}s or sign in for unlimited uploads.`,
+        errorCode: "rate_limited",
         rateLimitResetInSeconds: rateLimit.resetInSeconds,
       };
     }
@@ -118,6 +129,7 @@ export async function handleGuestUpload(input: GuestUploadInput): Promise<GuestU
       success: false,
       requiresConfirmation: true,
       secretFinding,
+      errorCode: "secret_confirm",
       error: `Detected potential exposed secret (${secretFinding.label}). Please confirm before public exposure.`,
     };
   }

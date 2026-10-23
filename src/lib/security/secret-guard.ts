@@ -63,23 +63,49 @@ function maskSecret(secret: string): string {
   return `${start}••••••••${end}`;
 }
 
+const PLACEHOLDER_WORDS = ["example", "xxxx", "your", "placeholder", "dummy", "fake", "test"];
+const PLACEHOLDER_DB_PASSWORDS = ["password", "pass", "secret", "changeme", "***", "<password>", "123456"];
+
+function isPlaceholder(type: SecretFinding["type"], matched: string, password?: string): boolean {
+  const lower = matched.toLowerCase();
+  if (PLACEHOLDER_WORDS.some((w) => lower.includes(w))) return true;
+  if (/(.)\1{7,}/.test(matched)) return true;
+
+  if (type === "database_url") {
+    if (password && PLACEHOLDER_DB_PASSWORDS.includes(password.toLowerCase())) return true;
+    const hostMatch = /@([^/:?#\s'"]+)/.exec(matched);
+    const host = hostMatch ? hostMatch[1].toLowerCase() : "";
+    if (host === "localhost" || host === "127.0.0.1" || host === "example.com" || host.endsWith(".example.com")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isPlaceholderMatch(rule: Rule, match: RegExpExecArray): boolean {
+  if (rule.type === "private_key") return false;
+  return isPlaceholder(rule.type, match[1], match[2]);
+}
+
 /**
  * Scans content for the first occurrence of an exposed secret.
- * Returns null if no known secret patterns match.
+ * Returns null if no known secret patterns match. Placeholder values are skipped.
  */
 export function scanForSecrets(content: string): SecretFinding | null {
   if (!content || typeof content !== "string") return null;
 
   for (const rule of SECRET_RULES) {
     rule.regex.lastIndex = 0;
-    const match = rule.regex.exec(content);
-    if (match && match[1]) {
-      return {
-        type: rule.type,
-        label: rule.label,
-        matchedPattern: rule.type,
-        snippet: maskSecret(match[1]),
-      };
+    let match: RegExpExecArray | null;
+    while ((match = rule.regex.exec(content)) !== null) {
+      if (match[1] && !isPlaceholderMatch(rule, match)) {
+        return {
+          type: rule.type,
+          label: rule.label,
+          matchedPattern: rule.type,
+          snippet: maskSecret(match[1]),
+        };
+      }
     }
   }
 
@@ -87,7 +113,7 @@ export function scanForSecrets(content: string): SecretFinding | null {
 }
 
 /**
- * Scans content and returns all detected sensitive secrets.
+ * Scans content and returns all detected sensitive secrets (placeholders excluded).
  */
 export function scanAllSecrets(content: string): SecretFinding[] {
   if (!content || typeof content !== "string") return [];
@@ -97,7 +123,7 @@ export function scanAllSecrets(content: string): SecretFinding[] {
     rule.regex.lastIndex = 0;
     let match: RegExpExecArray | null;
     while ((match = rule.regex.exec(content)) !== null) {
-      if (match[1]) {
+      if (match[1] && !isPlaceholderMatch(rule, match)) {
         findings.push({
           type: rule.type,
           label: rule.label,
