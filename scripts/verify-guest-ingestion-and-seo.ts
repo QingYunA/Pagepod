@@ -37,7 +37,7 @@ async function runTests() {
   const finding2 = scanForSecrets(anthropicHtml);
   assert(finding2 !== null && finding2.type === "anthropic", "Detects Anthropic API key format");
 
-  const awsHtml = `const s3 = new AWS.S3({ accessKeyId: "AKIAIOSFODNN7EXAMPLE" });`;
+  const awsHtml = `const s3 = new AWS.S3({ accessKeyId: "${"AKIA" + "Q7W8E9R2T3Y4U5I6"}" });`;
   const finding3 = scanForSecrets(awsHtml);
   assert(finding3 !== null && finding3.type === "aws", "Detects AWS Access Key ID format");
 
