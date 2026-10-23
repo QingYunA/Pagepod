@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, Terminal, Sparkles } from "lucide-react";
+import { ShieldCheck, Terminal } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 import { isClientCloudMode } from "@/lib/supabase/client";
 
@@ -21,10 +21,6 @@ export function SiteFooter() {
             <span className="hidden sm:inline text-border">•</span>
             <span className="flex items-center gap-1.5">
               <Terminal className="w-4 h-4 text-sky-400" /> {t.footer.apiPush}
-            </span>
-            <span className="hidden sm:inline text-border">•</span>
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-amber-400" /> {t.footer.e2eeReady}
             </span>
           </div>
 

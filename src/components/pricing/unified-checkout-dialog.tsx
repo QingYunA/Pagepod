@@ -608,8 +608,8 @@ export default function UnifiedCheckoutDialog({
                 <ShieldCheck className="w-4 h-4 text-muted-foreground" />
                 <span>
                   {isZh
-                    ? "端到端银行级传输加密 · 一次性买断无隐形扣费"
-                    : "End-to-end encrypted · One-time lifetime checkout"}
+                    ? "支付由 PayPal / Waffo 处理 · 一次性买断无隐形扣费"
+                    : "Payments processed by PayPal / Waffo · One-time lifetime checkout"}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
