@@ -29,8 +29,8 @@ export const translations = {
     },
     hero: {
       badge: "HTML 运行时与探索画廊",
-      title: "保存，运行，分享你的 HTML",
-      desc: "无需配置服务器与构建流水线。拖拽 HTML 文件或资源包，3 秒生成受安全沙箱保护的即时分享链接与展示舞台。",
+      title: "免费托管、运行和分享你的 HTML",
+      desc: "免费，无需注册，无需配置服务器与构建流水线。拖拽 HTML 文件或资源包，3 秒生成受安全沙箱保护的即时分享链接与展示舞台。",
       selfhostDesc: "私有化自托管的 HTML 应用展台与作品集，零构建安全沙箱运行。",
       showcaseTeaser: "收录开源单文件 HTML 网页应用，无需安装，点击直接在浏览器运行。",
       browseShowcase: "浏览公开作品",
@@ -847,8 +847,8 @@ export const translations = {
     },
     hero: {
       badge: "Zero-Config HTML Sandbox & Gallery",
-      title: "Save, run, and share your HTML",
-      desc: "No server configuration or build pipelines required. Upload HTML files or zip bundles to get an instant shareable link in 3 seconds, secured in a hardened sandbox.",
+      title: "Free HTML hosting: save, run, and share",
+      desc: "Free, no sign-up, no server configuration or build pipelines. Upload HTML files or zip bundles to get an instant shareable link in 3 seconds, secured in a hardened sandbox.",
       selfhostDesc: "Self-hosted HTML applications and portfolio showcase, sandboxed and ready to run.",
       showcaseTeaser: "Open-source single-file HTML web apps ready to run instantly in your browser.",
       browseShowcase: "Browse Showcase",
