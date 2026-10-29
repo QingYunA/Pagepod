@@ -27,7 +27,7 @@ const CATEGORY_MAP: Record<
   tools: {
     nameEn: "AI Tools & Utilities",
     nameZh: "实用工具与计算器",
-    desc: "Interactive calculators, text formatters, image converters, and daily AI developer utilities. Fast sandboxed execution.",
+    desc: "Free interactive calculators, text formatters, image converters, and daily AI developer utilities. Fast sandboxed execution.",
     icon: Wrench,
     keywords: ["AI Tools Online", "Free Calculators", "Web Utilities", "HTML Tools", "Developer Utilities"],
   },
@@ -41,7 +41,7 @@ const CATEGORY_MAP: Record<
   games: {
     nameEn: "Web Mini Games & Canvas",
     nameZh: "网页微游戏与交互",
-    desc: "Play fun canvas mini games, puzzles, arcade retro games, and interactive web animations created with AI.",
+    desc: "Play free canvas mini games, puzzles, arcade retro games, and interactive web animations created with AI.",
     icon: Gamepad2,
     keywords: ["Free Web Games", "HTML5 Mini Games", "Canvas Games Sandbox", "AI Generated Games"],
   },
@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   }
 
   const siteUrl = getSiteUrl();
-  const title = `${catInfo.nameEn} - Online AI Sandbox`;
+  const title = `Free ${catInfo.nameEn} Online`;
 
   return {
     title,
