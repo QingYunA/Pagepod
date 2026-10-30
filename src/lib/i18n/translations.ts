@@ -27,6 +27,11 @@ export const translations = {
       upgradePlan: "升级方案",
       lifetimeBadge: "LIFETIME",
     },
+    notFound: {
+      title: "页面不存在",
+      description: "你访问的页面可能已被移动、删除，或链接有误。",
+      backHome: "返回首页",
+    },
     hero: {
       badge: "HTML 运行时与探索画廊",
       title: "免费托管、运行和分享你的 HTML",
@@ -467,7 +472,7 @@ export const translations = {
         cta: "立即免费开始",
         features: [
           "100 MB 存储容量配额",
-          "单次上传最大 50 MB (HTML / Zip)",
+          "单次上传最大 2 MB (HTML / Zip)",
           "最多托管 20 个项目",
           "全员标配账号级私有保护 (Private)",
           "标准安全隔离沙箱运行与响应式预览",
@@ -529,7 +534,7 @@ export const translations = {
         },
         {
           q: "支持哪些类型的文件上传？",
-          a: "支持直接粘贴 HTML 代码、上传 `.html` 文件，以及包含 CSS、JS、图片等完整静态资源的 `.zip` 压缩包。系统会自动解析入口文件并安全加载所有相对路径资源，单个文件最大支持 50MB。",
+          a: "支持直接粘贴 HTML 代码、上传 `.html` 文件，以及包含 CSS、JS、图片等完整静态资源的 `.zip` 压缩包。游客与免费版单次上传最大 2MB，Lite 与 Pro 单次上传最大 10MB。系统会自动解析入口文件并安全加载所有相对路径资源。",
         },
         {
           q: "付费终身版方案支持退款吗？具体的退款政策是什么？",
@@ -844,6 +849,11 @@ export const translations = {
       starterPlan: "Starter Free",
       upgradePlan: "Upgrade Plan",
       lifetimeBadge: "LIFETIME",
+    },
+    notFound: {
+      title: "Page not found",
+      description: "The page may have been moved or deleted, or the link may be incorrect.",
+      backHome: "Back to home",
     },
     hero: {
       badge: "Zero-Config HTML Sandbox & Gallery",
@@ -1285,7 +1295,7 @@ export const translations = {
         cta: "Start for Free",
         features: [
           "100 MB storage quota",
-          "Max 50 MB per upload (HTML / Zip)",
+          "Max 2 MB per upload (HTML / Zip)",
           "Host up to 20 projects",
           "Account-level private protection included",
           "Hardened sandbox isolation & responsive preview",
@@ -1347,7 +1357,7 @@ export const translations = {
         },
         {
           q: "What file formats and upload sizes are supported?",
-          a: "Pasted HTML code, `.html` files, and `.zip` archives containing CSS, JS, and image assets up to 50MB per upload. Pagepod automatically resolves index entrypoints and relative paths.",
+          a: "Pasted HTML code, `.html` files, and `.zip` archives containing CSS, JS, and image assets are supported. Guest and Starter uploads are limited to 2MB each; Lite and Pro allow up to 10MB per upload. Pagepod automatically resolves index entrypoints and relative paths.",
         },
         {
           q: "Do you offer refunds for lifetime plans? What is the refund policy?",

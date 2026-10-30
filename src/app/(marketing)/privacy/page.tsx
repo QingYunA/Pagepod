@@ -5,7 +5,7 @@ import PrivacyClient from "./privacy-client";
 const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Pagepod",
+  title: "Privacy Policy",
   description:
     "Privacy Policy for Pagepod. Learn how we handle your authentication, data storage, project access control, and privacy rights.",
   alternates: {

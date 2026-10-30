@@ -25,7 +25,7 @@ import {
   Terminal,
   Play,
 } from "lucide-react";
-import type { Project } from "@/db/schema";
+import type { PublicProjectCard, PublicRunnerProject } from "@/lib/public-project";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -42,10 +42,10 @@ import {
 import { trackEvent } from "@/lib/analytics";
 
 interface RunnerClientProps {
-  project: Project;
+  project: PublicRunnerProject;
   initialSourceCode: string;
   isOwner?: boolean;
-  relatedProjects?: Project[];
+  relatedProjects?: PublicProjectCard[];
   token?: string;
 }
 

@@ -2,74 +2,60 @@ import type { MetadataRoute } from "next";
 import { getAllProjects } from "@/db";
 import { getSiteUrl } from "@/lib/site-url";
 
+// Keep static route timestamps stable across ISR revalidations.
+const SITE_CONTENT_UPDATED_AT = new Date("2026-10-30T00:00:00Z");
+const EXPLORE_CATEGORIES = [
+  "tools",
+  "ai",
+  "games",
+  "creative",
+  "visualization",
+  "prototypes",
+  "animations",
+  "others",
+];
+
 // Revalidate sitemap every 60s so newly published projects are immediately crawlable
 export const revalidate = 60;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
 
-  // Stable timestamp for static pillar routes: avoid advertising "changed now" on every crawl.
-  const siteUpdatedAt = new Date();
-
   // Base pillar routes for Hub & Spoke architecture
   const routes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: siteUpdatedAt,
+      lastModified: SITE_CONTENT_UPDATED_AT,
       changeFrequency: "daily",
       priority: 1.0,
     },
     {
       url: `${baseUrl}/explore`,
-      lastModified: siteUpdatedAt,
+      lastModified: SITE_CONTENT_UPDATED_AT,
       changeFrequency: "daily",
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/explore/tools`,
-      lastModified: siteUpdatedAt,
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/explore/games`,
-      lastModified: siteUpdatedAt,
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/explore/visualization`,
-      lastModified: siteUpdatedAt,
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/explore/prototypes`,
-      lastModified: siteUpdatedAt,
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-    {
       url: `${baseUrl}/pricing`,
-      lastModified: siteUpdatedAt,
+      lastModified: SITE_CONTENT_UPDATED_AT,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: siteUpdatedAt,
+      lastModified: SITE_CONTENT_UPDATED_AT,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified: siteUpdatedAt,
+      lastModified: SITE_CONTENT_UPDATED_AT,
       changeFrequency: "monthly",
       priority: 0.5,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: siteUpdatedAt,
+      lastModified: SITE_CONTENT_UPDATED_AT,
       changeFrequency: "monthly",
       priority: 0.5,
     },
@@ -79,6 +65,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Quality Gate: Only expose public, non-test projects with descriptive metadata
     // Prevents low-quality placeholder pages from diluting crawl budget or triggering search penalties.
     const projects = await getAllProjects({ includePrivate: false });
+    const publicCategories = new Set(
+      projects
+        .filter((project) => project.visibility === "public")
+        .map((project) => project.category),
+    );
+
+    for (const category of EXPLORE_CATEGORIES) {
+      if (!publicCategories.has(category)) continue;
+      routes.push({
+        url: `${baseUrl}/explore/${category}`,
+        lastModified: SITE_CONTENT_UPDATED_AT,
+        changeFrequency: "daily",
+        priority: 0.85,
+      });
+    }
+
     const isTestSlugOrTitle = (slug: string, title?: string | null) => {
       const s = (slug || "").toLowerCase();
       const t = (title || "").toLowerCase();
@@ -97,7 +99,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const p of publicProjects) {
       routes.push({
         url: `${baseUrl}/p/${p.slug}`,
-        lastModified: p.updatedAt ? new Date(p.updatedAt) : siteUpdatedAt,
+        lastModified: p.updatedAt ? new Date(p.updatedAt) : SITE_CONTENT_UPDATED_AT,
         changeFrequency: "weekly",
         priority: 0.8,
       });
