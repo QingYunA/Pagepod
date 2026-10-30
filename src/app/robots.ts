@@ -8,12 +8,12 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/p/", "/explore/"],
+        allow: ["/", "/p/", "/explore/", "/ai-tools/"],
         disallow: ["/workspace/", "/admin/", "/api/", "/auth/", "/raw/"],
       },
       {
         userAgent: ["GPTBot", "ClaudeBot", "PerplexityBot", "Applebot-Extended"],
-        allow: ["/", "/p/", "/explore/"],
+        allow: ["/", "/p/", "/explore/", "/ai-tools/"],
         disallow: ["/workspace/", "/admin/", "/api/", "/auth/", "/raw/"],
       },
     ],

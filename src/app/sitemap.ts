@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllProjects } from "@/db";
 import { getSiteUrl } from "@/lib/site-url";
+import { AI_TOOL_PAGES } from "@/data/ai-tools";
 
 // Revalidate sitemap every 60s so newly published projects are immediately crawlable
 export const revalidate = 60;
@@ -74,6 +75,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
   ];
+
+  for (const tool of Object.values(AI_TOOL_PAGES)) {
+    routes.push({
+      url: `${baseUrl}/ai-tools/${tool.slug}`,
+      lastModified: new Date(tool.lastVerified),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    });
+  }
 
   try {
     // Quality Gate: Only expose public, non-test projects with descriptive metadata
