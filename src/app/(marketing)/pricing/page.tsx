@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import PricingClient from "./pricing-client";
@@ -76,7 +75,7 @@ export default function PricingPage() {
         name: "What file formats and upload sizes are supported?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Pasted HTML code, .html files, and .zip archives containing CSS, JS, and image assets up to 50MB per upload. Relative references are automatically resolved.",
+          text: "Pasted HTML code, .html files, and .zip archives containing CSS, JS, and image assets are supported. Guest and Starter uploads are limited to 2MB each; Lite and Pro allow up to 10MB per upload. Relative references are automatically resolved.",
         },
       },
     ],
@@ -88,9 +87,7 @@ export default function PricingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <Suspense fallback={null}>
-        <PricingClient />
-      </Suspense>
+      <PricingClient />
     </main>
   );
 }

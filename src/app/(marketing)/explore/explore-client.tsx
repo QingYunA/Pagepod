@@ -3,13 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Compass, Wrench, Gamepad2, BarChart2, Layers, Sparkles, ArrowRight, ArrowUpRight, Play, Bot, Palette } from "lucide-react";
-import type { Project } from "@/db/schema";
+import type { PublicProjectCard } from "@/lib/public-project";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/i18n/context";
 
 interface ExploreClientProps {
-  projects: Project[];
+  projects: PublicProjectCard[];
 }
 
 export default function ExploreClient({ projects }: ExploreClientProps) {

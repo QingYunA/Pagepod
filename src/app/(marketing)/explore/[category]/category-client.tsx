@@ -16,7 +16,7 @@ import {
   Sparkles,
   Boxes,
 } from "lucide-react";
-import type { Project } from "@/db/schema";
+import type { PublicProjectCard } from "@/lib/public-project";
 
 const CATEGORY_ICONS: Record<string, typeof Wrench> = {
   tools: Wrench,
@@ -32,7 +32,7 @@ const CATEGORY_ICONS: Record<string, typeof Wrench> = {
 interface CategoryClientProps {
   category: string;
   categoryName: string;
-  projects: Project[];
+  projects: PublicProjectCard[];
 }
 
 export default function CategoryProjectsGrid({
