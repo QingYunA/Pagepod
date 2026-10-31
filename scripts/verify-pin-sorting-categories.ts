@@ -3,6 +3,7 @@ import { detectHtmlLanguage } from "../src/lib/parser/language-detector";
 import { uploadPayloadSchema, updateProjectInputSchema, CATEGORIES_ENUM, LANGUAGE_ENUM } from "../src/lib/validation";
 import { toggleGlobalPin, createProject, ProjectForbiddenError } from "../src/lib/services/project-service";
 import type { CurrentUser } from "../src/lib/auth";
+import { dedupePublicProjects } from "../src/lib/project-dedupe";
 
 console.log("\n=== 1. Heuristic Language Detection Tests ===");
 
@@ -150,5 +151,23 @@ const parsedWithExplicitLanguage = uploadPayloadSchema.parse({
 });
 assert.equal(parsedWithExplicitLanguage.language, "en", "explicit language must be respected");
 console.log("  ✓ uploadPayloadSchema preserves undefined for automatic heuristic detection");
+
+console.log("\n=== 5. Public Showcase Repost Dedup ===");
+
+const repostDescription = "Free re-runs on still-flagged paragraphs for writers";
+const deduped = dedupePublicProjects([
+  { userId: "owner-a", title: "HumanPen Rounds", description: repostDescription },
+  { userId: "owner-a", title: "  humanpen   rounds ", description: repostDescription.toUpperCase() },
+  { userId: "owner-b", title: "HumanPen Rounds", description: repostDescription },
+  { userId: "owner-a", title: "Guest Transient App", description: "" },
+  { userId: "owner-a", title: "Guest Transient App", description: "" },
+  { userId: null, title: "Anonymous", description: repostDescription },
+  { userId: null, title: "Anonymous", description: repostDescription },
+]);
+assert.equal(deduped.length, 6, "Only the same-owner repost with identical title and description is collapsed");
+assert.equal(deduped[0].userId, "owner-a", "The first (best-ranked) copy is kept");
+assert.ok(deduped.some((p) => p.userId === "owner-b"), "Different owners sharing a title are both kept");
+assert.equal(deduped.filter((p) => p.title === "Guest Transient App").length, 2, "Projects without a meaningful description are never deduped");
+console.log("  ✓ Same-owner reposts collapse; distinct owners and description-less projects are preserved");
 
 console.log("\n=== ALL VERIFICATION TESTS PASSED SUCCESSFULLY! ===");

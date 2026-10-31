@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { eq, desc, asc, and, or, isNull, inArray, sql } from "drizzle-orm";
 import { calculateTrendingScore } from "@/lib/scoring";
+import { dedupePublicProjects } from "@/lib/project-dedupe";
 import * as schema from "./schema";
 import type {
   Project,
@@ -699,15 +700,7 @@ export async function getAllProjects(options?: {
   }
 
   if (isPublicMode) {
-    const seenFingerprints = new Set<string>();
-    list = list.filter((project) => {
-      const normalizedTitle = project.title.toLowerCase().replace(/\s+/g, " ").trim();
-      const normalizedDescription = (project.description || "").toLowerCase().replace(/\s+/g, " ").trim();
-      const fingerprint = `${normalizedTitle}\n${normalizedDescription}`;
-      if (seenFingerprints.has(fingerprint)) return false;
-      seenFingerprints.add(fingerprint);
-      return true;
-    });
+    list = dedupePublicProjects(list);
   }
 
   return list;
