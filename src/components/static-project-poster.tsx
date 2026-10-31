@@ -76,6 +76,10 @@ export default function StaticProjectPoster({
         <img
           src={effectiveScreenshot}
           alt={title}
+          width={640}
+          height={360}
+          loading="lazy"
+          decoding="async"
           onError={() => setImgFailed(true)}
           className="absolute inset-0 w-full h-full object-cover object-top opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-200"
         />

@@ -254,6 +254,10 @@ export default function HoverSandboxPreview({
             src={activeScreenshot}
             alt=""
             aria-hidden="true"
+            width={640}
+            height={360}
+            loading="lazy"
+            decoding="async"
             onError={() => setImgFailed(true)}
             className="absolute inset-0 w-full h-full object-cover object-top opacity-50 group-hover/cell:opacity-80 transition-opacity"
           />
@@ -324,13 +328,17 @@ export default function HoverSandboxPreview({
                 src={activeScreenshot}
                 alt=""
                 aria-hidden="true"
+                width={640}
+                height={360}
+                loading="lazy"
+                decoding="async"
                 onError={() => setImgFailed(true)}
                 className="absolute inset-0 w-full h-full object-cover object-top opacity-50 pointer-events-none"
               />
             )}
             <iframe
               key={iframeKey}
-              src={`/raw/${slug}`}
+              src={`/raw/${slug}?preview=1`}
               title={title}
               tabIndex={-1}
               sandbox="allow-scripts"
@@ -399,13 +407,17 @@ export default function HoverSandboxPreview({
               src={activeScreenshot}
               alt=""
               aria-hidden="true"
+              width={640}
+              height={360}
+              loading="lazy"
+              decoding="async"
               onError={() => setImgFailed(true)}
               className="absolute inset-0 w-full h-full object-cover object-top opacity-50 pointer-events-none"
             />
           )}
           <iframe
             key={iframeKey}
-            src={`/raw/${slug}`}
+            src={`/raw/${slug}?preview=1`}
             title={title}
             tabIndex={-1}
             sandbox="allow-scripts"
@@ -537,6 +549,8 @@ export default function HoverSandboxPreview({
               <img
                 src={activeScreenshot}
                 alt={title}
+                width={640}
+                height={360}
                 loading="lazy"
                 decoding="async"
                 onError={() => setImgFailed(true)}

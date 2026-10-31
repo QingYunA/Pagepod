@@ -106,8 +106,8 @@ export async function GET(request: Request, context: RouteParams) {
     return new NextResponse(`File not found: ${subpath}`, { status: 404 });
   }
 
-  // Increment view count if accessing the entry HTML
-  if (!subPaths || subPaths.length === 0 || subpath === project.entryPath) {
+  // Increment view count for real runs, excluding hover preview iframes
+  if (url.searchParams.get("preview") !== "1" && (!subPaths || subPaths.length === 0 || subpath === project.entryPath)) {
     incrementViewCount(slug).catch(() => {});
   }
 
@@ -138,6 +138,8 @@ export async function GET(request: Request, context: RouteParams) {
   } else if (project.isGuestTransient) {
     headers.set("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=600");
     headers.set("X-Robots-Tag", "noindex, nofollow");
+  } else if (isImageOrMedia && url.searchParams.has("v")) {
+    headers.set("Cache-Control", "public, max-age=31536000, immutable");
   } else if (isImageOrMedia) {
     // Static media & screenshots: 1 day in browser, 30 days on CDN edge
     headers.set("Cache-Control", "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400");

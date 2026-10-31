@@ -143,7 +143,7 @@ export function HomeHeader({ currentUser, extraActions }: HomeHeaderProps) {
             onClick={() => setCurrentHash("")}
             className="flex items-center gap-2.5 font-semibold tracking-tight text-base text-foreground group shrink-0"
           >
-            <BrandLogo size={24} className="w-6 h-6 shrink-0" />
+            <BrandLogo size={24} className="w-6 h-6 shrink-0" decorative />
             <span className="font-semibold text-base">
               {process.env.NEXT_PUBLIC_SITE_NAME || "Pagepod"}
             </span>

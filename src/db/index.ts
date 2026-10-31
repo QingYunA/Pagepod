@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { eq, desc, asc, and, or, isNull, inArray, sql } from "drizzle-orm";
 import { calculateTrendingScore } from "@/lib/scoring";
+import { dedupePublicProjects } from "@/lib/project-dedupe";
 import * as schema from "./schema";
 import type {
   Project,
@@ -555,7 +556,7 @@ export async function getAllProjects(options?: {
             return await queryWithWhere.orderBy(
               desc(schema.projects.isGlobalPinned),
               desc(schema.projects.globalPinnedAt),
-              sql`(${schema.projects.viewCount} + 1.0) / POWER(GREATEST(0.1, (EXTRACT(EPOCH FROM (NOW() - ${schema.projects.createdAt})) / 3600.0) + 2.0), 1.5) DESC`,
+              sql`${schema.projects.viewCount} / POWER(GREATEST(0.1, (EXTRACT(EPOCH FROM (NOW() - ${schema.projects.createdAt})) / 3600.0) + 2.0), 1.5) DESC`,
               desc(schema.projects.createdAt)
             );
           } else if (sortBy === "views") {
@@ -670,7 +671,8 @@ export async function getAllProjects(options?: {
       }
 
       if (sortBy === "trending") {
-        return calculateTrendingScore(b.viewCount, b.createdAt, now) - calculateTrendingScore(a.viewCount, a.createdAt, now);
+        const scoreDifference = calculateTrendingScore(b.viewCount, b.createdAt, now) - calculateTrendingScore(a.viewCount, a.createdAt, now);
+        return scoreDifference || b.createdAt.getTime() - a.createdAt.getTime();
       }
       if (sortBy === "views") {
         return (b.viewCount || 0) - (a.viewCount || 0);
@@ -695,6 +697,10 @@ export async function getAllProjects(options?: {
         p.slug.toLowerCase().includes(q) ||
         (Array.isArray(p.tags) && p.tags.some((t) => t.toLowerCase().includes(q)))
     );
+  }
+
+  if (isPublicMode) {
+    list = dedupePublicProjects(list);
   }
 
   return list;

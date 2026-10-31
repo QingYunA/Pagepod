@@ -11,7 +11,7 @@ export default function AdminLoading() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-6 shrink-0">
             <div className="flex items-center gap-2 font-semibold tracking-tight text-sm text-foreground shrink-0">
-              <BrandLogo size={24} className="w-6 h-6 shrink-0" />
+              <BrandLogo size={24} className="w-6 h-6 shrink-0" decorative />
               <span className="font-semibold">Pagepod</span>
             </div>
 
