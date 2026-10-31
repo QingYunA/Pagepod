@@ -59,11 +59,11 @@ async function verify() {
     const layoutCode = fs.readFileSync(layoutPath, "utf-8");
     assert(layoutCode.includes("getSiteUrl"), "layout.tsx imports and uses getSiteUrl");
 
-    // Test 8: Verify p/[slug]/page.tsx uses getSiteUrl for canonical
-    const pSlugPath = path.resolve(__dirname, "../src/app/p/[slug]/page.tsx");
+    // Test 8: Verify shared project page renderer uses getSiteUrl for canonical
+    const pSlugPath = path.resolve(__dirname, "../src/app/p/[slug]/project-page.tsx");
     const pSlugCode = fs.readFileSync(pSlugPath, "utf-8");
-    assert(pSlugCode.includes("getSiteUrl()"), "src/app/p/[slug]/page.tsx uses getSiteUrl()");
-    assert(!pSlugCode.includes("process.env.NEXT_PUBLIC_SITE_URL"), "src/app/p/[slug]/page.tsx avoids raw NEXT_PUBLIC_SITE_URL");
+    assert(pSlugCode.includes("getSiteUrl()"), "src/app/p/[slug]/project-page.tsx uses getSiteUrl()");
+    assert(!pSlugCode.includes("process.env.NEXT_PUBLIC_SITE_URL"), "src/app/p/[slug]/project-page.tsx avoids raw NEXT_PUBLIC_SITE_URL");
 
     // Test 9: Verify openapi.json/route.ts uses getSiteUrl
     const openapiPath = path.resolve(__dirname, "../src/app/api/openapi.json/route.ts");
