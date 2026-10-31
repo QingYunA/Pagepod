@@ -555,7 +555,7 @@ export async function getAllProjects(options?: {
             return await queryWithWhere.orderBy(
               desc(schema.projects.isGlobalPinned),
               desc(schema.projects.globalPinnedAt),
-              sql`(${schema.projects.viewCount} + 1.0) / POWER(GREATEST(0.1, (EXTRACT(EPOCH FROM (NOW() - ${schema.projects.createdAt})) / 3600.0) + 2.0), 1.5) DESC`,
+              sql`${schema.projects.viewCount} / POWER(GREATEST(0.1, (EXTRACT(EPOCH FROM (NOW() - ${schema.projects.createdAt})) / 3600.0) + 2.0), 1.5) DESC`,
               desc(schema.projects.createdAt)
             );
           } else if (sortBy === "views") {
@@ -670,7 +670,8 @@ export async function getAllProjects(options?: {
       }
 
       if (sortBy === "trending") {
-        return calculateTrendingScore(b.viewCount, b.createdAt, now) - calculateTrendingScore(a.viewCount, a.createdAt, now);
+        const scoreDifference = calculateTrendingScore(b.viewCount, b.createdAt, now) - calculateTrendingScore(a.viewCount, a.createdAt, now);
+        return scoreDifference || b.createdAt.getTime() - a.createdAt.getTime();
       }
       if (sortBy === "views") {
         return (b.viewCount || 0) - (a.viewCount || 0);
@@ -695,6 +696,18 @@ export async function getAllProjects(options?: {
         p.slug.toLowerCase().includes(q) ||
         (Array.isArray(p.tags) && p.tags.some((t) => t.toLowerCase().includes(q)))
     );
+  }
+
+  if (isPublicMode) {
+    const seenFingerprints = new Set<string>();
+    list = list.filter((project) => {
+      const normalizedTitle = project.title.toLowerCase().replace(/\s+/g, " ").trim();
+      const normalizedDescription = (project.description || "").toLowerCase().replace(/\s+/g, " ").trim();
+      const fingerprint = `${normalizedTitle}\n${normalizedDescription}`;
+      if (seenFingerprints.has(fingerprint)) return false;
+      seenFingerprints.add(fingerprint);
+      return true;
+    });
   }
 
   return list;

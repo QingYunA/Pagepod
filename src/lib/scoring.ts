@@ -1,6 +1,6 @@
 /**
  * Universal trending score calculator using gravity time-decay formula:
- * Score = (ViewCount + 1) / (AgeInHours + 2)^1.5
+ * Score = ViewCount / (AgeInHours + 2)^1.5
  *
  * Enforces a minimum base of 0.1 to avoid negative or division-by-zero errors.
  */
@@ -24,5 +24,5 @@ export function calculateTrendingScore(
   const ageHours = Math.max(0, (refMs - safeCreatedMs) / (1000 * 60 * 60));
   const base = Math.max(0.1, ageHours + 2.0);
 
-  return ((viewCount || 0) + 1.0) / Math.pow(base, 1.5);
+  return (viewCount || 0) / Math.pow(base, 1.5);
 }

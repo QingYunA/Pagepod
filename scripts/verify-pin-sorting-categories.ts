@@ -75,7 +75,7 @@ console.log("  ✓ Zod validation schemas strictly enforce category and language
 console.log("\n=== 3. Trending Decay Score Verification ===");
 
 const calculateScore = (viewCount: number, ageInHours: number) => {
-  return (viewCount + 1) / Math.pow(ageInHours + 2, 1.5);
+  return viewCount / Math.pow(ageInHours + 2, 1.5);
 };
 
 // 3.1 Verify calculateTrendingScore pure function
@@ -95,6 +95,7 @@ const scoreC = calculateTrendingScore(200, fourDaysAgo, now);
 
 assert.ok(scoreA > scoreB, `Fresh hot item (${scoreA.toFixed(2)}) should rank higher than day-old item (${scoreB.toFixed(2)})`);
 assert.ok(scoreB > scoreC, `Day-old item (${scoreB.toFixed(2)}) should rank higher than week-old item (${scoreC.toFixed(2)})`);
+assert.equal(calculateTrendingScore(0, oneHourAgo, now), calculateScore(0, 1), "Zero-view projects must have a zero trending score");
 console.log("  ✓ Gravity time-decay trending formula verifies age-adjusted ranking");
 
 // 3.2 Clock drift defense: future created_at must not produce NaN or throw

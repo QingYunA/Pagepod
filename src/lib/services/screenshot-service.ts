@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import { execSync, execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { revalidatePath } from "next/cache";
+import sharp from "sharp";
 import { getProjectBySlug, updateProject } from "@/db";
 import { getStorage } from "@/lib/storage";
 import { getJwtSecret } from "@/lib/secret-policy";
@@ -175,8 +176,8 @@ export async function renderProjectScreenshot(
 }
 
 /**
- * Stores a screenshot PNG buffer under the project's storage directory.
- * Returns the public relative asset URL.
+ * Stores the original PNG and a lightweight WebP thumbnail under the project's storage directory.
+ * Returns the WebP public relative asset URL, falling back to the PNG if thumbnail generation fails.
  */
 export async function saveProjectScreenshotFile(
   storagePrefix: string,
@@ -186,7 +187,19 @@ export async function saveProjectScreenshotFile(
   const storage = getStorage();
   const screenshotStoragePath = `${storagePrefix}/screenshot.png`;
   await storage.uploadFile(screenshotStoragePath, imageBuffer, "image/png");
-  return `/raw/${slug}/screenshot.png?v=${Date.now()}`;
+
+  const version = Date.now();
+  try {
+    const thumbnailBuffer = await sharp(imageBuffer)
+      .resize({ width: 640, withoutEnlargement: true })
+      .webp({ quality: 75 })
+      .toBuffer();
+    await storage.uploadFile(`${storagePrefix}/screenshot.webp`, thumbnailBuffer, "image/webp");
+    return `/raw/${slug}/screenshot.webp?v=${version}`;
+  } catch (err) {
+    console.warn("[ScreenshotService] WebP thumbnail generation failed:", err instanceof Error ? err.message : err);
+    return `/raw/${slug}/screenshot.png?v=${version}`;
+  }
 }
 
 // --- Legacy & Standalone Orchestration (For CLI scripts and direct endpoints) ---
