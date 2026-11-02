@@ -1,6 +1,20 @@
 import type { MetadataRoute } from "next";
 import { getAllProjects } from "@/db";
 import { getSiteUrl } from "@/lib/site-url";
+import { AI_TOOL_PAGES } from "@/data/ai-tools";
+
+// Keep static route timestamps stable across ISR revalidations.
+const SITE_CONTENT_UPDATED_AT = new Date("2026-10-30T00:00:00Z");
+const EXPLORE_CATEGORIES = [
+  "tools",
+  "ai",
+  "games",
+  "creative",
+  "visualization",
+  "prototypes",
+  "animations",
+  "others",
+];
 
 // Keep static route timestamps stable across ISR revalidations.
 const SITE_CONTENT_UPDATED_AT = new Date("2026-10-30T00:00:00Z");
@@ -60,6 +74,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
   ];
+
+  for (const tool of Object.values(AI_TOOL_PAGES)) {
+    routes.push({
+      url: `${baseUrl}/ai-tools/${tool.slug}`,
+      lastModified: new Date(tool.lastVerified),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    });
+  }
 
   try {
     // Quality Gate: Only expose public, non-test projects with descriptive metadata
