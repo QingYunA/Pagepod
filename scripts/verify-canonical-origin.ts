@@ -59,17 +59,34 @@ async function verify() {
     const layoutCode = fs.readFileSync(layoutPath, "utf-8");
     assert(layoutCode.includes("getSiteUrl"), "layout.tsx imports and uses getSiteUrl");
 
-    // Test 8: Verify p/[slug]/page.tsx uses getSiteUrl for canonical
-    const pSlugPath = path.resolve(__dirname, "../src/app/p/[slug]/page.tsx");
+    // Test 8: Verify shared project page renderer uses getSiteUrl for canonical
+    const pSlugPath = path.resolve(__dirname, "../src/app/p/[slug]/project-page.tsx");
     const pSlugCode = fs.readFileSync(pSlugPath, "utf-8");
-    assert(pSlugCode.includes("getSiteUrl()"), "src/app/p/[slug]/page.tsx uses getSiteUrl()");
-    assert(!pSlugCode.includes("process.env.NEXT_PUBLIC_SITE_URL"), "src/app/p/[slug]/page.tsx avoids raw NEXT_PUBLIC_SITE_URL");
+    assert(pSlugCode.includes("getSiteUrl()"), "src/app/p/[slug]/project-page.tsx uses getSiteUrl()");
+    assert(!pSlugCode.includes("process.env.NEXT_PUBLIC_SITE_URL"), "src/app/p/[slug]/project-page.tsx avoids raw NEXT_PUBLIC_SITE_URL");
 
     // Test 9: Verify openapi.json/route.ts uses getSiteUrl
     const openapiPath = path.resolve(__dirname, "../src/app/api/openapi.json/route.ts");
     const openapiCode = fs.readFileSync(openapiPath, "utf-8");
     assert(openapiCode.includes("getSiteUrl()"), "src/app/api/openapi.json/route.ts uses getSiteUrl()");
     assert(!openapiCode.includes("process.env.NEXT_PUBLIC_SITE_URL"), "src/app/api/openapi.json/route.ts avoids raw NEXT_PUBLIC_SITE_URL");
+
+    // Test 10: openGraph is shallowly merged, so any page overriding it must re-declare images
+    const appDir = path.resolve(__dirname, "../src/app");
+    const metadataFiles = (fs.readdirSync(appDir, { recursive: true }) as string[])
+      .filter((file) => /\.tsx?$/.test(file) && file !== "layout.tsx")
+      .map((file) => path.join(appDir, file));
+    for (const file of metadataFiles) {
+      const code = fs.readFileSync(file, "utf-8");
+      const blocks = code.match(/^\s*(openGraph|twitter): \{[\s\S]*?^\s*\},?$/gm) || [];
+      if (blocks.length === 0) continue;
+      const missing = blocks.filter((block) => !/images:|defaultOpenGraphImages|defaultTwitterImages/.test(block));
+      assert(
+        missing.length === 0,
+        `${path.relative(appDir, file)} openGraph/twitter blocks keep a social image`,
+        missing.map((block) => block.trim().split("\n")[0]).join(", ")
+      );
+    }
   } finally {
     if (originalEnv !== undefined) {
       process.env.NEXT_PUBLIC_SITE_URL = originalEnv;

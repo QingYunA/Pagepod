@@ -47,6 +47,7 @@ interface RunnerClientProps {
   isOwner?: boolean;
   relatedProjects?: PublicProjectCard[];
   token?: string;
+  hasSeoHeading?: boolean;
 }
 
 type DeviceMode = "desktop" | "tablet" | "mobile";
@@ -57,6 +58,7 @@ export default function RunnerClient({
   isOwner = false,
   relatedProjects = [],
   token,
+  hasSeoHeading = false,
 }: RunnerClientProps) {
   const { t } = useLanguage();
   const [device, setDevice] = useState<DeviceMode>("desktop");
@@ -141,9 +143,15 @@ export default function RunnerClient({
           </Button>
 
           <div className="min-w-0 flex items-center gap-2">
-            <h1 className="text-sm font-semibold text-foreground truncate max-w-[140px] sm:max-w-xs md:max-w-sm">
-              {project.title}
-            </h1>
+            {hasSeoHeading ? (
+              <div className="text-sm font-semibold text-foreground truncate max-w-[140px] sm:max-w-xs md:max-w-sm">
+                {project.title}
+              </div>
+            ) : (
+              <h1 className="text-sm font-semibold text-foreground truncate max-w-[140px] sm:max-w-xs md:max-w-sm">
+                {project.title}
+              </h1>
+            )}
             {isPrivate ? (
               <Badge variant="secondary" className="text-xs px-2 py-0.5 gap-1 text-amber-600 dark:text-amber-400 border-amber-500/30">
                 <Lock className="w-3 h-3" />
@@ -357,7 +365,7 @@ export default function RunnerClient({
               <span className="text-xs font-mono text-muted-foreground tracking-tight">
                 {device === "tablet" ? "768 × 1024" : "375 × 667"}
               </span>
-              <span className="text-xs font-mono text-muted-foreground/60 uppercase">
+              <span className="text-xs font-mono text-muted-foreground uppercase">
                 {device}
               </span>
             </div>

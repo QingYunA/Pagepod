@@ -27,7 +27,6 @@ import {
 import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/lib/i18n/context";
@@ -354,7 +353,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -391,7 +390,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 tabIndex={-1}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
                 aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -544,30 +543,36 @@ function LoginForm() {
     );
   }
 
-  // 4. CLOUD SAAS AUTHENTICATION (shadcn/ui Authentication Block: Tabs, Confirm Password, Eye Toggles)
+  // 4. CLOUD SAAS AUTHENTICATION (shadcn/ui Authentication Block: Segmented Control, Confirm Password, Eye Toggles)
   if (isCloud) {
     return (
       <div className="space-y-6">
-        {/* Prominent shadcn Tabs for Sign In vs Sign Up */}
-        <Tabs
-          value={activeTab}
-          onValueChange={(val) => {
-            setActiveTab(val as "signin" | "signup");
-            setSignupPassword("");
-            setSignupConfirmPassword("");
-            setDismissedErrorMsg(emailState?.error || "");
-          }}
-          className="w-full"
+        {/* Segmented control for Sign In vs Sign Up */}
+        <div
+          role="group"
+          aria-label={`${t.auth.tabSignIn} / ${t.auth.tabSignUp}`}
+          className="grid h-9 w-full grid-cols-2 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground"
         >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin" className="cursor-pointer transition-all duration-200">
-              {t.auth.tabSignIn}
-            </TabsTrigger>
-            <TabsTrigger value="signup" className="cursor-pointer transition-all duration-200">
-              {t.auth.tabSignUp}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+          {(["signin", "signup"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              aria-pressed={activeTab === tab}
+              onClick={() => {
+                setActiveTab(tab);
+                setSignupPassword("");
+                setSignupConfirmPassword("");
+                setDismissedErrorMsg(emailState?.error || "");
+              }}
+              className={cn(
+                "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow,transform] duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
+                activeTab === tab && "bg-background text-foreground shadow-xs"
+              )}
+            >
+              {tab === "signin" ? t.auth.tabSignIn : t.auth.tabSignUp}
+            </button>
+          ))}
+        </div>
 
         {/* Dynamic Title & Subtitle based on active tab with smooth transition */}
         <div className="flex flex-col space-y-1.5 text-center transition-all duration-200 ease-in-out">
@@ -692,7 +697,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -742,7 +747,7 @@ function LoginForm() {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   tabIndex={-1}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
                   aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -781,7 +786,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={() => setDismissedErrorMsg(currentEmailError)}
-                    className="text-muted-foreground/60 hover:text-foreground text-xs p-0.5 cursor-pointer ml-1"
+                    className="text-muted-foreground hover:text-foreground text-xs p-0.5 cursor-pointer ml-1"
                     title="Dismiss"
                   >
                     ×
@@ -826,7 +831,7 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setDismissedErrorMsg(currentEmailError)}
-                  className="text-muted-foreground/60 hover:text-foreground text-xs p-0.5 cursor-pointer ml-1"
+                  className="text-muted-foreground hover:text-foreground text-xs p-0.5 cursor-pointer ml-1"
                 >
                   ×
                 </button>
@@ -898,7 +903,7 @@ function LoginForm() {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               tabIndex={-1}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -955,7 +960,7 @@ export default function LoginPage() {
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           {/* Logo mark */}
           <div className="mx-auto flex items-center justify-center gap-2.5 font-semibold text-sm">
-            <BrandLogo size={26} className="w-7 h-7" />
+            <BrandLogo size={26} className="w-7 h-7" decorative />
             <span>Pagepod</span>
           </div>
 

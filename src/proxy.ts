@@ -151,6 +151,20 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  if (!subdomain) {
+    const projectPathMatch = pathname.match(/^\/p\/([^/]+)\/?$/);
+    if (projectPathMatch) {
+      const hasAuthCookie = request.cookies.getAll().some((cookie) =>
+        cookie.name.startsWith("sb-") || cookie.name === COOKIE_NAME
+      );
+      if (searchParams.has("token") || hasAuthCookie) {
+        const liveUrl = new URL(`/p/${projectPathMatch[1]}/live`, request.url);
+        liveUrl.search = request.nextUrl.search;
+        return NextResponse.rewrite(liveUrl);
+      }
+    }
+  }
+
   // 2. Auto-catch Supabase OAuth redirects:
   // If Supabase falls back to Site URL (e.g. /?code=xxx) due to redirect whitelist mismatch,
   // immediately forward to /auth/callback with all query params preserved

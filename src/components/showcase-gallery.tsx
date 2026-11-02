@@ -140,7 +140,8 @@ export default function ShowcaseGallery({ initialProjects, initialLocale }: Show
 
     unpinnedList.sort((a, b) => {
       if (sortBy === "trending") {
-        return calculateTrendingScore(b.viewCount, b.createdAt, now) - calculateTrendingScore(a.viewCount, a.createdAt, now);
+        const scoreDifference = calculateTrendingScore(b.viewCount, b.createdAt, now) - calculateTrendingScore(a.viewCount, a.createdAt, now);
+        return scoreDifference || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
       if (sortBy === "views") {
         return (b.viewCount || 0) - (a.viewCount || 0);

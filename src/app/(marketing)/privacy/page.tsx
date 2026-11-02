@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import PrivacyClient from "./privacy-client";
+import { defaultOpenGraphImages } from "@/lib/seo/social-images";
 
 const siteUrl = getSiteUrl();
 
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
     canonical: "/privacy",
   },
   openGraph: {
+    ...defaultOpenGraphImages,
     title: "Privacy Policy | Pagepod",
     description: "Learn how Pagepod handles your account, project data, and storage.",
     url: `${siteUrl}/privacy`,

@@ -256,7 +256,7 @@ export default function PricingClient() {
                   {t.pricing.litePlan.period}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground/80">
+              <p className="text-xs text-muted-foreground">
                 {t.pricing.earlyBirdNotice}
               </p>
             </div>
@@ -335,7 +335,7 @@ export default function PricingClient() {
                   {t.pricing.proPlan.period}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground/80">
+              <p className="text-xs text-muted-foreground">
                 {t.pricing.earlyBirdNotice}
               </p>
             </div>

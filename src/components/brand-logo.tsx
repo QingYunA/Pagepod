@@ -7,9 +7,10 @@ import { useTheme } from "next-themes";
 interface BrandLogoProps {
   size?: number;
   className?: string;
+  decorative?: boolean;
 }
 
-export function BrandLogo({ size = 24, className = "w-6 h-6" }: BrandLogoProps) {
+export function BrandLogo({ size = 24, className = "w-6 h-6", decorative = false }: BrandLogoProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -23,7 +24,8 @@ export function BrandLogo({ size = 24, className = "w-6 h-6" }: BrandLogoProps) 
       <div className={`relative ${className} rounded-md overflow-hidden flex items-center justify-center shrink-0`}>
         <Image
           src="/brand/pagepod-logo-monochrome.png"
-          alt="Pagepod"
+          alt={decorative ? "" : "Pagepod"}
+          aria-hidden={decorative || undefined}
           width={size}
           height={size}
           className="w-full h-full object-contain dark:hidden"
@@ -31,7 +33,8 @@ export function BrandLogo({ size = 24, className = "w-6 h-6" }: BrandLogoProps) 
         />
         <Image
           src="/brand/pagepod-logo-dark.png"
-          alt="Pagepod"
+          alt={decorative ? "" : "Pagepod"}
+          aria-hidden={decorative || undefined}
           width={size}
           height={size}
           className="w-full h-full object-contain hidden dark:block"
@@ -48,7 +51,8 @@ export function BrandLogo({ size = 24, className = "w-6 h-6" }: BrandLogoProps) 
       <Image
         key={isDark ? "dark-logo" : "light-logo"}
         src={isDark ? "/brand/pagepod-logo-dark.png" : "/brand/pagepod-logo-monochrome.png"}
-        alt="Pagepod"
+        alt={decorative ? "" : "Pagepod"}
+        aria-hidden={decorative || undefined}
         width={size}
         height={size}
         className="w-full h-full object-contain"

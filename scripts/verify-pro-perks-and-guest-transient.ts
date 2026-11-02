@@ -205,11 +205,13 @@ assert(reservedSubBlocked, "Reserved system subdomain ('admin') is strictly reje
 console.log("\n=== 4. GuestTransient Domain Lifecycle Tests ===");
 
 // 1. Guest upload creates isGuestTransient: true
+// Unique title per run: the public feed collapses same-owner reposts, and local DBs keep earlier runs' fixtures.
+const guestRunId = Date.now();
 const guestResult = await handleGuestUpload({
   htmlContent: "<h1>Guest App</h1>",
   clientIp: "127.0.0.1",
-  title: "Guest Transient App",
-  slug: "guest-transient-" + Date.now(),
+  title: `Guest Transient App ${guestRunId}`,
+  slug: "guest-transient-" + guestRunId,
   visibility: "public",
 });
 assert(guestResult.success, "Guest upload succeeds");
