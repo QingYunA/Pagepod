@@ -16,19 +16,6 @@ const EXPLORE_CATEGORIES = [
   "others",
 ];
 
-// Keep static route timestamps stable across ISR revalidations.
-const SITE_CONTENT_UPDATED_AT = new Date("2026-10-30T00:00:00Z");
-const EXPLORE_CATEGORIES = [
-  "tools",
-  "ai",
-  "games",
-  "creative",
-  "visualization",
-  "prototypes",
-  "animations",
-  "others",
-];
-
 // Revalidate sitemap every 60s so newly published projects are immediately crawlable
 export const revalidate = 60;
 
