@@ -3,6 +3,7 @@ import { getAllProjects } from "@/db";
 import { getSiteUrl } from "@/lib/site-url";
 import { toPublicProjectCard } from "@/lib/public-project";
 import ExploreClient from "./explore-client";
+import { defaultOpenGraphImages, defaultTwitterImages } from "@/lib/seo/social-images";
 
 const siteUrl = getSiteUrl();
 
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     canonical: "/explore",
   },
   openGraph: {
+    ...defaultOpenGraphImages,
     title: "Curated Collections & Topics | Pagepod",
     description:
       "Explore curated AI-generated mini tools, games, visualizations, and prototypes. Test-run them directly in the sandbox.",
@@ -21,6 +23,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    ...defaultTwitterImages,
     card: "summary_large_image",
     title: "Curated Collections & Topics | Pagepod",
     description:

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronRight, ExternalLink, Upload } from "lucide-react";
+import { defaultOpenGraphImages, defaultTwitterImages } from "@/lib/seo/social-images";
 
 interface AiToolPageProps {
   params: Promise<{
@@ -41,12 +42,14 @@ export async function generateMetadata({ params }: AiToolPageProps): Promise<Met
       canonical: `/ai-tools/${slug}`,
     },
     openGraph: {
+      ...defaultOpenGraphImages,
       title: `${tool.title} | Pagepod`,
       description: tool.description,
       url: `${siteUrl}/ai-tools/${slug}`,
       type: "article",
     },
     twitter: {
+      ...defaultTwitterImages,
       card: "summary_large_image",
       title: `${tool.title} | Pagepod`,
       description: tool.description,

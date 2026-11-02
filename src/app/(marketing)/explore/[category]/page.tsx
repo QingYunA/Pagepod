@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight, Wrench, Gamepad2, BarChart2, Layers, Bot, Sparkles, Boxes } from "lucide-react";
 
 import CategoryProjectsGrid from "./category-client";
+import { defaultOpenGraphImages, defaultTwitterImages } from "@/lib/seo/social-images";
 
 interface CategoryPageProps {
   params: Promise<{
@@ -113,12 +114,14 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       canonical: `/explore/${category}`,
     },
     openGraph: {
+      ...defaultOpenGraphImages,
       title: `${title} | Pagepod`,
       description: catInfo.desc,
       url: `${siteUrl}/explore/${category}`,
       type: "website",
     },
     twitter: {
+      ...defaultTwitterImages,
       card: "summary_large_image",
       title: `${title} | Pagepod`,
       description: catInfo.desc,

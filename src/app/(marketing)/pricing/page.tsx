@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import PricingClient from "./pricing-client";
 import { isSelfHosted } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site-url";
+import { defaultOpenGraphImages, defaultTwitterImages } from "@/lib/seo/social-images";
 
 const siteUrl = getSiteUrl();
 
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     canonical: "/pricing",
   },
   openGraph: {
+    ...defaultOpenGraphImages,
     title: "Pricing & Lifetime Plans | Pagepod",
     description:
       "Simple, transparent lifetime pricing for developers and creators. Free hosting with private protection, Lite & Pro lifetime deals with generous storage and custom subdomains.",
@@ -21,6 +23,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    ...defaultTwitterImages,
     card: "summary_large_image",
     title: "Pricing & Lifetime Plans | Pagepod",
     description:

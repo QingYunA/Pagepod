@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import TermsClient from "./terms-client";
+import { defaultOpenGraphImages } from "@/lib/seo/social-images";
 
 const siteUrl = getSiteUrl();
 
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
     canonical: "/terms",
   },
   openGraph: {
+    ...defaultOpenGraphImages,
     title: "Terms of Service | Pagepod",
     description: "Acceptable use policy and platform rules for Pagepod.",
     url: `${siteUrl}/terms`,

@@ -15,6 +15,7 @@ import { getProjectSeoProfile } from "@/data/projects-seo/manifest";
 import { ProjectSeoSection } from "@/components/project-seo-section";
 import { toPublicProjectCard, toPublicRunnerProject } from "@/lib/public-project";
 import RunnerClient from "./runner-client";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo/social-images";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -81,6 +82,7 @@ export async function generateProjectMetadata({ params }: ProjectPageProps): Pro
   const canonicalUrl = `${siteUrl}/p/${slug}`;
   const fullMetaTitle = `${profile.headline} | Pagepod`;
   const metaDesc = profile.summary.slice(0, 160);
+  const socialImageUrl = project.screenshotUrl || DEFAULT_SOCIAL_IMAGE.url;
 
   return {
     title: profile.headline, // Root layout template will append " | Pagepod"
@@ -101,9 +103,11 @@ export async function generateProjectMetadata({ params }: ProjectPageProps): Pro
       description: metaDesc,
       url: canonicalUrl,
       type: "article",
+      images: [{ url: socialImageUrl, alt: profile.headline }],
     },
     twitter: {
       card: "summary_large_image",
+      images: [socialImageUrl],
       title: fullMetaTitle,
       description: metaDesc,
     },
