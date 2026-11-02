@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ChevronUp, ChevronDown, Sparkles, Play, Code2, Share2, Check, ExternalLink, ShieldCheck } from "lucide-react";
-import type { Project } from "@/db/schema";
+import type { PublicProjectCard, PublicRunnerProject } from "@/lib/public-project";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/i18n/context";
 
 interface AntiBounceDrawerProps {
-  project: Project;
-  relatedProjects: Project[];
+  project: PublicRunnerProject;
+  relatedProjects: PublicProjectCard[];
   onOpenSourceModal?: () => void;
   onOpenShareModal?: () => void;
 }

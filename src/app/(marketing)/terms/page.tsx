@@ -5,7 +5,7 @@ import TermsClient from "./terms-client";
 const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
-  title: "Terms of Service - Pagepod",
+  title: "Terms of Service",
   description:
     "Terms of Service for using the Pagepod hosting platform, acceptable use policies, content ownership, and liability disclaimers.",
   alternates: {

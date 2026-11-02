@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Project } from "@/db/schema";
+import type { PublicProjectCard } from "@/lib/public-project";
 import type { ProjectSeoProfile } from "@/data/projects-seo/types";
 
 function GithubIcon({ className = "w-3 h-3" }: { className?: string }) {
@@ -44,7 +45,7 @@ const CATEGORY_LOCALIZED: Record<string, { en: string; zh: string }> = {
 interface ProjectSeoSectionProps {
   profile: ProjectSeoProfile;
   project: Project;
-  relatedProjects?: Project[];
+  relatedProjects?: PublicProjectCard[];
   rawUrl?: string;
 }
 

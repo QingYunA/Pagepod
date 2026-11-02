@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getAllProjects } from "@/db";
 import { getSiteUrl } from "@/lib/site-url";
+import { toPublicProjectCard } from "@/lib/public-project";
 import ExploreClient from "./explore-client";
 
 const siteUrl = getSiteUrl();
@@ -37,7 +38,7 @@ export default async function ExplorePage() {
 
   return (
     <main className="flex-1">
-      <ExploreClient projects={publicProjects} />
+      <ExploreClient projects={publicProjects.map(toPublicProjectCard)} />
     </main>
   );
 }

@@ -33,9 +33,6 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Pagepod Team" }],
   creator: "Pagepod",
-  alternates: {
-    canonical: "/",
-  },
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -51,7 +48,6 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    alternateLocale: ["zh_CN"],
     url: siteUrl,
     siteName: "Pagepod",
     title: "Pagepod - Free HTML Hosting: Preview & Share HTML Online",
@@ -77,61 +73,6 @@ export const metadata: Metadata = {
   },
 };
 
-const rootJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Pagepod",
-  url: siteUrl,
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "All",
-  description:
-    "Free zero-config HTML hosting. Upload HTML files to get a secure shareable link in 3 seconds. Run and share web apps safely in a hardened sandbox.",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-};
-
-const faqJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "How do I host and share an HTML file for free?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Simply drag and drop your single .html file or zip bundle into Pagepod. No registration or server configuration is required. You will receive an instant, sandboxed shareable link in 3 seconds.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Can I get a shareable link without server setup or registration?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Yes. Pagepod provides an instant zero-config guest ingestion pipeline. You get a live link immediately. If you sign up later, you can seamlessly claim your uploaded projects into your personal workspace.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Is running untrusted HTML and JavaScript files safe?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Yes. All hosted files run in an isolated /raw/[slug]/ runner under strict Content Security Policy (CSP) headers without allow-same-origin, preventing untrusted scripts from accessing host cookies, storage, or admin sessions.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What is the difference between Public and Unlisted visibility?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Public projects are indexed in the showcase feed and topic collections for discovery. Unlisted projects require a secret access token in the URL, preventing search engine indexing and gallery visibility.",
-      },
-    },
-  ],
-};
-
 const umamiScriptUrl =
   process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ||
   "https://umami.daydayup.lat/script.js";
@@ -147,14 +88,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="h-full antialiased overflow-x-hidden w-full max-w-full">
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(rootJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-        />
         {/* Instant synchronous script to sync html lang and locale before body renders */}
         <script
           dangerouslySetInnerHTML={{

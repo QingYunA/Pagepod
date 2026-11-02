@@ -14,6 +14,7 @@ import { TokenGateInput } from "@/components/token-gate-input";
 import { getSiteUrl } from "@/lib/site-url";
 import { getProjectSeoProfile } from "@/data/projects-seo/manifest";
 import { ProjectSeoSection } from "@/components/project-seo-section";
+import { toPublicProjectCard, toPublicRunnerProject } from "@/lib/public-project";
 import RunnerClient from "./runner-client";
 
 interface PageProps {
@@ -50,12 +51,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title:
         project.reviewStatus === "rejected"
-          ? "Project Removed / 项目已违规下架 - Pagepod"
+          ? "Project Removed / 项目已违规下架"
           : project.isGuestTransient
-          ? `${project.title || slug} (Guest Preview) - Pagepod`
+          ? `${project.title || slug} (Guest Preview)`
           : project.visibility === "unlisted"
-          ? "Unlisted Project / 未公开保护项目 - Pagepod"
-          : "Private Project / 私有保护项目 - Pagepod",
+          ? "Unlisted Project / 未公开保护项目"
+          : "Private Project / 私有保护项目",
       description: "Content is not publicly indexed on Pagepod.",
       robots: { index: false, follow: false },
     };
@@ -341,6 +342,7 @@ export default async function ProjectRunnerPage({ params, searchParams }: PagePr
 
   // Fetch related public projects for internal linking & recommendations
   const relatedProjects = await fetchRelatedProjects(slug, project.category);
+  const publicRelatedProjects = relatedProjects.map(toPublicProjectCard);
 
   // Safe JSON-LD serialization preventing </script> breakout & XSS
   const safeJsonLdString = jsonLd
@@ -361,17 +363,17 @@ export default async function ProjectRunnerPage({ params, searchParams }: PagePr
         />
       )}
       <RunnerClient
-        project={project}
+        project={toPublicRunnerProject(project)}
         initialSourceCode={sourceCode}
         isOwner={isExactCreator}
-        relatedProjects={relatedProjects}
+        relatedProjects={publicRelatedProjects}
         token={token}
       />
       {isPublicAndApproved && (
         <ProjectSeoSection
           profile={profile}
           project={project}
-          relatedProjects={relatedProjects}
+          relatedProjects={publicRelatedProjects}
           rawUrl={`/raw/${project.slug}/`}
         />
       )}

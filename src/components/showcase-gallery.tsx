@@ -25,7 +25,7 @@ import {
   Palette,
   X,
 } from "lucide-react";
-import type { Project } from "@/db/schema";
+import type { PublicProjectCard } from "@/lib/public-project";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,7 @@ import { calculateTrendingScore } from "@/lib/scoring";
 import HoverSandboxPreview from "@/components/hover-sandbox-preview";
 
 interface ShowcaseGalleryProps {
-  initialProjects: Project[];
+  initialProjects: PublicProjectCard[];
   initialLocale?: "zh" | "en";
 }
 
@@ -117,8 +117,8 @@ export default function ShowcaseGallery({ initialProjects, initialLocale }: Show
       return true;
     });
 
-    const pinnedList: Project[] = [];
-    const unpinnedList: Project[] = [];
+    const pinnedList: PublicProjectCard[] = [];
+    const unpinnedList: PublicProjectCard[] = [];
 
     matched.forEach((p) => {
       if (p.isGlobalPinned) {

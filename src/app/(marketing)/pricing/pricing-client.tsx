@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Check, Shield, Sparkles, Zap, ArrowRight, HelpCircle } from "lucide-react";
@@ -10,30 +10,28 @@ import { useLanguage } from "@/lib/i18n/context";
 import UnifiedCheckoutDialog from "@/components/pricing/unified-checkout-dialog";
 import { trackEvent } from "@/lib/analytics";
 
-export default function PricingClient() {
-  const { t, locale } = useLanguage();
-  const isZh = locale === "zh";
+type CheckoutTier = "lite" | "pro";
+type PricingUser = {
+  id: string;
+  email?: string;
+  fullName?: string;
+  planTier?: string;
+};
+
+interface CheckoutParamsHandlerProps {
+  currentUser: PricingUser | null;
+  setCurrentUser: Dispatch<SetStateAction<PricingUser | null>>;
+  setCheckoutTier: Dispatch<SetStateAction<CheckoutTier | null>>;
+  setShowSuccessBanner: Dispatch<SetStateAction<boolean>>;
+}
+
+function CheckoutParamsHandler({
+  currentUser,
+  setCurrentUser,
+  setCheckoutTier,
+  setShowSuccessBanner,
+}: CheckoutParamsHandlerProps) {
   const searchParams = useSearchParams();
-
-  const [checkoutTier, setCheckoutTier] = useState<"lite" | "pro" | null>(null);
-  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{
-    id: string;
-    email?: string;
-    fullName?: string;
-    planTier?: string;
-  } | null>(null);
-
-  useEffect(() => {
-    fetch("/api/user/me")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.authenticated && data?.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   // Auto-open checkout modal if redirected back with ?tier=... or handle payment success
   useEffect(() => {
@@ -61,13 +59,34 @@ export default function PricingClient() {
         }
       }
     }
-  }, [currentUser, searchParams]);
+  }, [currentUser, searchParams, setCheckoutTier, setCurrentUser, setShowSuccessBanner]);
+
+  return null;
+}
+
+export default function PricingClient() {
+  const { t, locale } = useLanguage();
+  const isZh = locale === "zh";
+  const [checkoutTier, setCheckoutTier] = useState<CheckoutTier | null>(null);
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [currentUser, setCurrentUser] = useState<PricingUser | null>(null);
+
+  useEffect(() => {
+    fetch("/api/user/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.authenticated && data?.user) {
+          setCurrentUser(data.user);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const currentTier = currentUser?.planTier || "free";
   const isLite = currentTier === "lite";
   const isPro = currentTier === "pro";
 
-  const handleBuyClick = (tier: "lite" | "pro") => {
+  const handleBuyClick = (tier: CheckoutTier) => {
     trackEvent("pricing_buy_click", { tier, logged_in: Boolean(currentUser) });
     if (!currentUser) {
       window.location.href = `/login?from=${encodeURIComponent(`/pricing?tier=${tier}`)}`;
@@ -78,6 +97,14 @@ export default function PricingClient() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12 md:py-16">
+      <Suspense fallback={null}>
+        <CheckoutParamsHandler
+          currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
+          setCheckoutTier={setCheckoutTier}
+          setShowSuccessBanner={setShowSuccessBanner}
+        />
+      </Suspense>
       {/* Header Hero Section */}
       <div className="text-center max-w-2xl mx-auto mb-6 space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border bg-card text-xs font-mono text-muted-foreground shadow-xs">

@@ -48,7 +48,7 @@ export function getProjectSeoProfile(
       `${title} interactive runner`,
       `${category} online`,
     ],
-    headline: `${title} - Interactive ${category.toUpperCase()} on Pagepod`,
+    headline: `${title} - Free ${category.charAt(0).toUpperCase() + category.slice(1)} Online`,
     summary:
       fallbackProject?.description ||
       (isZh

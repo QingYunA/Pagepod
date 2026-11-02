@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAllProjects } from "@/db";
 import { getSiteUrl } from "@/lib/site-url";
+import { toPublicProjectCard } from "@/lib/public-project";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Wrench, Gamepad2, BarChart2, Layers, Bot, Sparkles, Boxes } from "lucide-react";
 
@@ -82,6 +83,8 @@ const CATEGORY_MAP: Record<
   },
 };
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return Object.keys(CATEGORY_MAP).map((category) => ({ category }));
 }
@@ -97,6 +100,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     };
   }
 
+  const allProjects = await getAllProjects({ includePrivate: false, category });
+  const hasPublicProjects = allProjects.some((project) => project.visibility === "public");
   const siteUrl = getSiteUrl();
   const title = `Free ${catInfo.nameEn} Online`;
 
@@ -118,6 +123,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       title: `${title} | Pagepod`,
       description: catInfo.desc,
     },
+    robots: hasPublicProjects
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
   };
 }
 
@@ -179,7 +187,7 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
         <CategoryProjectsGrid
           category={category}
           categoryName={catInfo.nameEn}
-          projects={publicProjects}
+          projects={publicProjects.map(toPublicProjectCard)}
         />
 
         {/* Compact Pillar Technical Spec & FAQ (SEO Semantic Depth) */}
